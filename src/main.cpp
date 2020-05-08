@@ -4,8 +4,6 @@
 
 int main(int argc, char *argv[])
 {
-    //Q_INIT_RESOURCE();
-
     QApplication app(argc, argv);
     QCoreApplication::setOrganizationName("Jed# Software");
     QCoreApplication::setApplicationName("Teacher Helper");

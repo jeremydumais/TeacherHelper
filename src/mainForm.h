@@ -4,6 +4,7 @@
 #include <Qt/qmainwindow.h>
 #include <QtGui/QtGui>
 #include "ui_mainForm.h"
+#include "service/databaseConnection.h"
 
 class MainForm : public QMainWindow
 {
@@ -12,6 +13,8 @@ public:
 	~MainForm();
 private:
 	Ui::MainFormClass ui;
+	DatabaseConnection *dbConnection;
+	//static int callback(void *data, int argc, char **argv, char **azColName);
 private slots:
 };
 
