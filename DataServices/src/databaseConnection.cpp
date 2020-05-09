@@ -11,8 +11,8 @@ DatabaseConnection::DatabaseConnection(const std::string &dbName)
     : dbName(dbName),
       db(nullptr)
 {
-    if ( trim_copy(dbName) == "") {
-        throw invalid_argument("dbName cannot be null or empty");
+    if ( trim_copy(dbName).empty()) {
+        throw invalid_argument("dbName cannot be null or empty.");
     }
 }
 
@@ -26,7 +26,12 @@ const std::string DatabaseConnection::getDbName() const
     return dbName;
 }
 
-void DatabaseConnection::connect()
+sqlite3 *DatabaseConnection::getConnectionPtr() const
+{
+    return db;
+}
+
+void DatabaseConnection::open()
 {
     if (!filesystem::exists(dbName)) {
         stringstream ss;
@@ -43,3 +48,8 @@ void DatabaseConnection::connect()
     }
 }
 
+void DatabaseConnection::close()
+{
+    sqlite3_close(db);
+    db = nullptr;
+}

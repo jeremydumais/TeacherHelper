@@ -9,7 +9,9 @@ public:
     DatabaseConnection(const std::string &dbName);
     virtual ~DatabaseConnection();
     const std::string getDbName() const;
-    void connect();
+    sqlite3 *getConnectionPtr() const;
+    void open();
+    void close();
 private:
     std::string dbName;
 	sqlite3 *db;

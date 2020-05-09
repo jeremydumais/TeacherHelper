@@ -12,7 +12,7 @@ TEST(DatabaseConnection_Constructor, EmptyDbName_ThrowInvalidArgument)
 	}
 	catch(invalid_argument &err) 
 	{
-        ASSERT_STREQ("dbName cannot be null or empty", err.what());
+        ASSERT_STREQ("dbName cannot be null or empty.", err.what());
 	}
 }
 
@@ -25,7 +25,7 @@ TEST(DatabaseConnection_Constructor, WhiteSpaceDbName_ThrowInvalidArgument)
 	}
 	catch(invalid_argument &err) 
 	{
-        ASSERT_STREQ("dbName cannot be null or empty", err.what());
+        ASSERT_STREQ("dbName cannot be null or empty.", err.what());
 	}
 }
 
@@ -46,30 +46,16 @@ TEST(DatabaseConnection_getDbName, TestMoreDbName_ReturnValid)
 	ASSERT_EQ("TestMore", dbConn.getDbName());
 }
 
-TEST(DatabaseConnection_connect, NotAValidFileDbName_ThrowRuntimeError)
+TEST(DatabaseConnection_open, NotAValidFileDbName_ThrowRuntimeError)
 {
 	try
 	{
 		DatabaseConnection dbConn("notAValidFile");
-		dbConn.connect();
+		dbConn.open();
 		FAIL();
 	}
 	catch(runtime_error &err) 
 	{
         ASSERT_STREQ("The database notAValidFile does not exist.", err.what());
-	}
-}
-
-TEST(DatabaseConnection_connect, TeacherHelperAppDbName_ThrowRuntimeError)
-{
-	try
-	{
-		DatabaseConnection dbConn("TeacherHelperApp");
-		dbConn.connect();
-		FAIL();
-	}
-	catch(runtime_error &err) 
-	{
-        ASSERT_STREQ("The database TeacherHelperApp does not exist.", err.what());
 	}
 }

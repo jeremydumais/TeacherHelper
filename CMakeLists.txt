@@ -21,7 +21,7 @@ if(NOT CLANG_TIDY_EXE)
     message(STATUS "clang-tidy not found.")
 else()
     message(STATUS "clang-tidy found: ${CLANG_TIDY_EXE}")
-    set(DO_CLANG_TIDY "${CLANG_TIDY_EXE}")
+    set(DO_CLANG_TIDY "${CLANG_TIDY_EXE}" "-checks=*")
 endif()
 
 enable_testing()
@@ -52,5 +52,6 @@ add_subdirectory(${CMAKE_CURRENT_BINARY_DIR}/googletest-src
                  EXCLUDE_FROM_ALL)
 
 
-add_subdirectory("DatabaseService")
+add_subdirectory("Models")
+add_subdirectory("DataServices")
 add_subdirectory("TeacherHelper")

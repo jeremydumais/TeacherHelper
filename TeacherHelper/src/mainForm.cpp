@@ -1,6 +1,6 @@
-#include "ui_mainForm.h"
 #include "mainForm.h"
-#include <sqlite3.h>
+#include "studentStorage.h"
+#include "studentManagementForm.h"
 
 using namespace std;
 
@@ -9,32 +9,43 @@ MainForm::MainForm(QWidget *parent)
 	  dbConnection(new DatabaseConnection("teacherdb"))
 {
 	ui.setupUi(this);
+	this->showMaximized();
     connect(ui.action_Quit, SIGNAL(triggered()), this, SLOT(close()));
-	sqlite3 *db;
-	int rc;
+    connect(ui.action_Students, SIGNAL(triggered()), this, SLOT(action_StudentsManagement_Click()));
 
-   rc = sqlite3_open(dbConnection->getDbName().c_str(), &db);
+  	try {
+		dbConnection->open();
+	   	ui.textEdit->setText("Opened database successfully");
+		/*StudentStorage studentStorage(*dbConnection);
+		if (studentStorage.insertStudent(Student("Mélanie", "L"))) {
+			ui.textEdit->setText(ui.textEdit->toPlainText() + "\n" + "Yes");
+		}
+		else {
+			ui.textEdit->setText(ui.textEdit->toPlainText() + "\n" + "No");
+		}*/
 
-   if( rc ) {
+	}
+	catch(runtime_error &err) {
 	   ui.textEdit->setText("Can't open database");
-   } else {
-	   ui.textEdit->setText("Opened database successfully");
-   }
-	//   char *zErrMsg = 0;
-   //int rc;
-   //string sql;
-   //const char* data = "Callback function called";
-   //sql = "SELECT * from student";
-	//     rc = sqlite3_exec(db, sql.c_str(), callback, (void*)&ui, &zErrMsg);
-	//   ui.textEdit->setText(ui.textEdit->toPlainText() + "\n");
-   //}
-   sqlite3_close(db);
+	}
+
+	action_StudentsManagement_Click();
 }
 
 MainForm::~MainForm()
 {
 	delete dbConnection;
 }
+	
+void MainForm::action_StudentsManagement_Click()
+{
+	StudentManagementForm formStudentManagement(this);
+	formStudentManagement.setDatabaseConnection(*dbConnection);
+	formStudentManagement.exec();
+	exit(0);
+}
+
+
 
 /*int MainForm::callback(void *data, int argc, char **argv, char **azColName)
 {

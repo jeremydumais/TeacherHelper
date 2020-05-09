@@ -8,14 +8,17 @@
 
 class MainForm : public QMainWindow
 {
+Q_OBJECT
+
 public:
 	MainForm(QWidget *parent = 0);
 	~MainForm();
 private:
-	Ui::MainFormClass ui;
+	Ui::MainForm ui;
 	DatabaseConnection *dbConnection;
-	//static int callback(void *data, int argc, char **argv, char **azColName);
 private slots:
+	void action_StudentsManagement_Click();
 };
 
 #endif // MAINFORM_H
+
