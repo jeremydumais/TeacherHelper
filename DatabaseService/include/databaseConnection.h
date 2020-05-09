@@ -6,7 +6,7 @@
 class DatabaseConnection
 {
 public:
-    DatabaseConnection(const std::string dbName);
+    DatabaseConnection(const std::string &dbName);
     virtual ~DatabaseConnection();
     const std::string getDbName() const;
     void connect();

@@ -4,7 +4,7 @@
 #include <Qt/qmainwindow.h>
 #include <QtGui/QtGui>
 #include "ui_mainForm.h"
-#include "service/databaseConnection.h"
+#include "databaseConnection.h"
 
 class MainForm : public QMainWindow
 {
