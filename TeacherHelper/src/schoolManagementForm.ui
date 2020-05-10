@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ui version="4.0">
- <class>studentManagementFormClass</class>
- <widget class="QDialog" name="studentManagementFormClass">
+ <class>schoolManagementFormClass</class>
+ <widget class="QDialog" name="schoolManagementFormClass">
   <property name="geometry">
    <rect>
     <x>0</x>
@@ -11,7 +11,7 @@
    </rect>
   </property>
   <property name="windowTitle">
-   <string>Student management</string>
+   <string>School management</string>
   </property>
   <layout class="QVBoxLayout" name="verticalLayout">
    <item>
@@ -146,24 +146,24 @@
              </property>
              <layout class="QGridLayout" name="gridLayout">
               <item row="1" column="1">
-               <widget class="QLineEdit" name="lineEditFirstname"/>
+               <widget class="QLineEdit" name="lineEditName"/>
               </item>
               <item row="1" column="0">
                <widget class="QLabel" name="label">
                 <property name="text">
-                 <string>Firstname :</string>
+                 <string>Name :</string>
                 </property>
                </widget>
               </item>
               <item row="2" column="0">
                <widget class="QLabel" name="label_2">
                 <property name="text">
-                 <string>Lastname :</string>
+                 <string>City :</string>
                 </property>
                </widget>
               </item>
               <item row="2" column="1">
-               <widget class="QLineEdit" name="lineEditLastname"/>
+               <widget class="QLineEdit" name="lineEditCity"/>
               </item>
              </layout>
             </widget>

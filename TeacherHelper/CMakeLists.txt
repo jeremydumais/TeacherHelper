@@ -24,12 +24,16 @@ find_package(Qt4 4.4.3 REQUIRED QtCore QtGui QtUiTools)
 #Generate QT Form headers
 set(CMAKE_AUTOUIC ON)
 set(CMAKE_AUTOMOC ON)
+set(CMAKE_AUTORCC ON)
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
 set(CMAKE_AUTOUIC_SEARCH_PATHS AUTOGEN_BUILD_DIR/include)
 
 set(PROJECT_SOURCE_FILES ${CMAKE_CURRENT_SOURCE_DIR}/src/main.cpp
                          ${CMAKE_CURRENT_SOURCE_DIR}/src/mainForm.cpp
-                         ${CMAKE_CURRENT_SOURCE_DIR}/src/studentManagementForm.cpp)
+                         ${CMAKE_CURRENT_SOURCE_DIR}/src/managementFormBase.cpp
+                         ${CMAKE_CURRENT_SOURCE_DIR}/src/studentManagementForm.cpp
+                         ${CMAKE_CURRENT_SOURCE_DIR}/src/schoolManagementForm.cpp
+                         ${CMAKE_CURRENT_SOURCE_DIR}/res/global.qrc)
 add_executable(${PROJECT_NAME} ${PROJECT_SOURCE_FILES})
 target_link_libraries(${PROJECT_NAME} Models DataServices QtCore QtGui QtUiTools sqlite3)
 
@@ -44,11 +48,12 @@ if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU") #gcc
     PRIVATE "-Wfatal-errors" # stops on first error
     "-Wall" # enables all the warnings about constructions
     "-Wextra" # Print extra warning messages"
-    "-Werror" # Make all warnings into errors.
+    "-Werror=misleading-indentation" # Make all warnings into errors.
     "-pedantic" # Issue all the warnings demanded by strict ISO C and ISO C++
     "-pedantic-errors" # Like -pedantic, except that errors are produced rather than warnings http://stackoverflow.com/questions/30255294/how-to-hide-extra-output-from-pragma-message
     "-ftrack-macro-expansion=0"
     "-fno-diagnostics-show-caret"
+    "-Wno-misleading-indentation"
     )
 elseif ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
   target_compile_options(${PROJECT_NAME}

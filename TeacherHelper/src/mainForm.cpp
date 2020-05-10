@@ -1,6 +1,7 @@
 #include "mainForm.h"
 #include "studentStorage.h"
 #include "studentManagementForm.h"
+#include "schoolManagementForm.h"
 
 using namespace std;
 
@@ -12,24 +13,17 @@ MainForm::MainForm(QWidget *parent)
 	this->showMaximized();
     connect(ui.action_Quit, SIGNAL(triggered()), this, SLOT(close()));
     connect(ui.action_Students, SIGNAL(triggered()), this, SLOT(action_StudentsManagement_Click()));
+    connect(ui.action_Schools, SIGNAL(triggered()), this, SLOT(action_SchoolsManagement_Click()));
 
   	try {
 		dbConnection->open();
 	   	ui.textEdit->setText("Opened database successfully");
-		/*StudentStorage studentStorage(*dbConnection);
-		if (studentStorage.insertStudent(Student("Mélanie", "L"))) {
-			ui.textEdit->setText(ui.textEdit->toPlainText() + "\n" + "Yes");
-		}
-		else {
-			ui.textEdit->setText(ui.textEdit->toPlainText() + "\n" + "No");
-		}*/
-
 	}
 	catch(runtime_error &err) {
 	   ui.textEdit->setText("Can't open database");
 	}
 
-	action_StudentsManagement_Click();
+	action_SchoolsManagement_Click();
 }
 
 MainForm::~MainForm()
@@ -42,24 +36,13 @@ void MainForm::action_StudentsManagement_Click()
 	StudentManagementForm formStudentManagement(this);
 	formStudentManagement.setDatabaseConnection(*dbConnection);
 	formStudentManagement.exec();
-	exit(0);
+	//exit(0);
 }
 
-
-
-/*int MainForm::callback(void *data, int argc, char **argv, char **azColName)
+void MainForm::action_SchoolsManagement_Click()
 {
-
-	Ui::MainFormClass *ui = static_cast<Ui::MainFormClass *>(data);
-	if (argc>0 && azColName!=nullptr) 
-		ui->textEdit->setText(ui->textEdit->toPlainText() + "\n" + argv[1]);
-//    int i;
-//    fprintf(stderr, "%s: ", (const char*)data);
-   
-//    for(i = 0; i<argc; i++){
-//       printf("%s = %s\n", azColName[i], argv[i] ? argv[i] : "NULL");
-//    }
-// 	data
-//    printf("\n");
-   return 0;
-}*/
+	SchoolManagementForm formSchoolManagement(this);
+	formSchoolManagement.setDatabaseConnection(*dbConnection);
+	formSchoolManagement.exec();
+	//exit(0);
+}

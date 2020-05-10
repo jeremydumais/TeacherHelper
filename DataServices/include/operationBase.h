@@ -16,7 +16,7 @@ public:
     {
     }
     virtual ~OperationBase() {}
-    virtual bool Execute() = 0;
+    virtual bool execute() = 0;
     const std::string &getLastError() const
     {
         return lastError;

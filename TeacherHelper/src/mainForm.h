@@ -18,6 +18,8 @@ private:
 	DatabaseConnection *dbConnection;
 private slots:
 	void action_StudentsManagement_Click();
+	void action_SchoolsManagement_Click();
+
 };
 
 #endif // MAINFORM_H

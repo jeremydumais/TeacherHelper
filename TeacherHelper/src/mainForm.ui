@@ -57,9 +57,9 @@
     <property name="title">
      <string>&amp;Management</string>
     </property>
-    <addaction name="action_Students"/>
-    <addaction name="action_Classes"/>
     <addaction name="action_Schools"/>
+    <addaction name="action_Classes"/>
+    <addaction name="action_Students"/>
    </widget>
    <widget class="QMenu" name="menuHelp">
     <property name="title">
@@ -95,7 +95,7 @@
   </action>
   <action name="action_Students">
    <property name="text">
-    <string>&amp;Students...</string>
+    <string>S&amp;tudents...</string>
    </property>
   </action>
   <action name="action_Classes">

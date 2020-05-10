@@ -1,10 +1,10 @@
-#include "studentManagementForm.h"
-#include "studentStorage.h"
+#include "schoolManagementForm.h"
+#include "schoolStorage.h"
 #include <sstream>
 
 using namespace std;
 
-StudentManagementForm::StudentManagementForm(QWidget *parent)
+SchoolManagementForm::SchoolManagementForm(QWidget *parent)
 	: QDialog(parent)
 {
 	ui.setupUi(this);
@@ -17,8 +17,8 @@ StudentManagementForm::StudentManagementForm(QWidget *parent)
 	connect(ui.pushButtonCancel, SIGNAL(clicked()), this, SLOT(pushButtonCancel_Click()));
 
 	ui.tableWidgeItems->setHorizontalHeaderItem(0, new QTableWidgetItem("Id"));
-	ui.tableWidgeItems->setHorizontalHeaderItem(1, new QTableWidgetItem("Firstname"));
-	ui.tableWidgeItems->setHorizontalHeaderItem(2, new QTableWidgetItem("Lastname"));
+	ui.tableWidgeItems->setHorizontalHeaderItem(1, new QTableWidgetItem("Name"));
+	ui.tableWidgeItems->setHorizontalHeaderItem(2, new QTableWidgetItem("City"));
 	ui.tableWidgeItems->setColumnHidden(0, true);
 	connect(ui.tableWidgeItems->selectionModel(), 
 		SIGNAL(selectionChanged(const QItemSelection &, const QItemSelection &)),
@@ -28,39 +28,39 @@ StudentManagementForm::StudentManagementForm(QWidget *parent)
 		SLOT(pushButtonModify_Click()));
 }
 
-StudentManagementForm::~StudentManagementForm()
+SchoolManagementForm::~SchoolManagementForm()
 {
 }
 
-void StudentManagementForm::showEvent(QShowEvent *event) 
+void SchoolManagementForm::showEvent(QShowEvent *event) 
 {
     QDialog::showEvent(event);
     refreshItemsTable();
 } 
 
-void StudentManagementForm::refreshItemsTable()
+void SchoolManagementForm::refreshItemsTable()
 {
-	StudentStorage studentStorage(*dbConnection);
-	list<Student> students = studentStorage.getAllStudents();
+	SchoolStorage schoolStorage(*dbConnection);
+	list<School> schools = schoolStorage.getAllSchools();
 	ui.tableWidgeItems->model()->removeRows(0, ui.tableWidgeItems->rowCount());
 	size_t row {0};
-    for (const auto &student : students) {
+    for (const auto &school : schools) {
 		ui.tableWidgeItems->insertRow(row);
-		ui.tableWidgeItems->setItem(row, 0, new QTableWidgetItem(to_string(student.getId()).c_str()));
-		ui.tableWidgeItems->setItem(row, 1, new QTableWidgetItem(student.getFirstName().c_str()));
-		ui.tableWidgeItems->setItem(row, 2, new QTableWidgetItem(student.getLastName().c_str()));
+		ui.tableWidgeItems->setItem(row, 0, new QTableWidgetItem(to_string(school.getId()).c_str()));
+		ui.tableWidgeItems->setItem(row, 1, new QTableWidgetItem(school.getName().c_str()));
+		ui.tableWidgeItems->setItem(row, 2, new QTableWidgetItem(school.getCity().c_str()));
 		row++;
     }
 	toggleTableControls(false);
 }
 
-void StudentManagementForm::toggleTableControls(bool itemSelected)
+void SchoolManagementForm::toggleTableControls(bool itemSelected)
 {
 	ui.pushButtonModify->setEnabled(itemSelected);
 	ui.pushButtonDelete->setEnabled(itemSelected);
 }
 
-void StudentManagementForm::toggleEditMode(ActionMode mode)
+void SchoolManagementForm::toggleEditMode(ActionMode mode)
 {
 	this->mode = mode;
 	bool editMode = (mode ==  ActionMode::Add || mode == ActionMode::Modifiy);
@@ -68,54 +68,53 @@ void StudentManagementForm::toggleEditMode(ActionMode mode)
 	ui.tableWidgeItems->setEnabled(!editMode);
 	ui.frameActionButtons->setEnabled(!editMode);
 	if(!editMode) {
-		ui.lineEditFirstname->clear();
-		ui.lineEditLastname->clear();
+		ui.lineEditName->clear();
+		ui.lineEditCity->clear();
 	} 
 	else {
-		ui.lineEditFirstname->setFocus();
+		ui.lineEditName->setFocus();
 		ui.pushButtonOK->setDefault(true);
 	}
 }
 
-void StudentManagementForm::itemsTableSelectionChanged(const QItemSelection &selected, const QItemSelection &)
+void SchoolManagementForm::itemsTableSelectionChanged(const QItemSelection &selected, const QItemSelection &)
 {	
 	toggleTableControls(selected.size() == 1);
 }
 
-void StudentManagementForm::pushButtonAdd_Click()
+void SchoolManagementForm::pushButtonAdd_Click()
 {
-	ui.lineEditFirstname->clear();
-	ui.lineEditLastname->clear();
+	ui.lineEditName->clear();
+	ui.lineEditCity->clear();
 	toggleEditMode(ActionMode::Add);
 }
 
-void StudentManagementForm::pushButtonModify_Click()
+void SchoolManagementForm::pushButtonModify_Click()
 {
 	auto row = ui.tableWidgeItems->selectionModel()->selectedIndexes();
 	if (row.size() > 0) {
-		ui.lineEditFirstname->setText(row[1].data().toString());
-		ui.lineEditLastname->setText(row[2].data().toString());
+		ui.lineEditName->setText(row[1].data().toString());
+		ui.lineEditCity->setText(row[2].data().toString());
 		toggleEditMode(ActionMode::Modifiy);
 	}
 }
 
-void StudentManagementForm::pushButtonDelete_Click()
+void SchoolManagementForm::pushButtonDelete_Click()
 {
 	QMessageBox msgBox;
 	stringstream ss;
 	auto row = ui.tableWidgeItems->selectionModel()->selectedIndexes();
 
-	ss << "Are you sure you want to delete the student " << row[1].data().toString().toStdString()
-		<< " " << row[2].data().toString().toStdString() << "?";
+	ss << "Are you sure you want to delete the school " << row[1].data().toString().toStdString() << "?";
 	msgBox.setText(ss.str().c_str());
 	msgBox.setWindowTitle("Confirmation");
 	msgBox.setStandardButtons(QMessageBox::Yes | QMessageBox::No | QMessageBox::Cancel);
 	msgBox.setDefaultButton(QMessageBox::Cancel);
 
 	if (msgBox.exec() == QMessageBox::Yes) {
-		StudentStorage storage(*dbConnection);
+		SchoolStorage storage(*dbConnection);
 
-		if (storage.deleteStudent(row[0].data().toUInt())) {
+		if (storage.deleteSchool(row[0].data().toUInt())) {
 			refreshItemsTable();
 		}
 		else {
@@ -124,13 +123,13 @@ void StudentManagementForm::pushButtonDelete_Click()
 	}
 }
 
-void StudentManagementForm::pushButtonOK_Click()
+void SchoolManagementForm::pushButtonOK_Click()
 {
 	if (mode == ActionMode::Add) {
 		if (validateEntry()) {
-			StudentStorage storage(*dbConnection);
-			if (storage.insertStudent(Student(ui.lineEditFirstname->text().trimmed().toStdString(),
-											ui.lineEditLastname->text().trimmed().toStdString()))) {
+			SchoolStorage storage(*dbConnection);
+			if (storage.insertSchool(School(ui.lineEditName->text().trimmed().toStdString(),
+											ui.lineEditCity->text().trimmed().toStdString()))) {
 				toggleEditMode(ActionMode::None);
 				refreshItemsTable();
 			}
@@ -141,12 +140,12 @@ void StudentManagementForm::pushButtonOK_Click()
 	}
 	else if (mode == ActionMode::Modifiy) {
 		if (validateEntry()) {
-			StudentStorage storage(*dbConnection);
+			SchoolStorage storage(*dbConnection);
 			auto row = ui.tableWidgeItems->selectionModel()->selectedIndexes();
 
-			if (storage.updateStudent(Student(row[0].data().toUInt(),
-											ui.lineEditFirstname->text().trimmed().toStdString(),
-											ui.lineEditLastname->text().trimmed().toStdString()))) {
+			if (storage.updateSchool(School(row[0].data().toUInt(),
+											ui.lineEditName->text().trimmed().toStdString(),
+											ui.lineEditCity->text().trimmed().toStdString()))) {
 				toggleEditMode(ActionMode::None);
 				refreshItemsTable();
 			}
@@ -157,33 +156,33 @@ void StudentManagementForm::pushButtonOK_Click()
 	}
 }
 
-void StudentManagementForm::pushButtonCancel_Click()
+void SchoolManagementForm::pushButtonCancel_Click()
 {
 	toggleEditMode(ActionMode::None);
 }
 
-bool StudentManagementForm::validateEntry() const
+bool SchoolManagementForm::validateEntry() const
 {
-	if (ui.lineEditFirstname->text().trimmed().isEmpty()) {
-		showError("The firstname is required!");
+	if (ui.lineEditName->text().trimmed().isEmpty()) {
+		showError("The name is required!");
 		return false;
 	}
-	if (ui.lineEditFirstname->text().trimmed().length() > 30) {
-		showError("The firstname must not be greater than 30 characters!");
+	if (ui.lineEditName->text().trimmed().length() > 50) {
+		showError("The name must not be greater than 50 characters!");
 		return false;
 	}
-	if (ui.lineEditLastname->text().trimmed().isEmpty()) {
-		showError("The lastname is required!");
+	if (ui.lineEditCity->text().trimmed().isEmpty()) {
+		showError("The city is required!");
 		return false;
 	}
-	if (ui.lineEditLastname->text().trimmed().length() > 30) {
-		showError("The lastname must not be greater than 30 characters!");
+	if (ui.lineEditCity->text().trimmed().length() > 50) {
+		showError("The city must not be greater than 50 characters!");
 		return false;
 	}
 	return true;
 }
 
-void StudentManagementForm::keyPressEvent(QKeyEvent *e)
+void SchoolManagementForm::keyPressEvent(QKeyEvent *e)
 {
 	if (e->key() == Qt::Key_Escape && mode != ActionMode::None)
 		pushButtonCancel_Click();

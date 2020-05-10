@@ -1,21 +1,21 @@
 
-#ifndef STUDENTMANAGEMENTNFORM_H
-#define STUDENTMANAGEMENTNFORM_H
+#ifndef SCHOOLMANAGEMENTNFORM_H
+#define SCHOOLMANAGEMENTNFORM_H
 
 #include <Qt/qmainwindow.h>
 #include "managementFormBase.h"
-#include "ui_studentManagementForm.h"
+#include "ui_schoolManagementForm.h"
 
-class StudentManagementForm : public QDialog, public ManagementFormBase
+class SchoolManagementForm : public QDialog, public ManagementFormBase
 {
 Q_OBJECT
 
 public:
-	StudentManagementForm(QWidget *parent = 0);
-	~StudentManagementForm();
+	SchoolManagementForm(QWidget *parent = 0);
+	~SchoolManagementForm();
 	void showEvent(QShowEvent *event);
 private:
-	Ui::studentManagementFormClass ui;
+	Ui::schoolManagementFormClass ui;
 	void refreshItemsTable() override;
 	void toggleTableControls(bool itemSelected) override;
 	void toggleEditMode(ActionMode mode) override;
@@ -30,4 +30,4 @@ private slots:
 	void keyPressEvent(QKeyEvent *e);
 };
 
-#endif // STUDENTMANAGEMENTNFORM_H
+#endif // SCHOOLMANAGEMENTNFORM_H

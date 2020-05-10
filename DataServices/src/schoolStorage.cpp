@@ -1,4 +1,4 @@
-#include "studentStorage.h"
+#include "schoolStorage.h"
 #include "sqliteInsertOperation.h"
 #include "sqliteUpdateOperation.h"
 #include "sqliteSelectOperation.h"
@@ -9,25 +9,25 @@
 
 using namespace std;
 
-StudentStorage::StudentStorage(const DatabaseConnection &connection)
+SchoolStorage::SchoolStorage(const DatabaseConnection &connection)
     : connection(&connection),
       lastError("")
 {
 }
 
-list<Student> StudentStorage::getAllStudents()
+list<School> SchoolStorage::getAllSchools()
 {
-    list<Student> retVal;
+    list<School> retVal;
     SQLiteSelectOperation operation(*connection, 
-        "SELECT id, firstname, lastname FROM student WHERE deleted=0 ORDER BY lastname, firstname;");
+        "SELECT id, name, city FROM school WHERE deleted=0 ORDER BY name, city;");
     if (operation.execute()) {
         sqlite3_stmt *stmt = operation.getStatement();
         int result = sqlite3_step(stmt);
         while (result == SQLITE_ROW) {
-            Student tempStudent(sqlite3_column_int(stmt, 0),
+            School tempSchool(sqlite3_column_int(stmt, 0),
                                 reinterpret_cast<const char *>((sqlite3_column_text(stmt, 1))),
                                 reinterpret_cast<const char *>((sqlite3_column_text(stmt, 2))));
-            retVal.push_back(tempStudent);
+            retVal.push_back(tempSchool);
             result = sqlite3_step(stmt);
         }
         sqlite3_finalize(stmt);
@@ -38,16 +38,16 @@ list<Student> StudentStorage::getAllStudents()
     return retVal;
 }
 
-const std::string &StudentStorage::getLastError() const
+const std::string &SchoolStorage::getLastError() const
 {
     return lastError;
 }
 
-bool StudentStorage::insertStudent(const Student &student)
+bool SchoolStorage::insertSchool(const School &school)
 {
     SQLiteInsertOperation operation(*connection, 
-        "INSERT INTO student (firstname, lastname) VALUES(?, ?)",
-        vector<string> { student.getFirstName(), student.getLastName() });
+        "INSERT INTO school (name, city) VALUES(?, ?)",
+        vector<string> { school.getName(), school.getCity() });
     if (!operation.execute()) {
         lastError = operation.getLastError();
         return false;
@@ -55,13 +55,13 @@ bool StudentStorage::insertStudent(const Student &student)
     return true;
 }
 
-bool StudentStorage::updateStudent(const Student &student)
+bool SchoolStorage::updateSchool(const School &school)
 {
     SQLiteUpdateOperation operation(*connection, 
-        "UPDATE student SET firstname = ?, lastname = ? WHERE id = ?",
-        vector<string> { student.getFirstName(),
-            student.getLastName(),
-            to_string(student.getId()) });
+        "UPDATE school SET name = ?, city = ? WHERE id = ?",
+        vector<string> { school.getName(),
+            school.getCity(),
+            to_string(school.getId()) });
     if (!operation.execute()) {
         lastError = operation.getLastError();
         return false;
@@ -69,10 +69,10 @@ bool StudentStorage::updateStudent(const Student &student)
     return true;
 }
 
-bool StudentStorage::deleteStudent(size_t id)
+bool SchoolStorage::deleteSchool(size_t id)
 {
     SQLiteUpdateOperation operation(*connection, 
-        "UPDATE student SET deleted=1 WHERE id = ?", 
+        "UPDATE school SET deleted=1 WHERE id = ?", 
         vector<string> { to_string(id) });
     if (!operation.execute()) {
         lastError = operation.getLastError();
