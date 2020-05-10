@@ -89,7 +89,7 @@ bool StudentStorage::deleteStudent(size_t id)
     int result {0};
     sqlite3_stmt *stmt;
     stringstream ss;
-    ss << "DELETE FROM student WHERE id = ?";
+    ss << "UPDATE student SET deleted=1 WHERE id = ?";
     result = sqlite3_prepare_v2(connection->getConnectionPtr(), 
                           ss.str().c_str(), 
                           -1, 
