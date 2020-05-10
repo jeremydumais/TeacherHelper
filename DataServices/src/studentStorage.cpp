@@ -1,8 +1,11 @@
 #include "studentStorage.h"
+#include "sqliteInsertOperation.h"
+#include "sqliteUpdateOperation.h"
 #include <sqlite3.h>
 #include <sstream>
 #include <string>
 #include <iostream>
+#include <vector>
 
 using namespace std;
 
@@ -50,67 +53,34 @@ const std::string &StudentStorage::getLastError() const
     return lastError;
 }
 
-
 bool StudentStorage::insertStudent(const Student &student)
 {
-    int result {0};
-    sqlite3_stmt *stmt;
     stringstream ss;
     ss << "INSERT INTO student (firstname, lastname) VALUES(" << 
         "'" << student.getFirstName() << "', "  <<
         "'" << student.getLastName() << "')";
-    result = sqlite3_prepare_v2(connection->getConnectionPtr(), 
-                          ss.str().c_str(), 
-                          -1, 
-                          &stmt, 
-                          nullptr);
-    if(result != SQLITE_OK) {
-        lastError = sqlite3_errmsg(connection->getConnectionPtr());
+    SQLiteInsertOperation operation(*connection, ss.str());
+    if (!operation.Execute()) {
+        lastError = operation.getLastError();
         return false;
     }
-    result = sqlite3_step(stmt);
-    if(result != SQLITE_DONE) {
-        lastError = sqlite3_errmsg(connection->getConnectionPtr());
-        sqlite3_finalize(stmt);
-        return false;
-    }
-
     return true;
 }
 
 bool StudentStorage::updateStudent(const Student &student)
 {
-    int result {0};
-    sqlite3_stmt *stmt;
     stringstream ss;
     ss << "UPDATE student SET " << 
         "firstname = '" << student.getFirstName() << "', "  <<
         "lastname = '" << student.getLastName() << "'" <<
         " WHERE id = ?";
-    result = sqlite3_prepare_v2(connection->getConnectionPtr(), 
-                          ss.str().c_str(), 
-                          -1, 
-                          &stmt, 
-                          nullptr);
-    if(result != SQLITE_OK) {
-        lastError = sqlite3_errmsg(connection->getConnectionPtr());
+    SQLiteUpdateOperation operation(*connection, 
+        ss.str(), 
+        vector<string> { to_string(student.getId()) });
+    if (!operation.Execute()) {
+        lastError = operation.getLastError();
         return false;
     }
-    
-    result = sqlite3_bind_int(stmt, 1, student.getId());
-    if(result != SQLITE_OK) {
-        lastError = sqlite3_errmsg(connection->getConnectionPtr());
-        sqlite3_finalize(stmt);
-        return false;
-    }
-
-    result = sqlite3_step(stmt);
-    if(result != SQLITE_DONE) {
-        lastError = sqlite3_errmsg(connection->getConnectionPtr());
-        sqlite3_finalize(stmt);
-        return false;
-    }
-
     return true;
 }
 

@@ -115,6 +115,7 @@ void StudentManagementForm::pushButtonDelete_Click()
 	ss << "Are you sure you want to delete the student " << row[1].data().toString().toStdString()
 		<< " " << row[2].data().toString().toStdString() << "?";
 	msgBox.setText(ss.str().c_str());
+	msgBox.setWindowTitle("Confirmation");
 	msgBox.setStandardButtons(QMessageBox::Yes | QMessageBox::No | QMessageBox::Cancel);
 	msgBox.setDefaultButton(QMessageBox::Cancel);
 
