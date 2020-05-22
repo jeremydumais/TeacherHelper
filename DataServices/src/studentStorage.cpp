@@ -1,10 +1,10 @@
-#include "studentStorage.h"
 #include "sqliteInsertOperation.h"
-#include "sqliteUpdateOperation.h"
 #include "sqliteSelectOperation.h"
+#include "sqliteUpdateOperation.h"
+#include "studentStorage.h"
+#include <iostream>
 #include <sqlite3.h>
 #include <string>
-#include <iostream>
 #include <vector>
 
 using namespace std;

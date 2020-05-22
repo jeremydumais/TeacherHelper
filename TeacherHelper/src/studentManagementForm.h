@@ -10,9 +10,9 @@ class StudentManagementForm : public QDialog, public ManagementFormBase
 Q_OBJECT
 
 public:
-	StudentManagementForm(QWidget *parent = 0);
+	explicit StudentManagementForm(QWidget *parent = 0);
 	~StudentManagementForm();
-	void showEvent(QShowEvent *event);
+	void showEvent(QShowEvent *event) override;
 private:
 	Ui::studentManagementFormClass ui;
 	void refreshItemsTable() override;
@@ -26,7 +26,7 @@ private slots:
 	void pushButtonDelete_Click();
 	void pushButtonOK_Click();
 	void pushButtonCancel_Click();
-	void keyPressEvent(QKeyEvent *e);
+	void keyPressEvent(QKeyEvent *e) override;
 };
 
 #endif // STUDENTMANAGEMENTNFORM_H

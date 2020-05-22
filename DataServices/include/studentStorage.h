@@ -7,7 +7,7 @@
 class StudentStorage
 {
 public:
-    StudentStorage(const DatabaseConnection &connection);
+    explicit StudentStorage(const DatabaseConnection &connection);
     std::list<Student> getAllStudents();
     const std::string &getLastError() const;
     bool insertStudent(const Student &student);

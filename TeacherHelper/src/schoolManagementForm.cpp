@@ -1,13 +1,14 @@
 #include "schoolManagementForm.h"
 #include "schoolStorage.h"
-#include <sstream>
-#include <qt5/QtWidgets/qmessagebox.h>
 #include <qt5/QtGui/QKeyEvent>
+#include <qt5/QtWidgets/qmessagebox.h>
+#include <sstream>
 
 using namespace std;
 
 SchoolManagementForm::SchoolManagementForm(QWidget *parent)
-	: QDialog(parent)
+	: QDialog(parent),
+	  ui(Ui::schoolManagementFormClass())
 {
 	ui.setupUi(this);
 	ui.frameDetails->setEnabled(false);
@@ -24,14 +25,10 @@ SchoolManagementForm::SchoolManagementForm(QWidget *parent)
 	ui.tableWidgeItems->setColumnHidden(0, true);
 	connect(ui.tableWidgeItems->selectionModel(), 
 		SIGNAL(selectionChanged(const QItemSelection &, const QItemSelection &)),
-  		SLOT(itemsTableSelectionChanged(const QItemSelection &, const QItemSelection &)));
+  		SLOT(itemsTableSelectionChanged(const QItemSelection &)));
 	connect(ui.tableWidgeItems, 
 		SIGNAL(cellDoubleClicked(int, int)), 
 		SLOT(pushButtonModify_Click()));
-}
-
-SchoolManagementForm::~SchoolManagementForm()
-{
 }
 
 void SchoolManagementForm::showEvent(QShowEvent *event) 
@@ -79,7 +76,7 @@ void SchoolManagementForm::toggleEditMode(ActionMode mode)
 	}
 }
 
-void SchoolManagementForm::itemsTableSelectionChanged(const QItemSelection &selected, const QItemSelection &)
+void SchoolManagementForm::itemsTableSelectionChanged(const QItemSelection &selected)
 {	
 	toggleTableControls(selected.size() == 1);
 }
@@ -94,7 +91,7 @@ void SchoolManagementForm::pushButtonAdd_Click()
 void SchoolManagementForm::pushButtonModify_Click()
 {
 	auto row = ui.tableWidgeItems->selectionModel()->selectedIndexes();
-	if (row.size() > 0) {
+	if (!row.empty()) {
 		ui.lineEditName->setText(row[1].data().toString());
 		ui.lineEditCity->setText(row[2].data().toString());
 		toggleEditMode(ActionMode::Modifiy);
@@ -186,8 +183,10 @@ bool SchoolManagementForm::validateEntry() const
 
 void SchoolManagementForm::keyPressEvent(QKeyEvent *e)
 {
-	if (e->key() == Qt::Key_Escape && mode != ActionMode::None)
+	if (e->key() == Qt::Key_Escape && mode != ActionMode::None) {
 		pushButtonCancel_Click();
-	else
+	}
+	else {
 		QDialog::keyPressEvent(e);
+	}
 }

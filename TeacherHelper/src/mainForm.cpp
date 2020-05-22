@@ -1,13 +1,15 @@
 #include "mainForm.h"
-#include "studentStorage.h"
-#include "studentManagementForm.h"
 #include "schoolManagementForm.h"
+#include "studentManagementForm.h"
+#include "studentStorage.h"
 
 using namespace std;
 
 MainForm::MainForm(QWidget *parent)
 	: QMainWindow(parent),
+	  ui(Ui::MainForm()),
 	  dbConnection(new DatabaseConnection("teacherdb"))
+	  
 {
 	ui.setupUi(this);
 	this->showMaximized();

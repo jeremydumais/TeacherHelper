@@ -1,6 +1,5 @@
-//#include <Qt/qapplication.h>
-#include <stdio.h>
 #include "mainForm.h"
+#include <cstdio>
 
 int main(int argc, char *argv[])
 {
@@ -12,5 +11,5 @@ int main(int argc, char *argv[])
     MainForm mainWin;
 
     mainWin.show();
-    return app.exec();
+    return QApplication::exec();
 }

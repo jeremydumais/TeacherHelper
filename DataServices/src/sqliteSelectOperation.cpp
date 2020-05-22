@@ -6,14 +6,15 @@ using namespace std;
 SQLiteSelectOperation::SQLiteSelectOperation(const DatabaseConnection &connection, 
                                              const std::string &query,
                                              const vector<string> &args)
-    : OperationBase(connection, query, args)
+    : OperationBase(connection, query, args),
+      stmt(nullptr)
 {
 }
 
 bool SQLiteSelectOperation::execute()
 {
     int result {0};
-    char *zErrMsg {0};
+    char *zErrMsg {nullptr};
     sqlite3_stmt *stmt;
     
     result = sqlite3_prepare_v2(dbConnection->getConnectionPtr(), 

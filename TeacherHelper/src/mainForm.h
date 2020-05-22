@@ -12,7 +12,7 @@ class MainForm : public QMainWindow
 Q_OBJECT
 
 public:
-	MainForm(QWidget *parent = 0);
+	explicit MainForm(QWidget *parent = 0);
 	~MainForm();
 private:
 	Ui::MainForm ui;

@@ -6,7 +6,7 @@
 class DatabaseConnection
 {
 public:
-    DatabaseConnection(const std::string &dbName);
+    explicit DatabaseConnection(const std::string &dbName);
     virtual ~DatabaseConnection();
     const std::string getDbName() const;
     sqlite3 *getConnectionPtr() const;

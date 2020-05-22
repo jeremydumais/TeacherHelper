@@ -8,7 +8,7 @@ class OperationBase
 public: 
     OperationBase(const DatabaseConnection &connection, 
                           const std::string &query,
-                          const std::vector<std::string> args = std::vector<std::string>())
+                          const std::vector<std::string> &args = std::vector<std::string>())
         : dbConnection(&connection),
           query(query),
           args(args),
