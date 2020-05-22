@@ -1,8 +1,9 @@
 #ifndef MAINFORM_H
 #define MAINFORM_H
 
-#include <Qt/qmainwindow.h>
-#include <QtGui/QtGui>
+#include <qt5/QtCore/QVariant>
+//#include <Qt/qmainwindow.h>
+//#include <QtGui/QtGui>
 #include "ui_mainForm.h"
 #include "databaseConnection.h"
 

@@ -1,4 +1,4 @@
-#include <Qt/qapplication.h>
+//#include <Qt/qapplication.h>
 #include <stdio.h>
 #include "mainForm.h"
 

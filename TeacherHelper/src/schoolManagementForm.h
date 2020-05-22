@@ -2,7 +2,6 @@
 #ifndef SCHOOLMANAGEMENTNFORM_H
 #define SCHOOLMANAGEMENTNFORM_H
 
-#include <Qt/qmainwindow.h>
 #include "managementFormBase.h"
 #include "ui_schoolManagementForm.h"
 

@@ -2,7 +2,6 @@
 
 #include "databaseConnection.h"
 #include <string>
-#include <QtGui/QtGui>
 
 enum class ActionMode {
     None,

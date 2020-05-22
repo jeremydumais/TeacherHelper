@@ -14,12 +14,15 @@ else()
 endif()
 
 #set(CMAKE_BUILD_TYPE Debug)
-include_directories("/usr/include/qt4" 
+include_directories("/usr/include/x86_64-linux-gnu/qt5"
     ${CMAKE_CURRENT_SOURCE_DIR}/include
     ${CMAKE_SOURCE_DIR}/Models/include
     ${CMAKE_SOURCE_DIR}/DataServices/include)
     
-find_package(Qt4 4.4.3 REQUIRED QtCore QtGui QtUiTools)
+find_package(Qt5 COMPONENTS Widgets REQUIRED)
+
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fpic")
+
 
 #Generate QT Form headers
 set(CMAKE_AUTOUIC ON)
@@ -35,7 +38,7 @@ set(PROJECT_SOURCE_FILES ${CMAKE_CURRENT_SOURCE_DIR}/src/main.cpp
                          ${CMAKE_CURRENT_SOURCE_DIR}/src/schoolManagementForm.cpp
                          ${CMAKE_CURRENT_SOURCE_DIR}/res/global.qrc)
 add_executable(${PROJECT_NAME} ${PROJECT_SOURCE_FILES})
-target_link_libraries(${PROJECT_NAME} Models DataServices QtCore QtGui QtUiTools sqlite3)
+target_link_libraries(${PROJECT_NAME} Models DataServices Qt5::Widgets sqlite3)
 
 #Run clang-tidy on project
 if(CLANG_TIDY_EXE AND CMAKE_CXX_COMPILER_ID STREQUAL "Clang")

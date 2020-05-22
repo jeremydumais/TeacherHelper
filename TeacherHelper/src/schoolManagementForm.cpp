@@ -1,6 +1,8 @@
 #include "schoolManagementForm.h"
 #include "schoolStorage.h"
 #include <sstream>
+#include <qt5/QtWidgets/qmessagebox.h>
+#include <qt5/QtGui/QKeyEvent>
 
 using namespace std;
 

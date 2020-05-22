@@ -1,10 +1,10 @@
 #include "schoolStorage.h"
 #include "sqliteInsertOperation.h"
-#include "sqliteUpdateOperation.h"
 #include "sqliteSelectOperation.h"
+#include "sqliteUpdateOperation.h"
+#include <iostream>
 #include <sqlite3.h>
 #include <string>
-#include <iostream>
 #include <vector>
 
 using namespace std;
@@ -17,6 +17,7 @@ SchoolStorage::SchoolStorage(const DatabaseConnection &connection)
 
 list<School> SchoolStorage::getAllSchools()
 {
+    int i =1;
     list<School> retVal;
     SQLiteSelectOperation operation(*connection, 
         "SELECT id, name, city FROM school WHERE deleted=0 ORDER BY name, city;");

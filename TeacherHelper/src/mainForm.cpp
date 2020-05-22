@@ -23,7 +23,7 @@ MainForm::MainForm(QWidget *parent)
 	   ui.textEdit->setText("Can't open database");
 	}
 
-	action_SchoolsManagement_Click();
+	//action_SchoolsManagement_Click();
 }
 
 MainForm::~MainForm()

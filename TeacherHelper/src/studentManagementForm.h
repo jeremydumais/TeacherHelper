@@ -2,7 +2,6 @@
 #ifndef STUDENTMANAGEMENTNFORM_H
 #define STUDENTMANAGEMENTNFORM_H
 
-#include <Qt/qmainwindow.h>
 #include "managementFormBase.h"
 #include "ui_studentManagementForm.h"
 
