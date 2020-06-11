@@ -1,6 +1,7 @@
 #include "mainForm.h"
 #include "schoolManagementForm.h"
 #include "studentManagementForm.h"
+#include "classManagementForm.h"
 #include "studentStorage.h"
 
 using namespace std;
@@ -16,6 +17,7 @@ MainForm::MainForm(QWidget *parent)
     connect(ui.action_Quit, SIGNAL(triggered()), this, SLOT(close()));
     connect(ui.action_Students, SIGNAL(triggered()), this, SLOT(action_StudentsManagement_Click()));
     connect(ui.action_Schools, SIGNAL(triggered()), this, SLOT(action_SchoolsManagement_Click()));
+    connect(ui.action_Classes, SIGNAL(triggered()), this, SLOT(action_ClassesManagement_Click()));
 
   	try {
 		dbConnection->open();
@@ -25,7 +27,7 @@ MainForm::MainForm(QWidget *parent)
 	   ui.textEdit->setText("Can't open database");
 	}
 
-	//action_SchoolsManagement_Click();
+	action_ClassesManagement_Click();
 }
 
 MainForm::~MainForm()
@@ -47,4 +49,12 @@ void MainForm::action_SchoolsManagement_Click()
 	formSchoolManagement.setDatabaseConnection(*dbConnection);
 	formSchoolManagement.exec();
 	//exit(0);
+}
+
+void MainForm::action_ClassesManagement_Click()
+{
+	ClassManagementForm formClassManagement(this);
+	formClassManagement.setDatabaseConnection(*dbConnection);
+	formClassManagement.exec();
+	exit(0);
 }
