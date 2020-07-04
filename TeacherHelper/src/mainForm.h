@@ -17,6 +17,8 @@ private:
 private slots:
 	void action_StudentsManagement_Click();
 	void action_SchoolsManagement_Click();
+	void action_ClassesManagement_Click();
+
 
 };
 
