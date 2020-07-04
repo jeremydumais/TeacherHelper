@@ -8,7 +8,8 @@ using namespace std;
 
 ClassManagementForm::ClassManagementForm(QWidget *parent)
 	: QDialog(parent),
-	  ui(Ui::classManagementFormClass())
+	  ui(Ui::classManagementFormClass()),
+	  schools(list<School>())
 {
 	ui.setupUi(this);
 	ui.frameDetails->setEnabled(false);
@@ -22,7 +23,7 @@ ClassManagementForm::ClassManagementForm(QWidget *parent)
 	ui.tableWidgeItems->setHorizontalHeaderItem(0, new QTableWidgetItem("Id"));
 	ui.tableWidgeItems->setHorizontalHeaderItem(1, new QTableWidgetItem("Name"));
 	ui.tableWidgeItems->setHorizontalHeaderItem(2, new QTableWidgetItem("School"));
-	ui.tableWidgeItems->setHorizontalHeaderItem(3, new QTableWidgetItem("school City"));
+	ui.tableWidgeItems->setHorizontalHeaderItem(3, new QTableWidgetItem("School City"));
 	ui.tableWidgeItems->setHorizontalHeaderItem(4, new QTableWidgetItem("school_id"));
 	ui.tableWidgeItems->setColumnHidden(0, true);
 	ui.tableWidgeItems->setColumnHidden(4, true);
@@ -37,6 +38,8 @@ ClassManagementForm::ClassManagementForm(QWidget *parent)
 void ClassManagementForm::showEvent(QShowEvent *event) 
 {
     QDialog::showEvent(event);
+	//Load all the schools
+	refreshSchoolTable();
     refreshItemsTable();
 } 
 
@@ -58,6 +61,20 @@ void ClassManagementForm::refreshItemsTable()
 	toggleTableControls(false);
 }
 
+void ClassManagementForm::refreshSchoolTable()
+{
+	ui.comboBoxSchool->clear();
+	SchoolStorage schoolStorage(*dbConnection);
+	schools = schoolStorage.getAllSchools();
+	//Add a first empty choice
+	ui.comboBoxSchool->addItem("", -1);
+	for(const auto &school : schools) {
+		stringstream ss;
+		ss << school.getName() << " (" << school.getCity() << ")";
+		ui.comboBoxSchool->addItem(ss.str().c_str(), static_cast<uint>(school.getId()));
+	}
+}
+
 void ClassManagementForm::toggleTableControls(bool itemSelected)
 {
 	ui.pushButtonModify->setEnabled(itemSelected);
@@ -67,13 +84,13 @@ void ClassManagementForm::toggleTableControls(bool itemSelected)
 void ClassManagementForm::toggleEditMode(ActionMode mode)
 {
 	this->mode = mode;
-	bool editMode = (mode ==  ActionMode::Add || mode == ActionMode::Modifiy);
+	bool editMode = (mode == ActionMode::Add || mode == ActionMode::Modifiy);
 	ui.frameDetails->setEnabled(editMode);
 	ui.tableWidgeItems->setEnabled(!editMode);
 	ui.frameActionButtons->setEnabled(!editMode);
 	if(!editMode) {
 		ui.lineEditName->clear();
-		//ui.comboBoxSchool->se();
+		ui.comboBoxSchool->setCurrentIndex(0);
 	} 
 	else {
 		ui.lineEditName->setFocus();
@@ -89,7 +106,7 @@ void ClassManagementForm::itemsTableSelectionChanged(const QItemSelection &selec
 void ClassManagementForm::pushButtonAdd_Click()
 {
 	ui.lineEditName->clear();
-	//ui.lineEditCity->clear();
+	ui.comboBoxSchool->setCurrentIndex(0);
 	toggleEditMode(ActionMode::Add);
 }
 
@@ -98,7 +115,11 @@ void ClassManagementForm::pushButtonModify_Click()
 	auto row = ui.tableWidgeItems->selectionModel()->selectedIndexes();
 	if (!row.empty()) {
 		ui.lineEditName->setText(row[1].data().toString());
-		//ui.lineEditCity->setText(row[2].data().toString());
+		//Find the selected school
+		if (!selectSchoolInEditPanel(row[3].data().toUInt())) {
+			showError("Cannot select the school.");
+			return;
+		}
 		toggleEditMode(ActionMode::Modifiy);
 	}
 }
@@ -109,7 +130,7 @@ void ClassManagementForm::pushButtonDelete_Click()
 	stringstream ss;
 	auto row = ui.tableWidgeItems->selectionModel()->selectedIndexes();
 
-	ss << "Are you sure you want to delete the school " << row[1].data().toString().toStdString() << "?";
+	ss << "Are you sure you want to delete the class " << row[1].data().toString().toStdString() << "?";
 	msgBox.setText(ss.str().c_str());
 	msgBox.setWindowTitle("Confirmation");
 	msgBox.setStandardButtons(QMessageBox::Yes | QMessageBox::No | QMessageBox::Cancel);
@@ -131,31 +152,45 @@ void ClassManagementForm::pushButtonOK_Click()
 {
 	if (mode == ActionMode::Add) {
 		if (validateEntry()) {
-			/*ClassStorage storage(*dbConnection);
-			if (storage.insertClass(Class(ui.lineEditName->text().trimmed().toStdString(),
-											ui.lineEditCity->text().trimmed().toStdString()))) {
-				toggleEditMode(ActionMode::None);
-				refreshItemsTable();
+			//Find the selected school
+			const School* const selectedSchool = findSchool(ui.comboBoxSchool->currentData().toUInt());
+			if (selectedSchool) {
+				ClassStorage storage(*dbConnection);
+				if (storage.insertClass(Class(ui.lineEditName->text().trimmed().toStdString(),
+												*selectedSchool))) {
+					toggleEditMode(ActionMode::None);
+					refreshItemsTable();
+				}
+				else {
+					showError(storage.getLastError());
+				}
 			}
 			else {
-				showError(storage.getLastError());
-			}*/
+				showError("Cannot find the selected school.");
+			}
 		}
 	}
 	else if (mode == ActionMode::Modifiy) {
 		if (validateEntry()) {
-			/*ClassStorage storage(*dbConnection);
-			auto row = ui.tableWidgeItems->selectionModel()->selectedIndexes();
+			//Find the selected school
+			const School* const selectedSchool = findSchool(ui.comboBoxSchool->currentData().toUInt());
+			if (selectedSchool) {
+				ClassStorage storage(*dbConnection);
+				auto row = ui.tableWidgeItems->selectionModel()->selectedIndexes();
 
-			if (storage.updateSchool(School(row[0].data().toUInt(),
-											ui.lineEditName->text().trimmed().toStdString(),
-											ui.lineEditCity->text().trimmed().toStdString()))) {
-				toggleEditMode(ActionMode::None);
-				refreshItemsTable();
+				if (storage.updateClass(Class(row[0].data().toUInt(),
+												ui.lineEditName->text().trimmed().toStdString(),
+												*selectedSchool))) {
+					toggleEditMode(ActionMode::None);
+					refreshItemsTable();
+				}
+				else {
+					showError(storage.getLastError());
+				}
 			}
 			else {
-				showError(storage.getLastError());
-			}*/
+				showError("Cannot find the selected school.");
+			}
 		}	
 	}
 }
@@ -175,14 +210,10 @@ bool ClassManagementForm::validateEntry() const
 		showError("The name must not be greater than 50 characters!");
 		return false;
 	}
-	/*if (ui.lineEditCity->text().trimmed().isEmpty()) {
-		showError("The city is required!");
+	if (ui.comboBoxSchool->currentData().toInt() < 1) {
+		showError("The school is required!");
 		return false;
 	}
-	if (ui.lineEditCity->text().trimmed().length() > 50) {
-		showError("The city must not be greater than 50 characters!");
-		return false;
-	}*/
 	return true;
 }
 
@@ -194,4 +225,27 @@ void ClassManagementForm::keyPressEvent(QKeyEvent *e)
 	else {
 		QDialog::keyPressEvent(e);
 	}
+}
+
+const School* ClassManagementForm::findSchool(size_t id) const
+{
+	const School *retVal = nullptr;
+	for(const auto &school : schools) {
+		if (school.getId() == id) {
+			retVal = &school; 
+			break;
+		}
+	}
+	return retVal;
+}
+
+bool ClassManagementForm::selectSchoolInEditPanel(size_t id)
+{
+	for (int i = 0; i < ui.comboBoxSchool->count(); i++) {
+		if (ui.comboBoxSchool->itemData(i).toInt() == static_cast<int>(id)) {
+			ui.comboBoxSchool->setCurrentIndex(i);
+			return true;
+		}
+	}
+	return false;
 }

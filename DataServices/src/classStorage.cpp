@@ -51,38 +51,38 @@ const std::string &ClassStorage::getLastError() const
 
 bool ClassStorage::insertClass(const Class &p_class)
 {
-    /*SQLiteInsertOperation operation(*connection, 
-        "INSERT INTO school (name, city) VALUES(?, ?)",
-        vector<string> { school.getName(), school.getCity() });
+    SQLiteInsertOperation operation(*connection, 
+        "INSERT INTO class (name, school_id) VALUES(?, ?)",
+        vector<string> { p_class.getName(), to_string(p_class.getSchool().getId()) });
     if (!operation.execute()) {
         lastError = operation.getLastError();
         return false;
-    }*/
+    }
     return true;
 }
 
 bool ClassStorage::updateClass(const Class &p_class)
 {
-    /*SQLiteUpdateOperation operation(*connection, 
-        "UPDATE school SET name = ?, city = ? WHERE id = ?",
-        vector<string> { school.getName(),
-            school.getCity(),
-            to_string(school.getId()) });
+    SQLiteUpdateOperation operation(*connection, 
+        "UPDATE class SET name = ?, school_id = ? WHERE id = ?",
+        vector<string> { p_class.getName(),
+            to_string(p_class.getSchool().getId()),
+            to_string(p_class.getId()) });
     if (!operation.execute()) {
         lastError = operation.getLastError();
         return false;
-    }*/
+    }
     return true;
 }
 
 bool ClassStorage::deleteClass(size_t id)
 {
-    /*SQLiteUpdateOperation operation(*connection, 
-        "UPDATE school SET deleted=1 WHERE id = ?", 
+    SQLiteUpdateOperation operation(*connection, 
+        "UPDATE class SET deleted=1 WHERE id = ?", 
         vector<string> { to_string(id) });
     if (!operation.execute()) {
         lastError = operation.getLastError();
         return false;
-    }*/
+    }
     return true;
 }
