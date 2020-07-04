@@ -52,3 +52,16 @@ void DatabaseConnection::close()
     sqlite3_close(db);
     db = nullptr;
 }
+
+void DatabaseConnection::create()
+{
+    int connection_result = sqlite3_open_v2(dbName.c_str(), 
+                                            &db, 
+                                            SQLITE_OPEN_READWRITE | SQLITE_OPEN_CREATE, 
+                                            nullptr);
+    if (connection_result != 0) {
+        stringstream ss;
+        ss << "Cannot create database " << dbName << ". sqlite3_errmsg(db)";
+        throw runtime_error(ss.str());
+    }
+}

@@ -12,18 +12,6 @@ set(CMAKE_BUILD_TYPE Debug)
 FIND_PACKAGE(Boost REQUIRED COMPONENTS system filesystem)
 INCLUDE_DIRECTORIES( ${Boost_INCLUDE_DIR} )
 
-find_program(
-    CLANG_TIDY_EXE
-    NAMES "clang-tidy"
-    DOC "Path to clang-tidy executable"
-    )
-if(NOT CLANG_TIDY_EXE)
-    message(STATUS "clang-tidy not found.")
-else()
-    message(STATUS "clang-tidy found: ${CLANG_TIDY_EXE}")
-    set(DO_CLANG_TIDY "${CLANG_TIDY_EXE}" "-checks=*")
-endif()
-
 enable_testing()
 
 # Download and unpack googletest at configure time
@@ -50,9 +38,6 @@ set(gtest_force_shared_crt ON CACHE BOOL "" FORCE)
 add_subdirectory(${CMAKE_CURRENT_BINARY_DIR}/googletest-src
                  ${CMAKE_CURRENT_BINARY_DIR}/googletest-build
                  EXCLUDE_FROM_ALL)
-
-set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
-set(CMAKE_CXX_CPPCHECK "cppcheck")
 
 add_subdirectory("Models")
 add_subdirectory("DataServices")

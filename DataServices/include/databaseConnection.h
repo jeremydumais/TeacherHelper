@@ -12,6 +12,7 @@ public:
     sqlite3 *getConnectionPtr() const;
     void open();
     void close();
+    void create();
 private:
     std::string dbName;
 	sqlite3 *db;

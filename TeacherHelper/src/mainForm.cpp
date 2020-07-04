@@ -2,6 +2,8 @@
 #include "schoolManagementForm.h"
 #include "studentManagementForm.h"
 #include "studentStorage.h"
+#include <boost/filesystem.hpp>
+#include <qt5/QtWidgets/qmessagebox.h>
 
 using namespace std;
 
@@ -17,6 +19,28 @@ MainForm::MainForm(QWidget *parent)
     connect(ui.action_Students, SIGNAL(triggered()), this, SLOT(action_StudentsManagement_Click()));
     connect(ui.action_Schools, SIGNAL(triggered()), this, SLOT(action_SchoolsManagement_Click()));
 
+	//Check if the database exist. If not, ask for creation.
+	if (!boost::filesystem::exists("teacherdb")) {
+		QMessageBox msgBox;
+		msgBox.setText("The database doesn't seem to exist.");
+		msgBox.setInformativeText("Do you want to create it?");
+		msgBox.setWindowTitle("Confirmation");
+		msgBox.setStandardButtons(QMessageBox::Yes | QMessageBox::No | QMessageBox::Cancel);
+		msgBox.setDefaultButton(QMessageBox::Cancel);
+
+		if (msgBox.exec() == QMessageBox::Yes) {
+			try {
+				dbConnection->create();
+				ui.textEdit->setText("Database created successfully");
+			}
+			catch(runtime_error &err) {
+				ui.textEdit->setText("Can't create database");
+			}
+		}
+		else {
+			exit(0);
+		}
+	}
   	try {
 		dbConnection->open();
 	   	ui.textEdit->setText("Opened database successfully");

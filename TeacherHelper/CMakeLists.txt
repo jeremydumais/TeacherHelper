@@ -1,18 +1,6 @@
 # Set project name
 set(PROJECT_NAME    "TeacherHelperApp")
 
-find_program(
-    CLANG_TIDY_EXE
-    NAMES "clang-tidy"
-    DOC "Path to clang-tidy executable"
-    )
-if(NOT CLANG_TIDY_EXE)
-    message(STATUS "clang-tidy not found.")
-else()
-    message(STATUS "clang-tidy found: ${CLANG_TIDY_EXE}")
-    set(DO_CLANG_TIDY "${CLANG_TIDY_EXE}")
-endif()
-
 #set(CMAKE_BUILD_TYPE Debug)
 include_directories("/usr/include/x86_64-linux-gnu/qt5"
     ${CMAKE_CURRENT_SOURCE_DIR}/include
@@ -39,11 +27,6 @@ set(PROJECT_SOURCE_FILES ${CMAKE_CURRENT_SOURCE_DIR}/src/main.cpp
                          ${CMAKE_CURRENT_SOURCE_DIR}/res/global.qrc)
 add_executable(${PROJECT_NAME} ${PROJECT_SOURCE_FILES})
 target_link_libraries(${PROJECT_NAME} Models DataServices Qt5::Widgets sqlite3)
-
-#Run clang-tidy on project
-if(CLANG_TIDY_EXE AND CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
-  set_target_properties(${PROJECT_NAME} PROPERTIES C_CLANG_TIDY "${DO_CLANG_TIDY}")
-endif()
 
 if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU") #gcc
   # https://gcc.gnu.org/onlinedocs/gcc/Warning-Options.html
