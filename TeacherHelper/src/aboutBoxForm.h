@@ -11,7 +11,6 @@ Q_OBJECT
 public:
 	explicit AboutBoxForm(QWidget *parent = 0);
 	~AboutBoxForm() = default;
-	void showEvent(QShowEvent *event) override;
 private:
 	Ui::aboutBoxFormClass ui;
 };

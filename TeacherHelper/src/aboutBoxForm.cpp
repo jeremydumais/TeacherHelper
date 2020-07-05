@@ -8,7 +8,3 @@ AboutBoxForm::AboutBoxForm(QWidget *parent)
 {
 	ui.setupUi(this);
 }
-
-void AboutBoxForm::showEvent(QShowEvent *event) 
-{
-} 
