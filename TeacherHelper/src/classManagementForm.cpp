@@ -3,6 +3,7 @@
 #include <qt5/QtGui/QKeyEvent>
 #include <qt5/QtWidgets/qmessagebox.h>
 #include <sstream>
+#include <iostream>
 
 using namespace std;
 
@@ -116,7 +117,7 @@ void ClassManagementForm::pushButtonModify_Click()
 	if (!row.empty()) {
 		ui.lineEditName->setText(row[1].data().toString());
 		//Find the selected school
-		if (!selectSchoolInEditPanel(row[3].data().toUInt())) {
+		if (!selectSchoolInEditPanel(row[4].data().toUInt())) {
 			showError("Cannot select the school.");
 			return;
 		}

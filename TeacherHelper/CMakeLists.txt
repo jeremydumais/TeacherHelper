@@ -25,6 +25,7 @@ set(PROJECT_SOURCE_FILES ${CMAKE_CURRENT_SOURCE_DIR}/src/main.cpp
                          ${CMAKE_CURRENT_SOURCE_DIR}/src/studentManagementForm.cpp
                          ${CMAKE_CURRENT_SOURCE_DIR}/src/schoolManagementForm.cpp
                          ${CMAKE_CURRENT_SOURCE_DIR}/src/classManagementForm.cpp
+                         ${CMAKE_CURRENT_SOURCE_DIR}/src/aboutBoxForm.cpp
                          ${CMAKE_CURRENT_SOURCE_DIR}/res/global.qrc)
 add_executable(${PROJECT_NAME} ${PROJECT_SOURCE_FILES})
 target_link_libraries(${PROJECT_NAME} Models DataServices Qt5::Widgets sqlite3)

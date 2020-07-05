@@ -258,6 +258,17 @@
    </item>
   </layout>
  </widget>
+ <tabstops>
+  <tabstop>tableWidgeItems</tabstop>
+  <tabstop>pushButtonAdd</tabstop>
+  <tabstop>pushButtonModify</tabstop>
+  <tabstop>pushButtonDelete</tabstop>
+  <tabstop>lineEditName</tabstop>
+  <tabstop>lineEditCity</tabstop>
+  <tabstop>pushButtonOK</tabstop>
+  <tabstop>pushButtonCancel</tabstop>
+  <tabstop>pushButtonClose</tabstop>
+ </tabstops>
  <resources>
   <include location="../res/global.qrc"/>
  </resources>
