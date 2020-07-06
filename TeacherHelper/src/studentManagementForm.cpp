@@ -65,7 +65,7 @@ void StudentManagementForm::toggleTableControls(bool itemSelected)
 void StudentManagementForm::toggleEditMode(ActionMode mode)
 {
 	this->mode = mode;
-	bool editMode = (mode ==  ActionMode::Add || mode == ActionMode::Modifiy);
+	bool editMode = (mode ==  ActionMode::Add || mode == ActionMode::Modify);
 	ui.frameDetails->setEnabled(editMode);
 	ui.tableWidgeItems->setEnabled(!editMode);
 	ui.frameActionButtons->setEnabled(!editMode);
@@ -97,7 +97,7 @@ void StudentManagementForm::pushButtonModify_Click()
 	if (row.size() > 0) {
 		ui.lineEditFirstname->setText(row[1].data().toString());
 		ui.lineEditLastname->setText(row[2].data().toString());
-		toggleEditMode(ActionMode::Modifiy);
+		toggleEditMode(ActionMode::Modify);
 	}
 }
 
@@ -141,7 +141,7 @@ void StudentManagementForm::pushButtonOK_Click()
 			}
 		}
 	}
-	else if (mode == ActionMode::Modifiy) {
+	else if (mode == ActionMode::Modify) {
 		if (validateEntry()) {
 			StudentStorage storage(*dbConnection);
 			auto row = ui.tableWidgeItems->selectionModel()->selectedIndexes();

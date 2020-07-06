@@ -3,7 +3,7 @@
 #include "schoolManagementForm.h"
 #include "studentManagementForm.h"
 #include "classManagementForm.h"
-#include "studentStorage.h"
+#include "cityManagementForm.h"
 #include <boost/filesystem.hpp>
 #include <qt5/QtWidgets/qmessagebox.h>
 
@@ -21,6 +21,7 @@ MainForm::MainForm(QWidget *parent)
     connect(ui.action_Students, SIGNAL(triggered()), this, SLOT(action_StudentsManagement_Click()));
     connect(ui.action_Schools, SIGNAL(triggered()), this, SLOT(action_SchoolsManagement_Click()));
     connect(ui.action_Classes, SIGNAL(triggered()), this, SLOT(action_ClassesManagement_Click()));
+    connect(ui.action_Cities, SIGNAL(triggered()), this, SLOT(action_CitiesManagement_Click()));
     connect(ui.action_About, SIGNAL(triggered()), this, SLOT(action_About_Click()));
 
 	//Check if the database exist. If not, ask for creation.
@@ -79,6 +80,13 @@ void MainForm::action_ClassesManagement_Click()
 	ClassManagementForm formClassManagement(this);
 	formClassManagement.setDatabaseConnection(*dbConnection);
 	formClassManagement.exec();
+}
+
+void MainForm::action_CitiesManagement_Click()
+{
+	CityManagementForm formCityManagement(this);
+	formCityManagement.setDatabaseConnection(*dbConnection);
+	formCityManagement.exec();
 }
 
 void MainForm::action_About_Click()

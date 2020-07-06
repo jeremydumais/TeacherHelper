@@ -66,6 +66,7 @@ void DatabaseConnection::create()
         throw runtime_error(ss.str());
     }
     vector<string> tableCreationInstructions {
+        "CREATE TABLE city(id INTEGER PRIMARY KEY AUTOINCREMENT, name varchar(50) NOT NULL, deleted BOOLEAN NOT NULL DEFAULT 0)",
         "CREATE TABLE school(id INTEGER PRIMARY KEY AUTOINCREMENT, name varchar(50) NOT NULL, city varchar(50) NOT NULL, deleted BOOLEAN NOT NULL DEFAULT 0)",
         "CREATE TABLE class(id INTEGER PRIMARY KEY AUTOINCREMENT, name varchar(50) NOT NULL, school_id INTEGER NOT NULL, deleted BOOLEAN NOT NULL DEFAULT 0, FOREIGN KEY(school_id) REFERENCES school(id))",
         "CREATE TABLE student(id INTEGER PRIMARY KEY AUTOINCREMENT, firstname varchar(30) NOT NULL, lastname varchar(30) NOT NULL, deleted BOOLEAN NOT NULL DEFAULT 0)"

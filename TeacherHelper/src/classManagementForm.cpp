@@ -85,7 +85,7 @@ void ClassManagementForm::toggleTableControls(bool itemSelected)
 void ClassManagementForm::toggleEditMode(ActionMode mode)
 {
 	this->mode = mode;
-	bool editMode = (mode == ActionMode::Add || mode == ActionMode::Modifiy);
+	bool editMode = (mode == ActionMode::Add || mode == ActionMode::Modify);
 	ui.frameDetails->setEnabled(editMode);
 	ui.tableWidgeItems->setEnabled(!editMode);
 	ui.frameActionButtons->setEnabled(!editMode);
@@ -121,7 +121,7 @@ void ClassManagementForm::pushButtonModify_Click()
 			showError("Cannot select the school.");
 			return;
 		}
-		toggleEditMode(ActionMode::Modifiy);
+		toggleEditMode(ActionMode::Modify);
 	}
 }
 
@@ -171,7 +171,7 @@ void ClassManagementForm::pushButtonOK_Click()
 			}
 		}
 	}
-	else if (mode == ActionMode::Modifiy) {
+	else if (mode == ActionMode::Modify) {
 		if (validateEntry()) {
 			//Find the selected school
 			const School* const selectedSchool = findSchool(ui.comboBoxSchool->currentData().toUInt());

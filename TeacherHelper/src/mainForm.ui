@@ -33,6 +33,7 @@
     <property name="title">
      <string>&amp;Management</string>
     </property>
+    <addaction name="action_Cities"/>
     <addaction name="action_Schools"/>
     <addaction name="action_Classes"/>
     <addaction name="action_Students"/>
@@ -82,6 +83,11 @@
   <action name="action_Schools">
    <property name="text">
     <string>&amp;Schools...</string>
+   </property>
+  </action>
+  <action name="action_Cities">
+   <property name="text">
+    <string>C&amp;ities...</string>
    </property>
   </action>
  </widget>

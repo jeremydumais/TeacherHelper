@@ -6,7 +6,7 @@
 enum class ActionMode {
     None,
     Add,
-    Modifiy
+    Modify
 };
 
 class ManagementFormBase

@@ -1,14 +1,16 @@
-#include "schoolManagementForm.h"
-#include "schoolStorage.h"
+#include "cityManagementForm.h"
+#include "cityStorage.h"
 #include <qt5/QtGui/QKeyEvent>
 #include <qt5/QtWidgets/qmessagebox.h>
 #include <sstream>
+#include <boost/algorithm/string.hpp>
 
 using namespace std;
 
-SchoolManagementForm::SchoolManagementForm(QWidget *parent)
+CityManagementForm::CityManagementForm(QWidget *parent)
 	: QDialog(parent),
-	  ui(Ui::schoolManagementFormClass())
+	  ui(Ui::cityManagementFormClass()),
+	  cities(list<City>())
 {
 	ui.setupUi(this);
 	ui.frameDetails->setEnabled(false);
@@ -21,7 +23,6 @@ SchoolManagementForm::SchoolManagementForm(QWidget *parent)
 
 	ui.tableWidgeItems->setHorizontalHeaderItem(0, new QTableWidgetItem("Id"));
 	ui.tableWidgeItems->setHorizontalHeaderItem(1, new QTableWidgetItem("Name"));
-	ui.tableWidgeItems->setHorizontalHeaderItem(2, new QTableWidgetItem("City"));
 	ui.tableWidgeItems->setColumnHidden(0, true);
 	connect(ui.tableWidgeItems->selectionModel(), 
 		SIGNAL(selectionChanged(const QItemSelection &, const QItemSelection &)),
@@ -31,35 +32,34 @@ SchoolManagementForm::SchoolManagementForm(QWidget *parent)
 		SLOT(pushButtonModify_Click()));
 }
 
-void SchoolManagementForm::showEvent(QShowEvent *event) 
+void CityManagementForm::showEvent(QShowEvent *event) 
 {
     QDialog::showEvent(event);
     refreshItemsTable();
 } 
 
-void SchoolManagementForm::refreshItemsTable()
+void CityManagementForm::refreshItemsTable()
 {
-	SchoolStorage schoolStorage(*dbConnection);
-	list<School> schools = schoolStorage.getAllSchools();
+	CityStorage cityStorage(*dbConnection);
+	cities = cityStorage.getAllCities();
 	ui.tableWidgeItems->model()->removeRows(0, ui.tableWidgeItems->rowCount());
 	size_t row {0};
-    for (const auto &school : schools) {
+    for (const auto &city : cities) {
 		ui.tableWidgeItems->insertRow(row);
-		ui.tableWidgeItems->setItem(row, 0, new QTableWidgetItem(to_string(school.getId()).c_str()));
-		ui.tableWidgeItems->setItem(row, 1, new QTableWidgetItem(school.getName().c_str()));
-		ui.tableWidgeItems->setItem(row, 2, new QTableWidgetItem(school.getCity().c_str()));
+		ui.tableWidgeItems->setItem(row, 0, new QTableWidgetItem(to_string(city.getId()).c_str()));
+		ui.tableWidgeItems->setItem(row, 1, new QTableWidgetItem(city.getName().c_str()));
 		row++;
     }
 	toggleTableControls(false);
 }
 
-void SchoolManagementForm::toggleTableControls(bool itemSelected)
+void CityManagementForm::toggleTableControls(bool itemSelected)
 {
 	ui.pushButtonModify->setEnabled(itemSelected);
 	ui.pushButtonDelete->setEnabled(itemSelected);
 }
 
-void SchoolManagementForm::toggleEditMode(ActionMode mode)
+void CityManagementForm::toggleEditMode(ActionMode mode)
 {
 	this->mode = mode;
 	bool editMode = (mode ==  ActionMode::Add || mode == ActionMode::Modify);
@@ -68,7 +68,6 @@ void SchoolManagementForm::toggleEditMode(ActionMode mode)
 	ui.frameActionButtons->setEnabled(!editMode);
 	if(!editMode) {
 		ui.lineEditName->clear();
-		ui.lineEditCity->clear();
 	} 
 	else {
 		ui.lineEditName->setFocus();
@@ -76,44 +75,43 @@ void SchoolManagementForm::toggleEditMode(ActionMode mode)
 	}
 }
 
-void SchoolManagementForm::itemsTableSelectionChanged(const QItemSelection &selected)
+void CityManagementForm::itemsTableSelectionChanged(const QItemSelection &selected)
 {	
 	toggleTableControls(selected.size() == 1);
 }
 
-void SchoolManagementForm::pushButtonAdd_Click()
+void CityManagementForm::pushButtonAdd_Click()
 {
 	ui.lineEditName->clear();
-	ui.lineEditCity->clear();
 	toggleEditMode(ActionMode::Add);
 }
 
-void SchoolManagementForm::pushButtonModify_Click()
+void CityManagementForm::pushButtonModify_Click()
 {
 	auto row = ui.tableWidgeItems->selectionModel()->selectedIndexes();
 	if (!row.empty()) {
 		ui.lineEditName->setText(row[1].data().toString());
-		ui.lineEditCity->setText(row[2].data().toString());
 		toggleEditMode(ActionMode::Modify);
 	}
 }
 
-void SchoolManagementForm::pushButtonDelete_Click()
+void CityManagementForm::pushButtonDelete_Click()
 {
 	QMessageBox msgBox;
 	stringstream ss;
 	auto row = ui.tableWidgeItems->selectionModel()->selectedIndexes();
-
-	ss << "Are you sure you want to delete the school " << row[1].data().toString().toStdString() << "?";
+	//Find the selected city
+	const City *editedCity = findCity(row[0].data().toUInt());
+	ss << "Are you sure you want to delete the city " << editedCity->getName() << "?";
 	msgBox.setText(ss.str().c_str());
 	msgBox.setWindowTitle("Confirmation");
 	msgBox.setStandardButtons(QMessageBox::Yes | QMessageBox::No | QMessageBox::Cancel);
 	msgBox.setDefaultButton(QMessageBox::Cancel);
 
 	if (msgBox.exec() == QMessageBox::Yes) {
-		SchoolStorage storage(*dbConnection);
+		CityStorage storage(*dbConnection);
 
-		if (storage.deleteSchool(row[0].data().toUInt())) {
+		if (storage.deleteCity(row[0].data().toUInt())) {
 			refreshItemsTable();
 		}
 		else {
@@ -122,13 +120,12 @@ void SchoolManagementForm::pushButtonDelete_Click()
 	}
 }
 
-void SchoolManagementForm::pushButtonOK_Click()
+void CityManagementForm::pushButtonOK_Click()
 {
 	if (mode == ActionMode::Add) {
 		if (validateEntry()) {
-			SchoolStorage storage(*dbConnection);
-			if (storage.insertSchool(School(ui.lineEditName->text().trimmed().toStdString(),
-											ui.lineEditCity->text().trimmed().toStdString()))) {
+			CityStorage storage(*dbConnection);
+			if (storage.insertCity(City(ui.lineEditName->text().trimmed().toStdString()))) {
 				toggleEditMode(ActionMode::None);
 				refreshItemsTable();
 			}
@@ -139,28 +136,42 @@ void SchoolManagementForm::pushButtonOK_Click()
 	}
 	else if (mode == ActionMode::Modify) {
 		if (validateEntry()) {
-			SchoolStorage storage(*dbConnection);
+			CityStorage storage(*dbConnection);
 			auto row = ui.tableWidgeItems->selectionModel()->selectedIndexes();
-
-			if (storage.updateSchool(School(row[0].data().toUInt(),
-											ui.lineEditName->text().trimmed().toStdString(),
-											ui.lineEditCity->text().trimmed().toStdString()))) {
-				toggleEditMode(ActionMode::None);
-				refreshItemsTable();
+			//Find the selected city
+			size_t currentlyEditedCityId = row[0].data().toUInt();
+			const City *editedCity = findCity(currentlyEditedCityId);
+			if (editedCity != nullptr) {
+				//Ensure that the new name is available
+				string newName = ui.lineEditName->text().trimmed().toStdString();
+				if (isNewNameAvailable(newName, currentlyEditedCityId, mode)) {
+					City editedCityClone { *editedCity };
+					editedCityClone.setName(newName);
+					if (storage.updateCity(editedCityClone)) {
+						toggleEditMode(ActionMode::None);
+						refreshItemsTable();
+					}
+					else {
+						showError(storage.getLastError());
+					}
+				}
+				else {
+					showError("The new name is already taken.");
+				}
 			}
 			else {
-				showError(storage.getLastError());
+				showError("Unable to find the selected city.");
 			}
 		}	
 	}
 }
 
-void SchoolManagementForm::pushButtonCancel_Click()
+void CityManagementForm::pushButtonCancel_Click()
 {
 	toggleEditMode(ActionMode::None);
 }
 
-bool SchoolManagementForm::validateEntry() const
+bool CityManagementForm::validateEntry() const
 {
 	if (ui.lineEditName->text().trimmed().isEmpty()) {
 		showError("The name is required!");
@@ -170,18 +181,10 @@ bool SchoolManagementForm::validateEntry() const
 		showError("The name must not be greater than 50 characters!");
 		return false;
 	}
-	if (ui.lineEditCity->text().trimmed().isEmpty()) {
-		showError("The city is required!");
-		return false;
-	}
-	if (ui.lineEditCity->text().trimmed().length() > 50) {
-		showError("The city must not be greater than 50 characters!");
-		return false;
-	}
 	return true;
 }
 
-void SchoolManagementForm::keyPressEvent(QKeyEvent *e)
+void CityManagementForm::keyPressEvent(QKeyEvent *e)
 {
 	if (e->key() == Qt::Key_Escape && mode != ActionMode::None) {
 		pushButtonCancel_Click();
@@ -189,4 +192,31 @@ void SchoolManagementForm::keyPressEvent(QKeyEvent *e)
 	else {
 		QDialog::keyPressEvent(e);
 	}
+}
+
+const City* CityManagementForm::findCity(size_t id)
+{
+	const City *retVal = nullptr;
+	for(const auto &city : cities) {
+		if (city.getId() == id) {
+			retVal = &city; 
+			break;
+		}
+	}
+	return retVal;
+}
+
+bool CityManagementForm::isNewNameAvailable(const string &name, 
+										 size_t currentlyEditedCityId, 
+										 ActionMode mode) const
+{
+	bool problemFound = false;
+	for(const auto &city : cities) {
+		if ((boost::to_upper_copy(city.getName()) == boost::to_upper_copy(name) && mode == ActionMode::Add) || 
+			(boost::to_upper_copy(city.getName()) == boost::to_upper_copy(name) && mode == ActionMode::Modify && city.getId() != currentlyEditedCityId)) {
+			problemFound = true;
+			break;
+		}
+	}
+	return !problemFound;
 }

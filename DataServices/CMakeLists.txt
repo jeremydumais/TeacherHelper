@@ -12,7 +12,8 @@ add_library(${PROJECT_NAME} SHARED src/databaseConnection.cpp
                                    src/sqliteDDLOperation.cpp
                                    src/studentStorage.cpp
                                    src/schoolStorage.cpp
-                                   src/classStorage.cpp)
+                                   src/classStorage.cpp
+                                   src/cityStorage.cpp)
 set_target_properties(${PROJECT_NAME} PROPERTIES ENABLE_EXPORTS 1)
 target_link_libraries(${PROJECT_NAME} Models sqlite3 ${Boost_LIBRARIES})
 set_target_properties(
