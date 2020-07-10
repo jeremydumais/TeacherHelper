@@ -12,7 +12,7 @@ enum class ActionMode {
 class ManagementFormBase
 {
 public:
-    ManagementFormBase();
+    ManagementFormBase(const DatabaseConnection &connection);
     virtual ~ManagementFormBase();
 	void setDatabaseConnection(const DatabaseConnection &connection);
 protected:

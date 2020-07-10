@@ -63,29 +63,29 @@ MainForm::~MainForm()
 	
 void MainForm::action_StudentsManagement_Click()
 {
-	StudentManagementForm formStudentManagement(this);
-	formStudentManagement.setDatabaseConnection(*dbConnection);
+	StudentManagementForm formStudentManagement(this, *dbConnection);
+	//formStudentManagement.setDatabaseConnection(*dbConnection);
 	formStudentManagement.exec();
 }
 
 void MainForm::action_SchoolsManagement_Click()
 {
-	SchoolManagementForm formSchoolManagement(this);
-	formSchoolManagement.setDatabaseConnection(*dbConnection);
+	SchoolManagementForm formSchoolManagement(this, *dbConnection);
+	//formSchoolManagement.setDatabaseConnection(*dbConnection);
 	formSchoolManagement.exec();
 }
 
 void MainForm::action_ClassesManagement_Click()
 {
-	ClassManagementForm formClassManagement(this);
-	formClassManagement.setDatabaseConnection(*dbConnection);
+	ClassManagementForm formClassManagement(this, *dbConnection);
+	//formClassManagement.setDatabaseConnection(*dbConnection);
 	formClassManagement.exec();
 }
 
 void MainForm::action_CitiesManagement_Click()
 {
-	CityManagementForm formCityManagement(this);
-	formCityManagement.setDatabaseConnection(*dbConnection);
+	CityManagementForm formCityManagement(this, *dbConnection);
+	//formCityManagement.setDatabaseConnection(*dbConnection);
 	formCityManagement.exec();
 }
 

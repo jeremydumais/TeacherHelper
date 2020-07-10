@@ -6,8 +6,9 @@
 
 using namespace std;
 
-SchoolManagementForm::SchoolManagementForm(QWidget *parent)
+SchoolManagementForm::SchoolManagementForm(QWidget *parent, const DatabaseConnection &connection)
 	: QDialog(parent),
+	  ManagementFormBase(connection),
 	  ui(Ui::schoolManagementFormClass())
 {
 	ui.setupUi(this);

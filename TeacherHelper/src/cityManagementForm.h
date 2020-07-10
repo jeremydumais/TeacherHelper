@@ -4,27 +4,23 @@
 
 #include "managementFormBase.h"
 #include "ui_cityManagementForm.h"
-#include "city.h"
+#include "cityController.h"
 
 class CityManagementForm : public QDialog, public ManagementFormBase
 {
 Q_OBJECT
 
 public:
-	explicit CityManagementForm(QWidget *parent = 0);
+	CityManagementForm(QWidget *parent, const DatabaseConnection &connection);
 	~CityManagementForm() = default;
 	void showEvent(QShowEvent *event) override;
 private:
 	Ui::cityManagementFormClass ui;
-	std::list<City> cities;
+	CityController controller;
 	void refreshItemsTable() override;
 	void toggleTableControls(bool itemSelected) override;
 	void toggleEditMode(ActionMode mode) override;
 	bool validateEntry() const override;
-	const City *findCity(size_t id);
-	bool isNewNameAvailable(const std::string &name, 
-						 size_t currentlyEditedCityId, 
-						 ActionMode mode) const;
 private slots: 
 	void itemsTableSelectionChanged(const QItemSelection &selected);
 	void pushButtonAdd_Click();

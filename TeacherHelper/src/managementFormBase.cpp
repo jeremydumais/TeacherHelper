@@ -3,9 +3,9 @@
 
 using namespace std;
 
-ManagementFormBase::ManagementFormBase()
+ManagementFormBase::ManagementFormBase(const DatabaseConnection &connection)
     : mode(ActionMode::None),
-      dbConnection(nullptr)
+      dbConnection(&connection)
 {
 }
 

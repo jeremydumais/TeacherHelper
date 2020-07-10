@@ -41,4 +41,5 @@ add_subdirectory(${CMAKE_CURRENT_BINARY_DIR}/googletest-src
 
 add_subdirectory("Models")
 add_subdirectory("DataServices")
+add_subdirectory("Controllers")
 add_subdirectory("TeacherHelper")

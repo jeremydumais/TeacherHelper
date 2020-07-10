@@ -5,7 +5,8 @@ set(PROJECT_NAME    "TeacherHelperApp")
 include_directories("/usr/include/x86_64-linux-gnu/qt5"
     ${CMAKE_CURRENT_SOURCE_DIR}/include
     ${CMAKE_SOURCE_DIR}/Models/include
-    ${CMAKE_SOURCE_DIR}/DataServices/include)
+    ${CMAKE_SOURCE_DIR}/DataServices/include
+    ${CMAKE_SOURCE_DIR}/Controllers/include)
     
 find_package(Qt5 COMPONENTS Widgets REQUIRED)
 
@@ -29,7 +30,7 @@ set(PROJECT_SOURCE_FILES ${CMAKE_CURRENT_SOURCE_DIR}/src/main.cpp
                          ${CMAKE_CURRENT_SOURCE_DIR}/src/aboutBoxForm.cpp
                          ${CMAKE_CURRENT_SOURCE_DIR}/res/global.qrc)
 add_executable(${PROJECT_NAME} ${PROJECT_SOURCE_FILES})
-target_link_libraries(${PROJECT_NAME} Models DataServices Qt5::Widgets sqlite3)
+target_link_libraries(${PROJECT_NAME} Models DataServices Controllers Qt5::Widgets sqlite3)
 
 if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU") #gcc
   # https://gcc.gnu.org/onlinedocs/gcc/Warning-Options.html

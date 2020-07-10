@@ -11,7 +11,7 @@ class ClassManagementForm : public QDialog, public ManagementFormBase
 Q_OBJECT
 
 public:
-	explicit ClassManagementForm(QWidget *parent = 0);
+	ClassManagementForm(QWidget *parent, const DatabaseConnection &connection);
 	~ClassManagementForm() = default;
 	void showEvent(QShowEvent *event) override;
 private:

@@ -7,8 +7,9 @@
 
 using namespace std;
 
-ClassManagementForm::ClassManagementForm(QWidget *parent)
+ClassManagementForm::ClassManagementForm(QWidget *parent, const DatabaseConnection &connection)
 	: QDialog(parent),
+	  ManagementFormBase(connection),
 	  ui(Ui::classManagementFormClass()),
 	  schools(list<School>())
 {

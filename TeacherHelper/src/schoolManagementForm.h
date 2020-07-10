@@ -10,7 +10,7 @@ class SchoolManagementForm : public QDialog, public ManagementFormBase
 Q_OBJECT
 
 public:
-	explicit SchoolManagementForm(QWidget *parent = 0);
+	SchoolManagementForm(QWidget *parent, const DatabaseConnection &connection);
 	~SchoolManagementForm() = default;
 	void showEvent(QShowEvent *event) override;
 private:

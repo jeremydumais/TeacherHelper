@@ -1,5 +1,4 @@
 #include "cityManagementForm.h"
-#include "cityStorage.h"
 #include <qt5/QtGui/QKeyEvent>
 #include <qt5/QtWidgets/qmessagebox.h>
 #include <sstream>
@@ -7,10 +6,11 @@
 
 using namespace std;
 
-CityManagementForm::CityManagementForm(QWidget *parent)
+CityManagementForm::CityManagementForm(QWidget *parent, const DatabaseConnection &connection)
 	: QDialog(parent),
+	  ManagementFormBase(connection),
 	  ui(Ui::cityManagementFormClass()),
-	  cities(list<City>())
+	  controller(connection)
 {
 	ui.setupUi(this);
 	ui.frameDetails->setEnabled(false);
@@ -35,16 +35,15 @@ CityManagementForm::CityManagementForm(QWidget *parent)
 void CityManagementForm::showEvent(QShowEvent *event) 
 {
     QDialog::showEvent(event);
+	controller.loadCities();
     refreshItemsTable();
 } 
 
 void CityManagementForm::refreshItemsTable()
 {
-	CityStorage cityStorage(*dbConnection);
-	cities = cityStorage.getAllCities();
 	ui.tableWidgeItems->model()->removeRows(0, ui.tableWidgeItems->rowCount());
 	size_t row {0};
-    for (const auto &city : cities) {
+    for (const auto &city : controller.getCities()) {
 		ui.tableWidgeItems->insertRow(row);
 		ui.tableWidgeItems->setItem(row, 0, new QTableWidgetItem(to_string(city.getId()).c_str()));
 		ui.tableWidgeItems->setItem(row, 1, new QTableWidgetItem(city.getName().c_str()));
@@ -101,7 +100,7 @@ void CityManagementForm::pushButtonDelete_Click()
 	stringstream ss;
 	auto row = ui.tableWidgeItems->selectionModel()->selectedIndexes();
 	//Find the selected city
-	const City *editedCity = findCity(row[0].data().toUInt());
+	const City *editedCity = controller.findCity(row[0].data().toUInt());
 	ss << "Are you sure you want to delete the city " << editedCity->getName() << "?";
 	msgBox.setText(ss.str().c_str());
 	msgBox.setWindowTitle("Confirmation");
@@ -109,13 +108,12 @@ void CityManagementForm::pushButtonDelete_Click()
 	msgBox.setDefaultButton(QMessageBox::Cancel);
 
 	if (msgBox.exec() == QMessageBox::Yes) {
-		CityStorage storage(*dbConnection);
 
-		if (storage.deleteCity(row[0].data().toUInt())) {
+		if (controller.deleteCity(row[0].data().toUInt())) {
 			refreshItemsTable();
 		}
 		else {
-			showError(storage.getLastError());
+			showError(controller.getLastError());
 		}
 	}
 }
@@ -124,35 +122,40 @@ void CityManagementForm::pushButtonOK_Click()
 {
 	if (mode == ActionMode::Add) {
 		if (validateEntry()) {
-			CityStorage storage(*dbConnection);
-			if (storage.insertCity(City(ui.lineEditName->text().trimmed().toStdString()))) {
-				toggleEditMode(ActionMode::None);
-				refreshItemsTable();
+			//Ensure that the new name is available
+			string newName = ui.lineEditName->text().trimmed().toStdString();
+			if (controller.isNewNameAvailableForAdd(newName)) {
+				if (controller.insertCity(City(ui.lineEditName->text().trimmed().toStdString()))) {
+					toggleEditMode(ActionMode::None);
+					refreshItemsTable();
+				}
+				else {
+					showError(controller.getLastError());
+				}
 			}
 			else {
-				showError(storage.getLastError());
+				showError("The new name is already taken.");
 			}
 		}
 	}
 	else if (mode == ActionMode::Modify) {
 		if (validateEntry()) {
-			CityStorage storage(*dbConnection);
 			auto row = ui.tableWidgeItems->selectionModel()->selectedIndexes();
 			//Find the selected city
 			size_t currentlyEditedCityId = row[0].data().toUInt();
-			const City *editedCity = findCity(currentlyEditedCityId);
+			const City *editedCity = controller.findCity(currentlyEditedCityId);
 			if (editedCity != nullptr) {
 				//Ensure that the new name is available
 				string newName = ui.lineEditName->text().trimmed().toStdString();
-				if (isNewNameAvailable(newName, currentlyEditedCityId, mode)) {
+				if (controller.isNewNameAvailableForUpdate(newName, currentlyEditedCityId)) {
 					City editedCityClone { *editedCity };
 					editedCityClone.setName(newName);
-					if (storage.updateCity(editedCityClone)) {
+					if (controller.updateCity(editedCityClone)) {
 						toggleEditMode(ActionMode::None);
 						refreshItemsTable();
 					}
 					else {
-						showError(storage.getLastError());
+						showError(controller.getLastError());
 					}
 				}
 				else {
@@ -192,31 +195,4 @@ void CityManagementForm::keyPressEvent(QKeyEvent *e)
 	else {
 		QDialog::keyPressEvent(e);
 	}
-}
-
-const City* CityManagementForm::findCity(size_t id)
-{
-	const City *retVal = nullptr;
-	for(const auto &city : cities) {
-		if (city.getId() == id) {
-			retVal = &city; 
-			break;
-		}
-	}
-	return retVal;
-}
-
-bool CityManagementForm::isNewNameAvailable(const string &name, 
-										 size_t currentlyEditedCityId, 
-										 ActionMode mode) const
-{
-	bool problemFound = false;
-	for(const auto &city : cities) {
-		if ((boost::to_upper_copy(city.getName()) == boost::to_upper_copy(name) && mode == ActionMode::Add) || 
-			(boost::to_upper_copy(city.getName()) == boost::to_upper_copy(name) && mode == ActionMode::Modify && city.getId() != currentlyEditedCityId)) {
-			problemFound = true;
-			break;
-		}
-	}
-	return !problemFound;
 }
