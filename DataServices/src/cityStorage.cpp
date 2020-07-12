@@ -2,6 +2,7 @@
 #include "sqliteInsertOperation.h"
 #include "sqliteSelectOperation.h"
 #include "sqliteUpdateOperation.h"
+#include <boost/algorithm/string.hpp>
 #include <iostream>
 #include <sqlite3.h>
 #include <string>
@@ -15,7 +16,7 @@ CityStorage::CityStorage(const DatabaseConnection &connection)
 {
 }
 
-list<City> CityStorage::getAllCities()
+list<City> CityStorage::getAllItems()
 {
     int i =1;
     list<City> retVal;
@@ -43,11 +44,11 @@ const std::string &CityStorage::getLastError() const
     return lastError;
 }
 
-bool CityStorage::insertCity(const City &city)
+bool CityStorage::insertItem(const City &city)
 {
     SQLiteInsertOperation operation(*connection, 
         "INSERT INTO city (name) VALUES(?)",
-        vector<string> { city.getName() });
+        vector<string> { boost::trim_copy(city.getName()) });
     if (!operation.execute()) {
         lastError = operation.getLastError();
         return false;
@@ -55,11 +56,11 @@ bool CityStorage::insertCity(const City &city)
     return true;
 }
 
-bool CityStorage::updateCity(const City &city)
+bool CityStorage::updateItem(const City &city)
 {
     SQLiteUpdateOperation operation(*connection, 
         "UPDATE city SET name = ? WHERE id = ?",
-        vector<string> { city.getName(),
+        vector<string> { boost::trim_copy(city.getName()),
             to_string(city.getId()) });
     if (!operation.execute()) {
         lastError = operation.getLastError();
@@ -68,7 +69,7 @@ bool CityStorage::updateCity(const City &city)
     return true;
 }
 
-bool CityStorage::deleteCity(size_t id)
+bool CityStorage::deleteItem(size_t id)
 {
     SQLiteUpdateOperation operation(*connection, 
         "UPDATE city SET deleted=1 WHERE id = ?", 

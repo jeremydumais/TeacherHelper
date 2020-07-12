@@ -8,6 +8,7 @@ if (UNIX)
 endif()
 
 set(CMAKE_BUILD_TYPE Debug)
+set(CMAKE_CXX_STANDARD 14)
 
 FIND_PACKAGE(Boost REQUIRED COMPONENTS system filesystem)
 INCLUDE_DIRECTORIES( ${Boost_INCLUDE_DIR} )

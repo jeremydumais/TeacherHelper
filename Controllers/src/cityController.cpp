@@ -1,12 +1,15 @@
 #include "cityController.h"
+#include "cityStorage.h"
 #include <boost/algorithm/string.hpp>
 
 using namespace std;
 
-CityController::CityController(const DatabaseConnection &dbConnection)
-    : dbConnection(&dbConnection),
-      cities(list<City>()),
-      storage(dbConnection),
+CityController::CityController(const DatabaseConnection &dbConnection,
+                               unique_ptr<IManagementItemStorage<City>> managementItemStorage)
+    : cities(list<City>()),
+      storage { managementItemStorage ? 
+                move(managementItemStorage) : 
+                unique_ptr<IManagementItemStorage<City>>(make_unique<CityStorage>(dbConnection))},
       lastError("")
 {
 }
@@ -30,23 +33,30 @@ const City *CityController::findCity(size_t id) const
 
 bool CityController::isNewNameAvailableForAdd(const string &name) const
 {
-	return _isNewNameAvailable(name, -1, false);
+    if (boost::trim_copy(name).empty()) {
+        return false;
+    }
+
+    bool problemFound = false;
+	for(const auto &city : cities) {
+		if (boost::to_upper_copy(boost::trim_copy(city.getName())) == boost::to_upper_copy(boost::trim_copy(name))) {
+			problemFound = true;
+			break;
+		}
+	}
+	return !problemFound;
 }
 
 bool CityController::isNewNameAvailableForUpdate(const string &name,
 								 					 size_t currentlyEditedCityId) const
 {
-	return _isNewNameAvailable(name, currentlyEditedCityId, true);
-}
+    if (boost::trim_copy(name).empty()) {
+        return false;
+    }
 
-bool CityController::_isNewNameAvailable(const string &name, 
-										 	 size_t currentlyEditedCityId, 
-										 	 bool isUpdateMode) const
-{
 	bool problemFound = false;
 	for(const auto &city : cities) {
-		if ((boost::to_upper_copy(city.getName()) == boost::to_upper_copy(name) && !isUpdateMode) || 
-			(boost::to_upper_copy(city.getName()) == boost::to_upper_copy(name) && isUpdateMode && city.getId() != currentlyEditedCityId)) {
+		if (boost::to_upper_copy(boost::trim_copy(city.getName())) == boost::to_upper_copy(boost::trim_copy(name)) && city.getId() != currentlyEditedCityId) {
 			problemFound = true;
 			break;
 		}
@@ -59,32 +69,31 @@ const std::string &CityController::getLastError() const
     return lastError;
 }
 
-
 void CityController::loadCities()
 {
-	cities = storage.getAllCities();
+	cities = storage->getAllItems();
 }
 
 bool CityController::insertCity(const City &city)
 {
-    bool retVal = storage.insertCity(city);
+    bool retVal = storage->insertItem(city);
     if (retVal) {
         loadCities();
     }
     else {
-        lastError = storage.getLastError();
+        lastError = storage->getLastError();
     }
     return retVal;
 }
 
 bool CityController::updateCity(const City &city)
 {
-    bool retVal = storage.updateCity(city);
+    bool retVal = storage->updateItem(city);
     if (retVal) {
         loadCities();
     }
     else {
-        lastError = storage.getLastError();
+        lastError = storage->getLastError();
     }
     return retVal;
 }
@@ -92,12 +101,12 @@ bool CityController::updateCity(const City &city)
 
 bool CityController::deleteCity(size_t id)
 {
-    bool retVal = storage.deleteCity(id);
+    bool retVal = storage->deleteItem(id);
     if (retVal) {
         loadCities();
     }
     else {
-        lastError = storage.getLastError();
+        lastError = storage->getLastError();
     }
     return retVal;
 }
