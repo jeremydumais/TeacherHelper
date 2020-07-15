@@ -1,6 +1,6 @@
 #include "studentManagementForm.h"
 #include "studentStorage.h"
-#include <sstream>
+#include <fmt/format.h>
 #include <qt5/QtWidgets/qmessagebox.h>
 #include <qt5/QtGui/QKeyEvent>
 
@@ -106,12 +106,11 @@ void StudentManagementForm::pushButtonModify_Click()
 void StudentManagementForm::pushButtonDelete_Click()
 {
 	QMessageBox msgBox;
-	stringstream ss;
 	auto row = ui.tableWidgeItems->selectionModel()->selectedIndexes();
-
-	ss << "Are you sure you want to delete the student " << row[1].data().toString().toStdString()
-		<< " " << row[2].data().toString().toStdString() << "?";
-	msgBox.setText(ss.str().c_str());
+	string message = fmt::format("Are you sure you want to delete the student {0} {1}?", 
+								 row[1].data().toString().toStdString(), 
+								 row[2].data().toString().toStdString());
+	msgBox.setText(message.c_str());
 	msgBox.setWindowTitle("Confirmation");
 	msgBox.setStandardButtons(QMessageBox::Yes | QMessageBox::No | QMessageBox::Cancel);
 	msgBox.setDefaultButton(QMessageBox::Cancel);

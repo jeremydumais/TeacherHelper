@@ -20,9 +20,11 @@ list<Class> ClassStorage::getAllClasses()
     int i =1;
     list<Class> retVal;
     SQLiteSelectOperation operation(*connection, 
-        "SELECT class.id, class.name, school.id, school.name, " 
-        "school.city FROM school INNER JOIN class ON class.school_id = school.id " 
-        "WHERE class.deleted = 0 AND school.deleted=0 ORDER BY class.name, school.name;");
+        "SELECT class.id, class.name, school.id, school.name, city.id, city.name " 
+        "FROM class "
+        "INNER JOIN school ON school.id = class.school_id " 
+        "INNER JOIN city INNER JOIN city ON city.id = school.city_id " 
+        "WHERE class.deleted = 0 AND school.deleted=0 AND city.deleted = 0 ORDER BY class.name, school.name;");
     if (operation.execute()) {
         sqlite3_stmt *stmt = operation.getStatement();
         int result = sqlite3_step(stmt);
@@ -32,7 +34,9 @@ list<Class> ClassStorage::getAllClasses()
                                 School(
                                   sqlite3_column_int(stmt, 2),
                                   reinterpret_cast<const char *>((sqlite3_column_text(stmt, 3))),
-                                  reinterpret_cast<const char *>((sqlite3_column_text(stmt, 4)))));
+                                  City(
+                                    sqlite3_column_int(stmt, 4),
+                                    reinterpret_cast<const char *>((sqlite3_column_text(stmt, 5))))));
             retVal.push_back(tempClass);
             result = sqlite3_step(stmt);
         }

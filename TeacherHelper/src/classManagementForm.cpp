@@ -2,7 +2,7 @@
 #include "classStorage.h"
 #include <qt5/QtGui/QKeyEvent>
 #include <qt5/QtWidgets/qmessagebox.h>
-#include <sstream>
+#include <fmt/format.h>
 #include <iostream>
 
 using namespace std;
@@ -56,7 +56,7 @@ void ClassManagementForm::refreshItemsTable()
 		ui.tableWidgeItems->setItem(row, 0, new QTableWidgetItem(to_string(itemClass.getId()).c_str()));
 		ui.tableWidgeItems->setItem(row, 1, new QTableWidgetItem(itemClass.getName().c_str()));
 		ui.tableWidgeItems->setItem(row, 2, new QTableWidgetItem(itemClass.getSchool().getName().c_str()));
-		ui.tableWidgeItems->setItem(row, 3, new QTableWidgetItem(itemClass.getSchool().getCity().c_str()));
+		//ui.tableWidgeItems->setItem(row, 3, new QTableWidgetItem(itemClass.getSchool().getCity().c_str()));
 		ui.tableWidgeItems->setItem(row, 4, new QTableWidgetItem(to_string(itemClass.getSchool().getId()).c_str()));
 		row++;
     }
@@ -66,15 +66,14 @@ void ClassManagementForm::refreshItemsTable()
 void ClassManagementForm::refreshSchoolTable()
 {
 	ui.comboBoxSchool->clear();
-	SchoolStorage schoolStorage(*dbConnection);
+	/*SchoolStorage schoolStorage(*dbConnection);
 	schools = schoolStorage.getAllSchools();
 	//Add a first empty choice
 	ui.comboBoxSchool->addItem("", -1);
 	for(const auto &school : schools) {
-		stringstream ss;
-		ss << school.getName() << " (" << school.getCity() << ")";
-		ui.comboBoxSchool->addItem(ss.str().c_str(), static_cast<uint>(school.getId()));
-	}
+		ui.comboBoxSchool->addItem(fmt::format("{0} ({1})", school.getName(), school.getCity().getName()).c_str(), 
+								   static_cast<uint>(school.getId()));
+	}*/
 }
 
 void ClassManagementForm::toggleTableControls(bool itemSelected)
@@ -129,11 +128,8 @@ void ClassManagementForm::pushButtonModify_Click()
 void ClassManagementForm::pushButtonDelete_Click()
 {
 	QMessageBox msgBox;
-	stringstream ss;
 	auto row = ui.tableWidgeItems->selectionModel()->selectedIndexes();
-
-	ss << "Are you sure you want to delete the class " << row[1].data().toString().toStdString() << "?";
-	msgBox.setText(ss.str().c_str());
+	msgBox.setText(fmt::format("Are you sure you want to delete the class {0}?", row[1].data().toString().toStdString()).c_str());
 	msgBox.setWindowTitle("Confirmation");
 	msgBox.setStandardButtons(QMessageBox::Yes | QMessageBox::No | QMessageBox::Cancel);
 	msgBox.setDefaultButton(QMessageBox::Cancel);

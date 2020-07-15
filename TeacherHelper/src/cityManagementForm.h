@@ -21,6 +21,8 @@ private:
 	void toggleTableControls(bool itemSelected) override;
 	void toggleEditMode(ActionMode mode) override;
 	bool validateEntry() const override;
+	void saveNewItem();
+	void updateExistingItem();
 private slots: 
 	void itemsTableSelectionChanged(const QItemSelection &selected);
 	void pushButtonAdd_Click();

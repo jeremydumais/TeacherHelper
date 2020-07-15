@@ -3,13 +3,12 @@
 
 using namespace std;
 
-TEST(Class_Constructor, EmptyName_ThrowInvalidArgument)
+/*TEST(Class_Constructor, EmptyName_ThrowInvalidArgument)
 {
 	try
 	{
 		Class Class("", School("Test", "CityTest"));
-		FAIL();
-	}
+		FAIL();	}
 	catch(invalid_argument &err) 
 	{
         ASSERT_STREQ("name cannot be null or empty.", err.what());
@@ -70,4 +69,4 @@ TEST(Class_ConstructorWithId, ValidEntry_ReturnSuccess)
 	ASSERT_EQ("MyClass", Class.getName());
 	ASSERT_EQ("Test", Class.getSchool().getName());
 	ASSERT_EQ("CityTest", Class.getSchool().getCity());
-}
+}*/

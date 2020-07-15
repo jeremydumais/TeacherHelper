@@ -2,7 +2,7 @@
 #include "sqliteDDLOperation.h"
 #include <boost/algorithm/string.hpp>
 #include <boost/filesystem.hpp>
-#include <sstream>
+#include <fmt/format.h>
 #include <stdexcept>
 
 using namespace std;
@@ -35,16 +35,12 @@ sqlite3 *DatabaseConnection::getConnectionPtr() const
 void DatabaseConnection::open()
 {
     if (!filesystem::exists(dbName)) {
-        stringstream ss;
-        ss << "The database " << dbName << " does not exist.";
-        throw runtime_error(ss.str());
+        throw runtime_error(fmt::format("The database {0} does not exist.", dbName));
     }
 
     int connection_result = sqlite3_open(dbName.c_str(), &db);
     if (connection_result != 0) {
-        stringstream ss;
-        ss << "Cannot open database " << dbName << ". sqlite3_errmsg(db)";
-        throw runtime_error(ss.str());
+        throw runtime_error(fmt::format("Cannot open database {0}. sqlite3_errmsg(db)", dbName));
     }
 }
 
@@ -61,13 +57,11 @@ void DatabaseConnection::create()
                                             SQLITE_OPEN_READWRITE | SQLITE_OPEN_CREATE, 
                                             nullptr);
     if (connection_result != 0) {
-        stringstream ss;
-        ss << "Cannot create database " << dbName << ". sqlite3_errmsg(db)";
-        throw runtime_error(ss.str());
+        throw runtime_error(fmt::format("Cannot create database {0}. sqlite3_errmsg(db)", dbName));
     }
     vector<string> tableCreationInstructions {
         "CREATE TABLE city(id INTEGER PRIMARY KEY AUTOINCREMENT, name varchar(50) NOT NULL, deleted BOOLEAN NOT NULL DEFAULT 0)",
-        "CREATE TABLE school(id INTEGER PRIMARY KEY AUTOINCREMENT, name varchar(50) NOT NULL, city varchar(50) NOT NULL, deleted BOOLEAN NOT NULL DEFAULT 0)",
+        "CREATE TABLE school(id INTEGER PRIMARY KEY AUTOINCREMENT, name varchar(50) NOT NULL, city_id INTEGER NOT NULL, deleted BOOLEAN NOT NULL DEFAULT 0, FOREIGN KEY(city_id) REFERENCES city(id))",
         "CREATE TABLE class(id INTEGER PRIMARY KEY AUTOINCREMENT, name varchar(50) NOT NULL, school_id INTEGER NOT NULL, deleted BOOLEAN NOT NULL DEFAULT 0, FOREIGN KEY(school_id) REFERENCES school(id))",
         "CREATE TABLE student(id INTEGER PRIMARY KEY AUTOINCREMENT, firstname varchar(30) NOT NULL, lastname varchar(30) NOT NULL, deleted BOOLEAN NOT NULL DEFAULT 0)"
     };

@@ -1,15 +1,16 @@
 #include "schoolManagementForm.h"
-#include "schoolStorage.h"
 #include <qt5/QtGui/QKeyEvent>
 #include <qt5/QtWidgets/qmessagebox.h>
-#include <sstream>
+#include <fmt/format.h>
 
 using namespace std;
 
 SchoolManagementForm::SchoolManagementForm(QWidget *parent, const DatabaseConnection &connection)
 	: QDialog(parent),
 	  ManagementFormBase(connection),
-	  ui(Ui::schoolManagementFormClass())
+	  ui(Ui::schoolManagementFormClass()),
+	  controller(connection),
+	  cityController(connection)
 {
 	ui.setupUi(this);
 	ui.frameDetails->setEnabled(false);
@@ -22,8 +23,10 @@ SchoolManagementForm::SchoolManagementForm(QWidget *parent, const DatabaseConnec
 
 	ui.tableWidgeItems->setHorizontalHeaderItem(0, new QTableWidgetItem("Id"));
 	ui.tableWidgeItems->setHorizontalHeaderItem(1, new QTableWidgetItem("Name"));
-	ui.tableWidgeItems->setHorizontalHeaderItem(2, new QTableWidgetItem("City"));
+	ui.tableWidgeItems->setHorizontalHeaderItem(2, new QTableWidgetItem("City_Id"));
+	ui.tableWidgeItems->setHorizontalHeaderItem(3, new QTableWidgetItem("City"));
 	ui.tableWidgeItems->setColumnHidden(0, true);
+	ui.tableWidgeItems->setColumnHidden(2, true);
 	connect(ui.tableWidgeItems->selectionModel(), 
 		SIGNAL(selectionChanged(const QItemSelection &, const QItemSelection &)),
   		SLOT(itemsTableSelectionChanged(const QItemSelection &)));
@@ -35,23 +38,35 @@ SchoolManagementForm::SchoolManagementForm(QWidget *parent, const DatabaseConnec
 void SchoolManagementForm::showEvent(QShowEvent *event) 
 {
     QDialog::showEvent(event);
+	controller.loadSchools();
+	cityController.loadCities();
+	refreshCityTable();
     refreshItemsTable();
 } 
 
 void SchoolManagementForm::refreshItemsTable()
 {
-	SchoolStorage schoolStorage(*dbConnection);
-	list<School> schools = schoolStorage.getAllSchools();
 	ui.tableWidgeItems->model()->removeRows(0, ui.tableWidgeItems->rowCount());
 	size_t row {0};
-    for (const auto &school : schools) {
+    for (const auto &school : controller.getSchools()) {
 		ui.tableWidgeItems->insertRow(row);
 		ui.tableWidgeItems->setItem(row, 0, new QTableWidgetItem(to_string(school.getId()).c_str()));
 		ui.tableWidgeItems->setItem(row, 1, new QTableWidgetItem(school.getName().c_str()));
-		ui.tableWidgeItems->setItem(row, 2, new QTableWidgetItem(school.getCity().c_str()));
+		ui.tableWidgeItems->setItem(row, 2, new QTableWidgetItem(to_string(school.getCity().getId()).c_str()));
+		ui.tableWidgeItems->setItem(row, 3, new QTableWidgetItem(school.getCity().getName().c_str()));
 		row++;
     }
 	toggleTableControls(false);
+}
+
+void SchoolManagementForm::refreshCityTable()
+{
+	ui.comboBoxCity->clear();
+	//Add a first empty choice
+	ui.comboBoxCity->addItem("", -1);
+	for(const auto &city : cityController.getCities()) {
+		ui.comboBoxCity->addItem(city.getName().c_str(), static_cast<uint>(city.getId()));
+	}
 }
 
 void SchoolManagementForm::toggleTableControls(bool itemSelected)
@@ -69,7 +84,7 @@ void SchoolManagementForm::toggleEditMode(ActionMode mode)
 	ui.frameActionButtons->setEnabled(!editMode);
 	if(!editMode) {
 		ui.lineEditName->clear();
-		ui.lineEditCity->clear();
+		ui.comboBoxCity->setCurrentIndex(0);
 	} 
 	else {
 		ui.lineEditName->setFocus();
@@ -85,7 +100,7 @@ void SchoolManagementForm::itemsTableSelectionChanged(const QItemSelection &sele
 void SchoolManagementForm::pushButtonAdd_Click()
 {
 	ui.lineEditName->clear();
-	ui.lineEditCity->clear();
+	ui.comboBoxCity->setCurrentIndex(0);
 	toggleEditMode(ActionMode::Add);
 }
 
@@ -94,7 +109,11 @@ void SchoolManagementForm::pushButtonModify_Click()
 	auto row = ui.tableWidgeItems->selectionModel()->selectedIndexes();
 	if (!row.empty()) {
 		ui.lineEditName->setText(row[1].data().toString());
-		ui.lineEditCity->setText(row[2].data().toString());
+		//Find the selected city
+		if (!selectCityInEditPanel(row[4].data().toUInt())) {
+			showError("Cannot select the school.");
+			return;
+		}
 		toggleEditMode(ActionMode::Modify);
 	}
 }
@@ -102,57 +121,81 @@ void SchoolManagementForm::pushButtonModify_Click()
 void SchoolManagementForm::pushButtonDelete_Click()
 {
 	QMessageBox msgBox;
-	stringstream ss;
 	auto row = ui.tableWidgeItems->selectionModel()->selectedIndexes();
-
-	ss << "Are you sure you want to delete the school " << row[1].data().toString().toStdString() << "?";
-	msgBox.setText(ss.str().c_str());
+	//Find the selected school
+	const School *editedSchool = controller.findSchool(row[0].data().toUInt());
+	msgBox.setText(fmt::format("Are you sure you want to delete the school {0}?", editedSchool->getName()).c_str());
 	msgBox.setWindowTitle("Confirmation");
 	msgBox.setStandardButtons(QMessageBox::Yes | QMessageBox::No | QMessageBox::Cancel);
 	msgBox.setDefaultButton(QMessageBox::Cancel);
 
 	if (msgBox.exec() == QMessageBox::Yes) {
-		SchoolStorage storage(*dbConnection);
-
-		if (storage.deleteSchool(row[0].data().toUInt())) {
+		if (controller.deleteSchool(editedSchool->getId())) {
 			refreshItemsTable();
 		}
 		else {
-			showError(storage.getLastError());
+			showError(controller.getLastError());
 		}
 	}
 }
 
 void SchoolManagementForm::pushButtonOK_Click()
 {
-	if (mode == ActionMode::Add) {
-		if (validateEntry()) {
-			SchoolStorage storage(*dbConnection);
-			if (storage.insertSchool(School(ui.lineEditName->text().trimmed().toStdString(),
-											ui.lineEditCity->text().trimmed().toStdString()))) {
-				toggleEditMode(ActionMode::None);
-				refreshItemsTable();
+	if (validateEntry()) {
+		//Find the selected city
+		const City* const selectedCity = cityController.findCity(ui.comboBoxCity->currentData().toUInt());
+		if (selectedCity) {
+			if (mode == ActionMode::Add) {
+				//Ensure that the new name is available
+				string newName = ui.lineEditName->text().trimmed().toStdString();
+				if (controller.isNewNameAvailableForAdd(newName)) {
+					if (controller.insertSchool(School(ui.lineEditName->text().trimmed().toStdString(),
+													*selectedCity))) {
+						toggleEditMode(ActionMode::None);
+						refreshItemsTable();
+					}
+					else {
+						showError(controller.getLastError());
+					}
+				}
+				else {
+					showError("The new name is already taken.");
+				}
 			}
-			else {
-				showError(storage.getLastError());
-			}
+			else if (mode == ActionMode::Modify) {
+				if (validateEntry()) {
+					auto row = ui.tableWidgeItems->selectionModel()->selectedIndexes();
+					//Find the selected school
+					size_t currentlyEditedSchoolId = row[0].data().toUInt();
+					const School *editedSchool = controller.findSchool(currentlyEditedSchoolId);
+					if (editedSchool != nullptr) {
+						//Ensure that the new name is available
+						string newName = ui.lineEditName->text().trimmed().toStdString();
+						if (controller.isNewNameAvailableForUpdate(newName, currentlyEditedSchoolId)) {
+							School editedSchoolClone { *editedSchool };
+							editedSchoolClone.setName(newName);
+							editedSchoolClone.setCity(*selectedCity);
+							if (controller.updateSchool(editedSchoolClone)) {
+								toggleEditMode(ActionMode::None);
+								refreshItemsTable();
+							}
+							else {
+								showError(controller.getLastError());
+							}
+						}
+						else {
+							showError("The new name is already taken.");
+						}
+					}
+					else {
+						showError("Unable to find the selected school.");
+					}
+				}
+			}	
 		}
-	}
-	else if (mode == ActionMode::Modify) {
-		if (validateEntry()) {
-			SchoolStorage storage(*dbConnection);
-			auto row = ui.tableWidgeItems->selectionModel()->selectedIndexes();
-
-			if (storage.updateSchool(School(row[0].data().toUInt(),
-											ui.lineEditName->text().trimmed().toStdString(),
-											ui.lineEditCity->text().trimmed().toStdString()))) {
-				toggleEditMode(ActionMode::None);
-				refreshItemsTable();
-			}
-			else {
-				showError(storage.getLastError());
-			}
-		}	
+		else {
+			showError("Cannot find the selected city.");
+		}
 	}
 }
 
@@ -171,14 +214,14 @@ bool SchoolManagementForm::validateEntry() const
 		showError("The name must not be greater than 50 characters!");
 		return false;
 	}
-	if (ui.lineEditCity->text().trimmed().isEmpty()) {
+	/*if (ui.lineEditCity->text().trimmed().isEmpty()) {
 		showError("The city is required!");
 		return false;
 	}
 	if (ui.lineEditCity->text().trimmed().length() > 50) {
 		showError("The city must not be greater than 50 characters!");
 		return false;
-	}
+	}*/
 	return true;
 }
 
@@ -190,4 +233,15 @@ void SchoolManagementForm::keyPressEvent(QKeyEvent *e)
 	else {
 		QDialog::keyPressEvent(e);
 	}
+}
+
+bool SchoolManagementForm::selectCityInEditPanel(size_t id)
+{
+	for (int i = 0; i < ui.comboBoxCity->count(); i++) {
+		if (ui.comboBoxCity->itemData(i).toInt() == static_cast<int>(id)) {
+			ui.comboBoxCity->setCurrentIndex(i);
+			return true;
+		}
+	}
+	return false;
 }
