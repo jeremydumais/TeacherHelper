@@ -12,7 +12,7 @@ DatabaseConnection::DatabaseConnection(const std::string &dbName)
     : dbName(dbName),
       db(nullptr)
 {
-    if ( trim_copy(dbName).empty()) {
+    if (trim_copy(dbName).empty()) {
         throw invalid_argument("dbName cannot be null or empty.");
     }
 }

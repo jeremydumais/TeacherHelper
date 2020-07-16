@@ -110,8 +110,8 @@ void SchoolManagementForm::pushButtonModify_Click()
 	if (!row.empty()) {
 		ui.lineEditName->setText(row[1].data().toString());
 		//Find the selected city
-		if (!selectCityInEditPanel(row[4].data().toUInt())) {
-			showError("Cannot select the school.");
+		if (!selectCityInEditPanel(row[2].data().toUInt())) {
+			showError("Cannot select the city.");
 			return;
 		}
 		toggleEditMode(ActionMode::Modify);
@@ -146,56 +146,64 @@ void SchoolManagementForm::pushButtonOK_Click()
 		const City* const selectedCity = cityController.findCity(ui.comboBoxCity->currentData().toUInt());
 		if (selectedCity) {
 			if (mode == ActionMode::Add) {
-				//Ensure that the new name is available
-				string newName = ui.lineEditName->text().trimmed().toStdString();
-				if (controller.isNewNameAvailableForAdd(newName)) {
-					if (controller.insertSchool(School(ui.lineEditName->text().trimmed().toStdString(),
-													*selectedCity))) {
-						toggleEditMode(ActionMode::None);
-						refreshItemsTable();
-					}
-					else {
-						showError(controller.getLastError());
-					}
-				}
-				else {
-					showError("The new name is already taken.");
-				}
+				saveNewItem(selectedCity);
 			}
 			else if (mode == ActionMode::Modify) {
-				if (validateEntry()) {
-					auto row = ui.tableWidgeItems->selectionModel()->selectedIndexes();
-					//Find the selected school
-					size_t currentlyEditedSchoolId = row[0].data().toUInt();
-					const School *editedSchool = controller.findSchool(currentlyEditedSchoolId);
-					if (editedSchool != nullptr) {
-						//Ensure that the new name is available
-						string newName = ui.lineEditName->text().trimmed().toStdString();
-						if (controller.isNewNameAvailableForUpdate(newName, currentlyEditedSchoolId)) {
-							School editedSchoolClone { *editedSchool };
-							editedSchoolClone.setName(newName);
-							editedSchoolClone.setCity(*selectedCity);
-							if (controller.updateSchool(editedSchoolClone)) {
-								toggleEditMode(ActionMode::None);
-								refreshItemsTable();
-							}
-							else {
-								showError(controller.getLastError());
-							}
-						}
-						else {
-							showError("The new name is already taken.");
-						}
-					}
-					else {
-						showError("Unable to find the selected school.");
-					}
-				}
+				updateExistingItem(selectedCity);
 			}	
 		}
 		else {
 			showError("Cannot find the selected city.");
 		}
+	}
+}
+
+void SchoolManagementForm::saveNewItem(const City* const selectedCity)
+{
+	//Ensure that the new name is available
+	string newName = ui.lineEditName->text().trimmed().toStdString();
+	if (controller.isNewNameAvailableForAdd(newName)) {
+		if (controller.insertSchool(School(ui.lineEditName->text().trimmed().toStdString(),
+										*selectedCity))) {
+			toggleEditMode(ActionMode::None);
+			refreshItemsTable();
+		}
+		else {
+			showError(controller.getLastError());
+		}
+	}
+	else {
+		showError("The new name is already taken.");
+	}
+}
+
+void SchoolManagementForm::updateExistingItem(const City* const selectedCity)
+{
+	auto row = ui.tableWidgeItems->selectionModel()->selectedIndexes();
+	//Find the selected school
+	size_t currentlyEditedSchoolId = row[0].data().toUInt();
+	const School *editedSchool = controller.findSchool(currentlyEditedSchoolId);
+	if (editedSchool != nullptr) {
+		//Ensure that the new name is available
+		string newName = ui.lineEditName->text().trimmed().toStdString();
+		if (controller.isNewNameAvailableForUpdate(newName, currentlyEditedSchoolId)) {
+			School editedSchoolClone { *editedSchool };
+			editedSchoolClone.setName(newName);
+			editedSchoolClone.setCity(*selectedCity);
+			if (controller.updateSchool(editedSchoolClone)) {
+				toggleEditMode(ActionMode::None);
+				refreshItemsTable();
+			}
+			else {
+				showError(controller.getLastError());
+			}
+		}
+		else {
+			showError("The new name is already taken.");
+		}
+	}
+	else {
+		showError("Unable to find the selected school.");
 	}
 }
 
@@ -214,14 +222,10 @@ bool SchoolManagementForm::validateEntry() const
 		showError("The name must not be greater than 50 characters!");
 		return false;
 	}
-	/*if (ui.lineEditCity->text().trimmed().isEmpty()) {
+	if (ui.comboBoxCity->currentData().toInt() < 1) {
 		showError("The city is required!");
 		return false;
 	}
-	if (ui.lineEditCity->text().trimmed().length() > 50) {
-		showError("The city must not be greater than 50 characters!");
-		return false;
-	}*/
 	return true;
 }
 

@@ -44,7 +44,21 @@
     </property>
     <addaction name="action_About"/>
    </widget>
+   <widget class="QMenu" name="menu_View">
+    <property name="title">
+     <string>&amp;View</string>
+    </property>
+    <widget class="QMenu" name="menu_Color_theme">
+     <property name="title">
+      <string>&amp;Color theme</string>
+     </property>
+     <addaction name="action_LightTheme"/>
+     <addaction name="action_DarkTheme"/>
+    </widget>
+    <addaction name="menu_Color_theme"/>
+   </widget>
    <addaction name="menu_File"/>
+   <addaction name="menu_View"/>
    <addaction name="menuGestion"/>
    <addaction name="menuHelp"/>
   </widget>
@@ -88,6 +102,22 @@
   <action name="action_Cities">
    <property name="text">
     <string>C&amp;ities...</string>
+   </property>
+  </action>
+  <action name="action_LightTheme">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>&amp;Light</string>
+   </property>
+  </action>
+  <action name="action_DarkTheme">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>&amp;Dark</string>
    </property>
   </action>
  </widget>

@@ -24,6 +24,8 @@ private:
 	void toggleTableControls(bool itemSelected) override;
 	void toggleEditMode(ActionMode mode) override;
 	bool validateEntry() const override;
+	void saveNewItem(const City* const selectedCity);
+	void updateExistingItem(const City* const selectedCity);
 	bool selectCityInEditPanel(size_t id);
 private slots:
 	void itemsTableSelectionChanged(const QItemSelection &selected);
