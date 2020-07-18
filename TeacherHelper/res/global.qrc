@@ -1,5 +1,7 @@
 <RCC>
   <qresource prefix="global">
+    <file>TeacherHelper Icon256.png</file>
+    <file>TeacherHelperIcon.ico</file>
     <file>delete22.png</file>
     <file>cancel22.png</file>
     <file>edit22.png</file>

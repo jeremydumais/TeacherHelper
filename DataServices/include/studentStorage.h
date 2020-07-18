@@ -1,18 +1,19 @@
 #pragma once
 
 #include "databaseConnection.h"
+#include "IManagementItemStorage.h"
 #include "student.h"
 #include <list>
 
-class StudentStorage
+class StudentStorage : public IManagementItemStorage<Student>
 {
 public:
     explicit StudentStorage(const DatabaseConnection &connection);
-    std::list<Student> getAllStudents();
-    const std::string &getLastError() const;
-    bool insertStudent(const Student &student);
-    bool updateStudent(const Student &student);
-    bool deleteStudent(size_t id);
+    std::list<Student> getAllItems() override;
+    const std::string &getLastError() const override;
+    bool insertItem(const Student &student) override;
+    bool updateItem(const Student &student) override;
+    bool deleteItem(size_t id) override;
 private:
     const DatabaseConnection * const connection;
     std::string lastError;

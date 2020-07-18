@@ -15,8 +15,14 @@ public:
     size_t getId() const;
     const std::string &getName() const;
     const School &getSchool() const;
+    void setName(const std::string &name);
+    void setSchool(const School &school);
 private:
     size_t id;
     std::string name;
     School school;
 };
+
+
+
+

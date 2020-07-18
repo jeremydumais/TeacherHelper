@@ -15,7 +15,7 @@ ClassStorage::ClassStorage(const DatabaseConnection &connection)
 {
 }
 
-list<Class> ClassStorage::getAllClasses()
+list<Class> ClassStorage::getAllItems()
 {
     int i =1;
     list<Class> retVal;
@@ -23,8 +23,8 @@ list<Class> ClassStorage::getAllClasses()
         "SELECT class.id, class.name, school.id, school.name, city.id, city.name " 
         "FROM class "
         "INNER JOIN school ON school.id = class.school_id " 
-        "INNER JOIN city INNER JOIN city ON city.id = school.city_id " 
-        "WHERE class.deleted = 0 AND school.deleted=0 AND city.deleted = 0 ORDER BY class.name, school.name;");
+        "INNER JOIN city ON city.id = school.city_id " 
+        "WHERE class.deleted = 0 AND school.deleted=0 AND city.deleted = 0 ORDER BY class.name, school.name");
     if (operation.execute()) {
         sqlite3_stmt *stmt = operation.getStatement();
         int result = sqlite3_step(stmt);
@@ -53,7 +53,7 @@ const std::string &ClassStorage::getLastError() const
     return lastError;
 }
 
-bool ClassStorage::insertClass(const Class &p_class)
+bool ClassStorage::insertItem(const Class &p_class)
 {
     SQLiteInsertOperation operation(*connection, 
         "INSERT INTO class (name, school_id) VALUES(?, ?)",
@@ -65,7 +65,7 @@ bool ClassStorage::insertClass(const Class &p_class)
     return true;
 }
 
-bool ClassStorage::updateClass(const Class &p_class)
+bool ClassStorage::updateItem(const Class &p_class)
 {
     SQLiteUpdateOperation operation(*connection, 
         "UPDATE class SET name = ?, school_id = ? WHERE id = ?",
@@ -79,7 +79,7 @@ bool ClassStorage::updateClass(const Class &p_class)
     return true;
 }
 
-bool ClassStorage::deleteClass(size_t id)
+bool ClassStorage::deleteItem(size_t id)
 {
     SQLiteUpdateOperation operation(*connection, 
         "UPDATE class SET deleted=1 WHERE id = ?", 

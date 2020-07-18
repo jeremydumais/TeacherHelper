@@ -89,8 +89,15 @@ void CityManagementForm::pushButtonModify_Click()
 {
 	auto row = ui.tableWidgeItems->selectionModel()->selectedIndexes();
 	if (!row.empty()) {
-		ui.lineEditName->setText(row[1].data().toString());
-		toggleEditMode(ActionMode::Modify);
+		//Find the selected city
+		auto editedCity = controller.findCity(row[0].data().toUInt());
+		if (editedCity != nullptr) {
+			ui.lineEditName->setText(editedCity->getName().c_str());
+			toggleEditMode(ActionMode::Modify);
+		}
+		else {
+			showError("Unable to find the selected city.");
+		}
 	}
 }
 
@@ -98,20 +105,25 @@ void CityManagementForm::pushButtonDelete_Click()
 {
 	QMessageBox msgBox;
 	auto row = ui.tableWidgeItems->selectionModel()->selectedIndexes();
-	//Find the selected city
-	const City *editedCity = controller.findCity(row[0].data().toUInt());
-	msgBox.setText(fmt::format("Are you sure you want to delete the city {0}?", editedCity->getName()).c_str());
-	msgBox.setWindowTitle("Confirmation");
-	msgBox.setStandardButtons(QMessageBox::Yes | QMessageBox::No | QMessageBox::Cancel);
-	msgBox.setDefaultButton(QMessageBox::Cancel);
-
-	if (msgBox.exec() == QMessageBox::Yes) {
-
-		if (controller.deleteCity(editedCity->getId())) {
-			refreshItemsTable();
+	if (!row.empty()) {
+		//Find the selected city
+		auto editedCity = controller.findCity(row[0].data().toUInt());
+		if (editedCity != nullptr) {
+			msgBox.setText(fmt::format("Are you sure you want to delete the city {0}?", editedCity->getName()).c_str());
+			msgBox.setWindowTitle("Confirmation");
+			msgBox.setStandardButtons(QMessageBox::Yes | QMessageBox::No | QMessageBox::Cancel);
+			msgBox.setDefaultButton(QMessageBox::Cancel);
+			if (msgBox.exec() == QMessageBox::Yes) {
+				if (controller.deleteCity(editedCity->getId())) {
+					refreshItemsTable();
+				}
+				else {
+					showError(controller.getLastError());
+				}
+			}
 		}
 		else {
-			showError(controller.getLastError());
+			showError("Unable to find the selected city.");
 		}
 	}
 }
@@ -151,7 +163,7 @@ void CityManagementForm::updateExistingItem()
 	auto row = ui.tableWidgeItems->selectionModel()->selectedIndexes();
 	//Find the selected city
 	size_t currentlyEditedCityId = row[0].data().toUInt();
-	const City *editedCity = controller.findCity(currentlyEditedCityId);
+	auto editedCity = controller.findCity(currentlyEditedCityId);
 	if (editedCity != nullptr) {
 		//Ensure that the new name is available
 		string newName = ui.lineEditName->text().trimmed().toStdString();

@@ -13,6 +13,10 @@
   <property name="windowTitle">
    <string>Teacher Helper</string>
   </property>
+  <property name="windowIcon">
+   <iconset resource="../res/global.qrc">
+    <normaloff>:/global/TeacherHelperIcon.ico</normaloff>:/global/TeacherHelperIcon.ico</iconset>
+  </property>
   <widget class="QWidget" name="centralwidget"/>
   <widget class="QMenuBar" name="menubar">
    <property name="geometry">
@@ -37,6 +41,8 @@
     <addaction name="action_Schools"/>
     <addaction name="action_Classes"/>
     <addaction name="action_Students"/>
+    <addaction name="separator"/>
+    <addaction name="action_TestTypes"/>
    </widget>
    <widget class="QMenu" name="menuHelp">
     <property name="title">
@@ -120,7 +126,14 @@
     <string>&amp;Dark</string>
    </property>
   </action>
+  <action name="action_TestTypes">
+   <property name="text">
+    <string>T&amp;est type...</string>
+   </property>
+  </action>
  </widget>
- <resources/>
+ <resources>
+  <include location="../res/global.qrc"/>
+ </resources>
  <connections/>
 </ui>

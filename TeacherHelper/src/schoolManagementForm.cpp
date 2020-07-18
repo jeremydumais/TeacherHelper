@@ -108,13 +108,20 @@ void SchoolManagementForm::pushButtonModify_Click()
 {
 	auto row = ui.tableWidgeItems->selectionModel()->selectedIndexes();
 	if (!row.empty()) {
-		ui.lineEditName->setText(row[1].data().toString());
-		//Find the selected city
-		if (!selectCityInEditPanel(row[2].data().toUInt())) {
-			showError("Cannot select the city.");
-			return;
+		//Find the selected school
+		auto editedSchool = controller.findSchool(row[0].data().toUInt());
+		if (editedSchool) {
+			ui.lineEditName->setText(editedSchool->getName().c_str());
+			//Find the selected city
+			if (!selectCityInEditPanel(editedSchool->getId())) {
+				showError("Cannot select the city.");
+				return;
+			}
+			toggleEditMode(ActionMode::Modify);
 		}
-		toggleEditMode(ActionMode::Modify);
+		else {
+			showError("Cannot find the selected school.");
+		}
 	}
 }
 
@@ -122,19 +129,20 @@ void SchoolManagementForm::pushButtonDelete_Click()
 {
 	QMessageBox msgBox;
 	auto row = ui.tableWidgeItems->selectionModel()->selectedIndexes();
-	//Find the selected school
-	const School *editedSchool = controller.findSchool(row[0].data().toUInt());
-	msgBox.setText(fmt::format("Are you sure you want to delete the school {0}?", editedSchool->getName()).c_str());
-	msgBox.setWindowTitle("Confirmation");
-	msgBox.setStandardButtons(QMessageBox::Yes | QMessageBox::No | QMessageBox::Cancel);
-	msgBox.setDefaultButton(QMessageBox::Cancel);
-
-	if (msgBox.exec() == QMessageBox::Yes) {
-		if (controller.deleteSchool(editedSchool->getId())) {
-			refreshItemsTable();
-		}
-		else {
-			showError(controller.getLastError());
+	if (!row.empty()) {
+		//Find the selected school
+		auto editedSchool = controller.findSchool(row[0].data().toUInt());
+		msgBox.setText(fmt::format("Are you sure you want to delete the school {0}?", editedSchool->getName()).c_str());
+		msgBox.setWindowTitle("Confirmation");
+		msgBox.setStandardButtons(QMessageBox::Yes | QMessageBox::No | QMessageBox::Cancel);
+		msgBox.setDefaultButton(QMessageBox::Cancel);
+		if (msgBox.exec() == QMessageBox::Yes) {
+			if (controller.deleteSchool(editedSchool->getId())) {
+				refreshItemsTable();
+			}
+			else {
+				showError(controller.getLastError());
+			}
 		}
 	}
 }
@@ -182,7 +190,7 @@ void SchoolManagementForm::updateExistingItem(const City* const selectedCity)
 	auto row = ui.tableWidgeItems->selectionModel()->selectedIndexes();
 	//Find the selected school
 	size_t currentlyEditedSchoolId = row[0].data().toUInt();
-	const School *editedSchool = controller.findSchool(currentlyEditedSchoolId);
+	auto editedSchool = controller.findSchool(currentlyEditedSchoolId);
 	if (editedSchool != nullptr) {
 		//Ensure that the new name is available
 		string newName = ui.lineEditName->text().trimmed().toStdString();

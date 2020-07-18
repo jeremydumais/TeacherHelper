@@ -66,7 +66,7 @@ TEST_F(CityControllerTest, findCity_WithIdOne_ReturnNewYork)
 	ASSERT_EQ("New York", controller.findCity(1)->getName());
 }
 
-TEST_F(CityControllerTest, findCity_WithIdTwo_ReturnNewYork) 
+TEST_F(CityControllerTest, findCity_WithIdTwo_ReturnLosAngeles) 
 {
 	controller.loadCities();
 	ASSERT_NE(nullptr, controller.findCity(2));

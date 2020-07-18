@@ -13,7 +13,7 @@ Class::Class(const string &name,
 Class::Class(size_t id,
             const std::string &name, 
             const School &school)
-    : id(id),
+    : id(id), 
       name(name),
       school(school)
 {    
@@ -38,4 +38,20 @@ const std::string &Class::getName() const
 const School &Class::getSchool() const
 {
     return school;
+}
+
+void Class::setName(const std::string &name) 
+{
+    if (trim_copy(name).empty()) {
+        throw invalid_argument("name cannot be null or empty.");
+    }
+    if (name.length() > 50) {
+        throw invalid_argument("name must not be larger then 50 chars.");
+    }   
+    this->name = name;
+}
+
+void Class::setSchool(const School &school) 
+{
+    this->school = school;
 }

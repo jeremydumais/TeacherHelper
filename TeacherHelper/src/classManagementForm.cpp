@@ -1,5 +1,4 @@
 #include "classManagementForm.h"
-#include "classStorage.h"
 #include <qt5/QtGui/QKeyEvent>
 #include <qt5/QtWidgets/qmessagebox.h>
 #include <fmt/format.h>
@@ -11,7 +10,8 @@ ClassManagementForm::ClassManagementForm(QWidget *parent, const DatabaseConnecti
 	: QDialog(parent),
 	  ManagementFormBase(connection),
 	  ui(Ui::classManagementFormClass()),
-	  schools(list<School>())
+	  controller(connection),
+	  schoolController(connection)
 {
 	ui.setupUi(this);
 	ui.frameDetails->setEnabled(false);
@@ -40,23 +40,22 @@ ClassManagementForm::ClassManagementForm(QWidget *parent, const DatabaseConnecti
 void ClassManagementForm::showEvent(QShowEvent *event) 
 {
     QDialog::showEvent(event);
-	//Load all the schools
+	controller.loadClasses();
+	schoolController.loadSchools();
 	refreshSchoolTable();
     refreshItemsTable();
 } 
 
 void ClassManagementForm::refreshItemsTable()
 {
-	ClassStorage classStorage(*dbConnection);
-	list<Class> classes = classStorage.getAllClasses();
 	ui.tableWidgeItems->model()->removeRows(0, ui.tableWidgeItems->rowCount());
 	size_t row {0};
-    for (const auto &itemClass : classes) {
+    for (const auto &itemClass : controller.getClasses()) {
 		ui.tableWidgeItems->insertRow(row);
 		ui.tableWidgeItems->setItem(row, 0, new QTableWidgetItem(to_string(itemClass.getId()).c_str()));
 		ui.tableWidgeItems->setItem(row, 1, new QTableWidgetItem(itemClass.getName().c_str()));
 		ui.tableWidgeItems->setItem(row, 2, new QTableWidgetItem(itemClass.getSchool().getName().c_str()));
-		//ui.tableWidgeItems->setItem(row, 3, new QTableWidgetItem(itemClass.getSchool().getCity().c_str()));
+		ui.tableWidgeItems->setItem(row, 3, new QTableWidgetItem(itemClass.getSchool().getCity().getName().c_str()));
 		ui.tableWidgeItems->setItem(row, 4, new QTableWidgetItem(to_string(itemClass.getSchool().getId()).c_str()));
 		row++;
     }
@@ -66,14 +65,12 @@ void ClassManagementForm::refreshItemsTable()
 void ClassManagementForm::refreshSchoolTable()
 {
 	ui.comboBoxSchool->clear();
-	/*SchoolStorage schoolStorage(*dbConnection);
-	schools = schoolStorage.getAllSchools();
 	//Add a first empty choice
 	ui.comboBoxSchool->addItem("", -1);
-	for(const auto &school : schools) {
+	for(const auto &school : schoolController.getSchools()) {
 		ui.comboBoxSchool->addItem(fmt::format("{0} ({1})", school.getName(), school.getCity().getName()).c_str(), 
 								   static_cast<uint>(school.getId()));
-	}*/
+	}
 }
 
 void ClassManagementForm::toggleTableControls(bool itemSelected)
@@ -115,13 +112,20 @@ void ClassManagementForm::pushButtonModify_Click()
 {
 	auto row = ui.tableWidgeItems->selectionModel()->selectedIndexes();
 	if (!row.empty()) {
-		ui.lineEditName->setText(row[1].data().toString());
 		//Find the selected school
-		if (!selectSchoolInEditPanel(row[4].data().toUInt())) {
-			showError("Cannot select the school.");
-			return;
+		auto editedClass = controller.findClass(row[0].data().toUInt());
+		if (editedClass) {
+			ui.lineEditName->setText(editedClass->getName().c_str());
+			//Find the selected school
+			if (!selectSchoolInEditPanel(editedClass->getSchool().getId())) {
+				showError("Cannot select the school.");
+				return;
+			}
+			toggleEditMode(ActionMode::Modify);
 		}
-		toggleEditMode(ActionMode::Modify);
+		else {
+			showError("Cannot find the selected class.");
+		}
 	}
 }
 
@@ -129,67 +133,42 @@ void ClassManagementForm::pushButtonDelete_Click()
 {
 	QMessageBox msgBox;
 	auto row = ui.tableWidgeItems->selectionModel()->selectedIndexes();
-	msgBox.setText(fmt::format("Are you sure you want to delete the class {0}?", row[1].data().toString().toStdString()).c_str());
-	msgBox.setWindowTitle("Confirmation");
-	msgBox.setStandardButtons(QMessageBox::Yes | QMessageBox::No | QMessageBox::Cancel);
-	msgBox.setDefaultButton(QMessageBox::Cancel);
-
-	if (msgBox.exec() == QMessageBox::Yes) {
-		ClassStorage storage(*dbConnection);
-
-		if (storage.deleteClass(row[0].data().toUInt())) {
-			refreshItemsTable();
-		}
-		else {
-			showError(storage.getLastError());
+	if (!row.empty()) {
+		//Find the selected class
+		auto editedClass = controller.findClass(row[0].data().toUInt());
+		msgBox.setText(fmt::format("Are you sure you want to delete the class {0} ({1})?", 
+						editedClass->getName(), 
+						editedClass->getSchool().getName()).c_str());
+		msgBox.setWindowTitle("Confirmation");
+		msgBox.setStandardButtons(QMessageBox::Yes | QMessageBox::No | QMessageBox::Cancel);
+		msgBox.setDefaultButton(QMessageBox::Cancel);
+		if (msgBox.exec() == QMessageBox::Yes) {
+			if (controller.deleteClass(editedClass->getId())) {
+				refreshItemsTable();
+			}
+			else {
+				showError(controller.getLastError());
+			}
 		}
 	}
 }
 
 void ClassManagementForm::pushButtonOK_Click()
 {
-	if (mode == ActionMode::Add) {
-		if (validateEntry()) {
-			//Find the selected school
-			const School* const selectedSchool = findSchool(ui.comboBoxSchool->currentData().toUInt());
-			if (selectedSchool) {
-				ClassStorage storage(*dbConnection);
-				if (storage.insertClass(Class(ui.lineEditName->text().trimmed().toStdString(),
-												*selectedSchool))) {
-					toggleEditMode(ActionMode::None);
-					refreshItemsTable();
-				}
-				else {
-					showError(storage.getLastError());
-				}
+	if (validateEntry()) {
+		//Find the selected school
+		const School* const selectedSchool = schoolController.findSchool(ui.comboBoxSchool->currentData().toUInt());
+		if (selectedSchool) {
+			if (mode == ActionMode::Add) {
+				saveNewItem(selectedSchool);
 			}
-			else {
-				showError("Cannot find the selected school.");
-			}
+			else if (mode == ActionMode::Modify) {
+				updateExistingItem(selectedSchool);
+			}	
 		}
-	}
-	else if (mode == ActionMode::Modify) {
-		if (validateEntry()) {
-			//Find the selected school
-			const School* const selectedSchool = findSchool(ui.comboBoxSchool->currentData().toUInt());
-			if (selectedSchool) {
-				ClassStorage storage(*dbConnection);
-				auto row = ui.tableWidgeItems->selectionModel()->selectedIndexes();
-
-				if (storage.updateClass(Class(row[0].data().toUInt(),
-												ui.lineEditName->text().trimmed().toStdString(),
-												*selectedSchool))) {
-					toggleEditMode(ActionMode::None);
-					refreshItemsTable();
-				}
-				else {
-					showError(storage.getLastError());
-				}
-			}
-			else {
-				showError("Cannot find the selected school.");
-			}
-		}	
+		else {
+			showError("Cannot find the selected school.");
+		}
 	}
 }
 
@@ -215,6 +194,55 @@ bool ClassManagementForm::validateEntry() const
 	return true;
 }
 
+void ClassManagementForm::saveNewItem(const School* const selectedSchool) 
+{
+	//Ensure that the new name is available
+	string newName = ui.lineEditName->text().trimmed().toStdString();
+	if (controller.isNewNameAvailableForAdd(newName, selectedSchool->getId())) {
+		if (controller.insertClass(Class(ui.lineEditName->text().trimmed().toStdString(),
+										*selectedSchool))) {
+			toggleEditMode(ActionMode::None);
+			refreshItemsTable();
+		}
+		else {
+			showError(controller.getLastError());
+		}
+	}
+	else {
+		showError("The new name is already taken.");
+	}
+}
+
+void ClassManagementForm::updateExistingItem(const School* const selectedSchool) 
+{
+	auto row = ui.tableWidgeItems->selectionModel()->selectedIndexes();
+	//Find the selected school
+	size_t currentlyEditedClassId = row[0].data().toUInt();
+	auto editedClass = controller.findClass(currentlyEditedClassId);
+	if (editedClass != nullptr) {
+		//Ensure that the new name is available
+		string newName = ui.lineEditName->text().trimmed().toStdString();
+		if (controller.isNewNameAvailableForUpdate(newName, selectedSchool->getId(), currentlyEditedClassId)) {
+			Class editedClassClone { *editedClass };
+			editedClassClone.setName(newName);
+			editedClassClone.setSchool(*selectedSchool);
+			if (controller.updateClass(editedClassClone)) {
+				toggleEditMode(ActionMode::None);
+				refreshItemsTable();
+			}
+			else {
+				showError(controller.getLastError());
+			}
+		}
+		else {
+			showError("The new name is already taken.");
+		}
+	}
+	else {
+		showError("Unable to find the selected class.");
+	}
+}
+
 void ClassManagementForm::keyPressEvent(QKeyEvent *e)
 {
 	if (e->key() == Qt::Key_Escape && mode != ActionMode::None) {
@@ -223,18 +251,6 @@ void ClassManagementForm::keyPressEvent(QKeyEvent *e)
 	else {
 		QDialog::keyPressEvent(e);
 	}
-}
-
-const School* ClassManagementForm::findSchool(size_t id) const
-{
-	const School *retVal = nullptr;
-	for(const auto &school : schools) {
-		if (school.getId() == id) {
-			retVal = &school; 
-			break;
-		}
-	}
-	return retVal;
 }
 
 bool ClassManagementForm::selectSchoolInEditPanel(size_t id)

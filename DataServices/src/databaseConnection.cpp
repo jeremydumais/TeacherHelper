@@ -62,8 +62,8 @@ void DatabaseConnection::create()
     vector<string> tableCreationInstructions {
         "CREATE TABLE city(id INTEGER PRIMARY KEY AUTOINCREMENT, name varchar(50) NOT NULL, deleted BOOLEAN NOT NULL DEFAULT 0)",
         "CREATE TABLE school(id INTEGER PRIMARY KEY AUTOINCREMENT, name varchar(50) NOT NULL, city_id INTEGER NOT NULL, deleted BOOLEAN NOT NULL DEFAULT 0, FOREIGN KEY(city_id) REFERENCES city(id))",
-        "CREATE TABLE class(id INTEGER PRIMARY KEY AUTOINCREMENT, name varchar(50) NOT NULL, school_id INTEGER NOT NULL, deleted BOOLEAN NOT NULL DEFAULT 0, FOREIGN KEY(school_id) REFERENCES school(id))",
-        "CREATE TABLE student(id INTEGER PRIMARY KEY AUTOINCREMENT, firstname varchar(30) NOT NULL, lastname varchar(30) NOT NULL, deleted BOOLEAN NOT NULL DEFAULT 0)"
+        "CREATE TABLE class(id INTEGER PRIMARY KEY AUTOINCREMENT, name varchar(50) NOT NULL, school_id INTEGER NOT NULL, deleted BOOLEAN NOT NULL DEFAULT 0, UNIQUE(name, school_id), FOREIGN KEY(school_id) REFERENCES school(id))",
+        "CREATE TABLE student(id INTEGER PRIMARY KEY AUTOINCREMENT, firstname varchar(30) NOT NULL, lastname varchar(30) NOT NULL, comments varchar(256), deleted BOOLEAN NOT NULL DEFAULT 0)"
     };
     for(const auto& instruction : tableCreationInstructions) {
         SQLiteDDLOperation operationCreateTableSchool(*this, instruction);
