@@ -13,6 +13,8 @@ public:
 	~AboutBoxForm() = default;
 private:
 	Ui::aboutBoxFormClass ui;
+private slots:
+	void pushButtonImageAttributions_Click();
 };
 
 #endif // ABOUTBOXFORM_H

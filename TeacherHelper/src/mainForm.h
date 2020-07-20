@@ -22,6 +22,8 @@ private slots:
 	void action_SchoolsManagement_Click();
 	void action_ClassesManagement_Click();
 	void action_CitiesManagement_Click();
+	void action_TestTypesManagement_Click();
+	void action_SubjectsManagement_Click();
 	void action_About_Click();
 	void action_LightTheme_Click();
 	void action_DarkTheme_Click();

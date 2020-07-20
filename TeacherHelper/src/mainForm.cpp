@@ -1,10 +1,12 @@
 #include "mainForm.h"
-#include "configurationManager.h"
 #include "aboutBoxForm.h"
+#include "configurationManager.h"
+#include "cityManagementForm.h"
+#include "classManagementForm.h"
 #include "schoolManagementForm.h"
 #include "studentManagementForm.h"
-#include "classManagementForm.h"
-#include "cityManagementForm.h"
+#include "testTypeManagementForm.h"
+#include "subjectManagementForm.h"
 #include <boost/filesystem.hpp>
 #include <boost/property_tree/ptree.hpp>
 #include <boost/property_tree/json_parser.hpp>
@@ -26,6 +28,8 @@ MainForm::MainForm(QWidget *parent)
     connect(ui.action_Schools, SIGNAL(triggered()), this, SLOT(action_SchoolsManagement_Click()));
     connect(ui.action_Classes, SIGNAL(triggered()), this, SLOT(action_ClassesManagement_Click()));
     connect(ui.action_Cities, SIGNAL(triggered()), this, SLOT(action_CitiesManagement_Click()));
+    connect(ui.action_TestTypes, SIGNAL(triggered()), this, SLOT(action_TestTypesManagement_Click()));
+    connect(ui.action_Subjects, SIGNAL(triggered()), this, SLOT(action_SubjectsManagement_Click()));
     connect(ui.action_About, SIGNAL(triggered()), this, SLOT(action_About_Click()));
     connect(ui.action_LightTheme, SIGNAL(triggered()), this, SLOT(action_LightTheme_Click()));
     connect(ui.action_DarkTheme, SIGNAL(triggered()), this, SLOT(action_DarkTheme_Click()));
@@ -93,6 +97,18 @@ void MainForm::action_CitiesManagement_Click()
 {
 	CityManagementForm formCityManagement(this, *dbConnection);
 	formCityManagement.exec();
+}
+
+void MainForm::action_TestTypesManagement_Click() 
+{
+	TestTypeManagementForm formTestTypeManagement(this, *dbConnection);
+	formTestTypeManagement.exec();
+}
+
+void MainForm::action_SubjectsManagement_Click() 
+{
+	SubjectManagementForm formSubjectManagement(this, *dbConnection);
+	formSubjectManagement.exec();
 }
 
 void MainForm::action_About_Click()

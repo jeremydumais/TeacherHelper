@@ -13,7 +13,9 @@ add_library(${PROJECT_NAME} SHARED src/databaseConnection.cpp
                                    src/studentStorage.cpp
                                    src/schoolStorage.cpp
                                    src/classStorage.cpp
-                                   src/cityStorage.cpp)
+                                   src/cityStorage.cpp
+                                   src/testTypeStorage.cpp
+                                   src/subjectStorage.cpp)
 add_dependencies(${PROJECT_NAME} fmtlib-build)
 #set_property(TARGET ${PROJECT_NAME} PROPERTY POSITION_INDEPENDENT_CODE ON)
 target_include_directories(${PROJECT_NAME} PUBLIC ${fmtlib_SOURCE_DIR})

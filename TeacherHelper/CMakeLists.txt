@@ -28,7 +28,10 @@ set(PROJECT_SOURCE_FILES ${CMAKE_CURRENT_SOURCE_DIR}/src/main.cpp
                          ${CMAKE_CURRENT_SOURCE_DIR}/src/schoolManagementForm.cpp
                          ${CMAKE_CURRENT_SOURCE_DIR}/src/classManagementForm.cpp
                          ${CMAKE_CURRENT_SOURCE_DIR}/src/cityManagementForm.cpp
+                         ${CMAKE_CURRENT_SOURCE_DIR}/src/testTypeManagementForm.cpp
+                         ${CMAKE_CURRENT_SOURCE_DIR}/src/subjectManagementForm.cpp
                          ${CMAKE_CURRENT_SOURCE_DIR}/src/aboutBoxForm.cpp
+                         ${CMAKE_CURRENT_SOURCE_DIR}/src/imageAttributionsForm.cpp
                          ${CMAKE_CURRENT_SOURCE_DIR}/res/darkstyle/darkstyle.qrc
                          ${CMAKE_CURRENT_SOURCE_DIR}/res/global.qrc)
 add_executable(${PROJECT_NAME} ${PROJECT_SOURCE_FILES})
