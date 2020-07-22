@@ -108,6 +108,33 @@ TEST(Class_getName, WithNameMyClass_ReturnMyClass)
 	ASSERT_EQ("MyClass", myClass.getName());
 }
 
+TEST(Class_getMembers, WithNoMembers_ReturnEmptyList)
+{
+	Class myClass(1, "MyClass", School("Test", City("New York")));
+	ASSERT_EQ(0, myClass.getMembers().size());
+}
+
+
+TEST(Class_getMembers, WithTwoMembers_ReturnListWith2Members)
+{
+	Class myClass(1, "MyClass", School("Test", City("New York")));
+	myClass.addMember(Student(1, "Joe", "Blow"));
+	myClass.addMember(Student(2, "Jane", "Doe"));
+	ASSERT_EQ(2, myClass.getMembers().size());
+	size_t index {0};
+	for(const auto &student : myClass.getMembers()) {
+		if (index == 0) {
+			ASSERT_EQ("Joe", student.getFirstName());
+			ASSERT_EQ("Blow", student.getLastName());
+		}
+		else if (index == 1) {
+			ASSERT_EQ("Jane", student.getFirstName());
+			ASSERT_EQ("Doe", student.getLastName());
+			}
+		index++;
+	}
+}
+
 TEST(Class_setName, WithNameClassUpdated_ReturnSuccess)
 {
 	Class myClass(1, "MyClass", School("Test", City("New York")));
@@ -162,4 +189,81 @@ TEST(Class_setSchool, WithSchoolTest1_ReturnSuccess)
 	Class myClass(1, "MyClass", School("Test", City("New York")));
 	myClass.setSchool(School("Test1", City("New York")));
 	ASSERT_EQ("Test1", myClass.getSchool().getName());
+}
+
+TEST(Class_addMember, WithValidMember_ReturnSuccess)
+{
+	Class myClass(1, "MyClass", School("Test", City("New York")));
+	Student expected { "Joe", "Blow" };
+	myClass.addMember(expected);
+	ASSERT_EQ(1, myClass.getMembers().size());
+	const auto &actual { myClass.getMembers().begin() };
+	ASSERT_EQ(expected.getFirstName(), actual->getFirstName());
+	ASSERT_EQ(expected.getLastName(), actual->getLastName());
+}
+
+TEST(Class_addMember, WithTwiceTheSameMember_ThrowInvalidArgument)
+{
+	Class myClass(1, "MyClass", School("Test", City("New York")));
+	Student expected { 1, "Joe", "Blow" };
+	myClass.addMember(expected);
+	try 
+	{
+		myClass.addMember(expected);
+		FAIL();
+	}
+	catch(invalid_argument &err) 
+	{
+        ASSERT_STREQ("Cannot add the same member twice.", err.what());
+	}
+}
+
+TEST(Class_addMember, WithTwoDifferentMembers_ReturnSuccess)
+{
+	Class myClass(1, "MyClass", School("Test", City("New York")));
+	Student member1 { 1, "Joe", "Blow" };
+	Student member2 { 2, "Joe", "Blow" };
+	myClass.addMember(member1);
+	myClass.addMember(member2);
+	ASSERT_EQ(2, myClass.getMembers().size());
+	size_t index {0};
+	for(const auto &student : myClass.getMembers()) {
+		if (index == 0) {
+			ASSERT_EQ("Joe", student.getFirstName());
+			ASSERT_EQ("Blow", student.getLastName());
+		}
+		else if (index == 1) {
+			ASSERT_EQ("Joe", student.getFirstName());
+			ASSERT_EQ("Blow", student.getLastName());
+			}
+		index++;
+	}
+
+
+}
+
+TEST(Class_removeMember, WithValidMember_ReturnSuccess)
+{
+	Class myClass(1, "MyClass", School("Test", City("New York")));
+	Student expected { "Joe", "Blow" };
+	myClass.addMember(expected);
+	ASSERT_EQ(1, myClass.getMembers().size());
+	myClass.removeMember(expected);
+	ASSERT_EQ(0, myClass.getMembers().size());
+}
+
+TEST(Class_removeMember, WithStudentNotPartOfTheList_ThrowInvalidArgument)
+{
+	Class myClass(1, "MyClass", School("Test", City("New York")));
+	Student expected { 1, "Joe", "Blow" };
+	myClass.addMember(expected);
+	try 
+	{
+		myClass.removeMember(Student(2, "Jane", "Doe"));
+		FAIL();
+	}
+	catch(invalid_argument &err) 
+	{
+        ASSERT_STREQ("That student is not part of the list.", err.what());
+	}
 }

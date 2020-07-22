@@ -95,8 +95,8 @@
    </attribute>
    <addaction name="action_Cities"/>
    <addaction name="action_Schools"/>
-   <addaction name="action_Students"/>
    <addaction name="action_Classes"/>
+   <addaction name="action_Students"/>
    <addaction name="separator"/>
    <addaction name="action_TestTypes"/>
    <addaction name="action_Subjects"/>

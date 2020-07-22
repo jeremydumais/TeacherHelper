@@ -17,4 +17,5 @@ public:
 private:
     const DatabaseConnection * const connection;
     std::string lastError;
+    bool updateAllRowsToRemoveDefault(size_t currentSubjectId);
 };

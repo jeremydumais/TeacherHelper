@@ -1,4 +1,5 @@
 #include "classManagementForm.h"
+#include "studentSelectionForm.h"
 #include <qt5/QtGui/QKeyEvent>
 #include <qt5/QtWidgets/qmessagebox.h>
 #include <fmt/format.h>
@@ -12,6 +13,7 @@ ClassManagementForm::ClassManagementForm(QWidget *parent, const DatabaseConnecti
 	  ui(Ui::classManagementFormClass()),
 	  controller(connection),
 	  schoolController(connection)
+	  //studentController(connection)
 {
 	ui.setupUi(this);
 	ui.frameDetails->setEnabled(false);
@@ -21,6 +23,8 @@ ClassManagementForm::ClassManagementForm(QWidget *parent, const DatabaseConnecti
 	connect(ui.pushButtonDelete, SIGNAL(clicked()), this, SLOT(pushButtonDelete_Click()));
 	connect(ui.pushButtonOK, SIGNAL(clicked()), this, SLOT(pushButtonOK_Click()));
 	connect(ui.pushButtonCancel, SIGNAL(clicked()), this, SLOT(pushButtonCancel_Click()));
+	connect(ui.pushButtonAddMember, SIGNAL(clicked()), this, SLOT(pushButtonAddMember_Click()));
+	connect(ui.pushButtonRemoveMember, SIGNAL(clicked()), this, SLOT(pushButtonRemoveMember_Click()));
 
 	ui.tableWidgeItems->setHorizontalHeaderItem(0, new QTableWidgetItem("Id"));
 	ui.tableWidgeItems->setHorizontalHeaderItem(1, new QTableWidgetItem("Name"));
@@ -35,6 +39,11 @@ ClassManagementForm::ClassManagementForm(QWidget *parent, const DatabaseConnecti
 	connect(ui.tableWidgeItems, 
 		SIGNAL(cellDoubleClicked(int, int)), 
 		SLOT(pushButtonModify_Click()));
+	ui.tableWidgetMembers->setHorizontalHeaderItem(1, new QTableWidgetItem("Members"));
+	ui.tableWidgetMembers->setColumnHidden(0, true);
+	connect(ui.tableWidgetMembers->selectionModel(), 
+		SIGNAL(selectionChanged(const QItemSelection &, const QItemSelection &)),
+  		SLOT(membersTableSelectionChanged(const QItemSelection &)));
 }
 
 void ClassManagementForm::showEvent(QShowEvent *event) 
@@ -42,8 +51,10 @@ void ClassManagementForm::showEvent(QShowEvent *event)
     QDialog::showEvent(event);
 	controller.loadClasses();
 	schoolController.loadSchools();
+	//studentController.loadStudents();
 	refreshSchoolTable();
     refreshItemsTable();
+	pushButtonAdd_Click();
 } 
 
 void ClassManagementForm::refreshItemsTable()
@@ -60,6 +71,7 @@ void ClassManagementForm::refreshItemsTable()
 		row++;
     }
 	toggleTableControls(false);
+	toggleMembersTableControls(false);
 }
 
 void ClassManagementForm::refreshSchoolTable()
@@ -75,8 +87,14 @@ void ClassManagementForm::refreshSchoolTable()
 
 void ClassManagementForm::toggleTableControls(bool itemSelected)
 {
+	ui.pushButtonDuplicate->setEnabled(itemSelected);
 	ui.pushButtonModify->setEnabled(itemSelected);
 	ui.pushButtonDelete->setEnabled(itemSelected);
+}
+
+void ClassManagementForm::toggleMembersTableControls(bool itemSelected) 
+{
+	ui.pushButtonRemoveMember->setEnabled(itemSelected);
 }
 
 void ClassManagementForm::toggleEditMode(ActionMode mode)
@@ -99,6 +117,11 @@ void ClassManagementForm::toggleEditMode(ActionMode mode)
 void ClassManagementForm::itemsTableSelectionChanged(const QItemSelection &selected)
 {	
 	toggleTableControls(selected.size() == 1);
+}
+
+void ClassManagementForm::membersTableSelectionChanged(const QItemSelection &selected) 
+{
+	toggleMembersTableControls(selected.size() == 1);
 }
 
 void ClassManagementForm::pushButtonAdd_Click()
@@ -127,6 +150,17 @@ void ClassManagementForm::pushButtonModify_Click()
 			showError("Cannot find the selected class.");
 		}
 	}
+}
+
+bool ClassManagementForm::selectSchoolInEditPanel(size_t id)
+{
+	for (int i = 0; i < ui.comboBoxSchool->count(); i++) {
+		if (ui.comboBoxSchool->itemData(i).toInt() == static_cast<int>(id)) {
+			ui.comboBoxSchool->setCurrentIndex(i);
+			return true;
+		}
+	}
+	return false;
 }
 
 void ClassManagementForm::pushButtonDelete_Click()
@@ -253,13 +287,27 @@ void ClassManagementForm::keyPressEvent(QKeyEvent *e)
 	}
 }
 
-bool ClassManagementForm::selectSchoolInEditPanel(size_t id)
+void ClassManagementForm::pushButtonAddMember_Click() 
 {
-	for (int i = 0; i < ui.comboBoxSchool->count(); i++) {
-		if (ui.comboBoxSchool->itemData(i).toInt() == static_cast<int>(id)) {
-			ui.comboBoxSchool->setCurrentIndex(i);
-			return true;
+	StudentSelectionForm formStudentSelection(this, *dbConnection);
+	formStudentSelection.exec();
+	auto student = formStudentSelection.getSelectedStudent();
+	if (student) {
+		//Ensure that the student is not already in the list
+		if (ui.tableWidgetMembers->findItems(to_string(student->getId()).c_str(), Qt::MatchFlag::MatchExactly).size() == 0) {
+			size_t row = ui.tableWidgetMembers->rowCount();
+			ui.tableWidgetMembers->insertRow(row);
+			ui.tableWidgetMembers->setItem(row, 0, new QTableWidgetItem(to_string(student->getId()).c_str()));
+			ui.tableWidgetMembers->setItem(row, 1, new QTableWidgetItem(fmt::format("{0}, {1} ({2})", 
+																					student->getLastName(), 
+																					student->getFirstName(), 
+																					student->getComments()).c_str()));
 		}
 	}
-	return false;
+}
+
+void ClassManagementForm::pushButtonRemoveMember_Click() 
+{
+	auto row = ui.tableWidgetMembers->selectionModel()->selectedIndexes();
+	ui.tableWidgetMembers->removeRow(row[0].row());
 }

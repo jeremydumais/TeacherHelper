@@ -12,7 +12,7 @@ public:
             const std::string &firstName, 
             const std::string &lastName,
             const std::string &comments = "");
-
+    friend bool operator==(const Student& lhs, const Student &rhs);
     size_t getId() const;
     const std::string &getFirstName() const;
     const std::string &getLastName() const;

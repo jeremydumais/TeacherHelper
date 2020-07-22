@@ -113,7 +113,7 @@ void SchoolManagementForm::pushButtonModify_Click()
 		if (editedSchool) {
 			ui.lineEditName->setText(editedSchool->getName().c_str());
 			//Find the selected city
-			if (!selectCityInEditPanel(editedSchool->getId())) {
+			if (!selectCityInEditPanel(editedSchool->getCity().getId())) {
 				showError("Cannot select the city.");
 				return;
 			}

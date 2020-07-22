@@ -49,7 +49,11 @@ bool SubjectStorage::insertItem(const Subject &subject)
 {
     //If isDefault is true and that there's already a default subject in the database, 
     //then put the old one to false and then proceed with the new one.
-
+    if(subject.getIsDefault()) {
+        if (!updateAllRowsToRemoveDefault(subject.getId())) {
+            return false;
+        }
+    }
     SQLiteInsertOperation operation(*connection, 
         "INSERT INTO subject (name, isdefault) VALUES(?, ?)",
         vector<string> { boost::trim_copy(subject.getName()), subject.getIsDefault() ? "1" : "0" });
@@ -64,7 +68,11 @@ bool SubjectStorage::updateItem(const Subject &subject)
 {
     //If isDefault is true and that there's already a default subject in the database, 
     //then put the old one to false and then proceed with the new one.
-    
+    if(subject.getIsDefault()) {
+        if (!updateAllRowsToRemoveDefault(subject.getId())) {
+            return false;
+        }
+    }
     SQLiteUpdateOperation operation(*connection, 
         "UPDATE subject SET name = ?, isdefault = ? WHERE id = ?",
         vector<string> { boost::trim_copy(subject.getName()),
@@ -84,6 +92,31 @@ bool SubjectStorage::deleteItem(size_t id)
         vector<string> { to_string(id) });
     if (!operation.execute()) {
         lastError = operation.getLastError();
+        return false;
+    }
+    return true;
+}
+
+bool SubjectStorage::updateAllRowsToRemoveDefault(size_t currentSubjectId)
+{
+    SQLiteSelectOperation operationCheckDefault(*connection, 
+    "SELECT COUNT() FROM subject WHERE isdefault=1 and id<>?",
+    vector<string> { to_string(currentSubjectId) });
+    if (operationCheckDefault.execute()) {
+        sqlite3_stmt *stmt = operationCheckDefault.getStatement();
+        int result = sqlite3_step(stmt);
+        if (result == SQLITE_ROW && sqlite3_column_int(stmt, 0) > 0) {
+            SQLiteUpdateOperation operationUpdateDefault(*connection, 
+                "UPDATE subject SET isdefault = 0",
+                vector<string>());
+            if (!operationUpdateDefault.execute()) {
+                lastError = operationUpdateDefault.getLastError();
+                return false;
+            }
+        }
+    }
+    else {
+        lastError = operationCheckDefault.getLastError();
         return false;
     }
     return true;

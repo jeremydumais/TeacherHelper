@@ -37,6 +37,11 @@ Student::Student(size_t id,
     }
 }
 
+bool operator==(const Student& lhs, const Student &rhs)
+{
+    return lhs.getId() == rhs.getId();
+}
+
 size_t Student::getId() const
 {
     return id;

@@ -1,7 +1,9 @@
 #pragma once
 
-#include <string>
 #include "school.h"
+#include "student.h"
+#include <list>
+#include <string>
 
 class Class
 {
@@ -15,12 +17,16 @@ public:
     size_t getId() const;
     const std::string &getName() const;
     const School &getSchool() const;
+    const std::list<Student> &getMembers() const;
     void setName(const std::string &name);
     void setSchool(const School &school);
+    void addMember(const Student &student);
+    void removeMember(const Student &student);
 private:
     size_t id;
     std::string name;
     School school;
+    std::list<Student> members;
 };
 
 

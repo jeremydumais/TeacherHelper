@@ -65,7 +65,8 @@ void DatabaseConnection::create()
         "CREATE TABLE class(id INTEGER PRIMARY KEY AUTOINCREMENT, name varchar(50) NOT NULL, school_id INTEGER NOT NULL, deleted BOOLEAN NOT NULL DEFAULT 0, UNIQUE(name, school_id), FOREIGN KEY(school_id) REFERENCES school(id))",
         "CREATE TABLE student(id INTEGER PRIMARY KEY AUTOINCREMENT, firstname varchar(30) NOT NULL, lastname varchar(30) NOT NULL, comments varchar(256), deleted BOOLEAN NOT NULL DEFAULT 0)",
         "CREATE TABLE testType(id INTEGER PRIMARY KEY AUTOINCREMENT, name varchar(50) NOT NULL, deleted BOOLEAN NOT NULL DEFAULT 0)",
-        "CREATE TABLE subject(id INTEGER PRIMARY KEY AUTOINCREMENT, name varchar(50) NOT NULL, isdefault BOOLEAN NOT NULL DEFAULT 0, deleted BOOLEAN NOT NULL DEFAULT 0)"
+        "CREATE TABLE subject(id INTEGER PRIMARY KEY AUTOINCREMENT, name varchar(50) NOT NULL, isdefault BOOLEAN NOT NULL DEFAULT 0, deleted BOOLEAN NOT NULL DEFAULT 0)",
+        "CREATE TABLE class_student(class_id INTEGER NOT NULL, student_id INTEGER NOT NULL, PRIMARY KEY(class_id, student_id), FOREIGN KEY(class_id) REFERENCES class(id), FOREIGN KEY(student_id) REFERENCES student(id))"
     };
     for(const auto& instruction : tableCreationInstructions) {
         SQLiteDDLOperation operationCreateTableSchool(*this, instruction);
