@@ -86,3 +86,9 @@ void Class::removeMember(const Student &student)
         throw invalid_argument("That student is not part of the list.");
     }
 }
+
+void Class::clearMembers() 
+{
+    members.clear();
+}
+

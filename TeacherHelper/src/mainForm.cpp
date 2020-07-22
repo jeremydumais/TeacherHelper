@@ -68,9 +68,6 @@ MainForm::MainForm(QWidget *parent)
 	   showErrorMessage("Can't open database", err.what());
 	   exit(1);
 	}
-	ClassManagementForm formClassManagement(this, *dbConnection);
-	formClassManagement.exec();
-	exit(0);
 }
 
 MainForm::~MainForm()

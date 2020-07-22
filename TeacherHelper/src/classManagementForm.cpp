@@ -12,13 +12,14 @@ ClassManagementForm::ClassManagementForm(QWidget *parent, const DatabaseConnecti
 	  ManagementFormBase(connection),
 	  ui(Ui::classManagementFormClass()),
 	  controller(connection),
-	  schoolController(connection)
-	  //studentController(connection)
+	  schoolController(connection),
+	  studentController(connection)
 {
 	ui.setupUi(this);
 	ui.frameDetails->setEnabled(false);
 	connect(ui.pushButtonClose, SIGNAL(clicked()), this, SLOT(close()));
 	connect(ui.pushButtonAdd, SIGNAL(clicked()), this, SLOT(pushButtonAdd_Click()));
+	connect(ui.pushButtonDuplicate, SIGNAL(clicked()), this, SLOT(pushButtonDuplicate_Click()));
 	connect(ui.pushButtonModify, SIGNAL(clicked()), this, SLOT(pushButtonModify_Click()));
 	connect(ui.pushButtonDelete, SIGNAL(clicked()), this, SLOT(pushButtonDelete_Click()));
 	connect(ui.pushButtonOK, SIGNAL(clicked()), this, SLOT(pushButtonOK_Click()));
@@ -51,10 +52,10 @@ void ClassManagementForm::showEvent(QShowEvent *event)
     QDialog::showEvent(event);
 	controller.loadClasses();
 	schoolController.loadSchools();
-	//studentController.loadStudents();
+	studentController.loadStudents();
 	refreshSchoolTable();
     refreshItemsTable();
-	pushButtonAdd_Click();
+	//pushButtonAdd_Click();
 } 
 
 void ClassManagementForm::refreshItemsTable()
@@ -107,6 +108,7 @@ void ClassManagementForm::toggleEditMode(ActionMode mode)
 	if(!editMode) {
 		ui.lineEditName->clear();
 		ui.comboBoxSchool->setCurrentIndex(0);
+		ui.tableWidgetMembers->model()->removeRows(0, ui.tableWidgetMembers->rowCount());
 	} 
 	else {
 		ui.lineEditName->setFocus();
@@ -131,6 +133,13 @@ void ClassManagementForm::pushButtonAdd_Click()
 	toggleEditMode(ActionMode::Add);
 }
 
+void ClassManagementForm::pushButtonDuplicate_Click()
+{
+	pushButtonModify_Click();
+	toggleEditMode(ActionMode::Add);
+	ui.lineEditName->setText(ui.lineEditName->text() + " copy");
+}
+
 void ClassManagementForm::pushButtonModify_Click()
 {
 	auto row = ui.tableWidgeItems->selectionModel()->selectedIndexes();
@@ -144,6 +153,16 @@ void ClassManagementForm::pushButtonModify_Click()
 				showError("Cannot select the school.");
 				return;
 			}
+			//Add all members
+			size_t row {0};
+			for(const auto &member : editedClass->getMembers()) {
+				ui.tableWidgetMembers->insertRow(row);
+				ui.tableWidgetMembers->setItem(row, 0, new QTableWidgetItem(to_string(member.getId()).c_str()));
+				ui.tableWidgetMembers->setItem(row, 1, new QTableWidgetItem(fmt::format("{0}, {1} ({2})", 
+																						member.getLastName(), 
+																						member.getFirstName(), 
+																						member.getComments()).c_str()));
+				}
 			toggleEditMode(ActionMode::Modify);
 		}
 		else {
@@ -233,8 +252,19 @@ void ClassManagementForm::saveNewItem(const School* const selectedSchool)
 	//Ensure that the new name is available
 	string newName = ui.lineEditName->text().trimmed().toStdString();
 	if (controller.isNewNameAvailableForAdd(newName, selectedSchool->getId())) {
-		if (controller.insertClass(Class(ui.lineEditName->text().trimmed().toStdString(),
-										*selectedSchool))) {
+		auto classToAdd = Class(ui.lineEditName->text().trimmed().toStdString(),
+								*selectedSchool);
+		for(int i = 0; i < ui.tableWidgetMembers->rowCount(); ++i) {
+			auto member = studentController.findStudent(ui.tableWidgetMembers->item(i, 0)->data(0).toUInt());
+			if (member) {
+				classToAdd.addMember(*member);
+			}
+			else {
+				showError(fmt::format("Unable to add the user {0}", ui.tableWidgetMembers->item(i, 1)->data(0).toString().toStdString()));
+				return;
+			}
+		}
+		if (controller.insertClass(classToAdd)) {
 			toggleEditMode(ActionMode::None);
 			refreshItemsTable();
 		}
@@ -260,6 +290,17 @@ void ClassManagementForm::updateExistingItem(const School* const selectedSchool)
 			Class editedClassClone { *editedClass };
 			editedClassClone.setName(newName);
 			editedClassClone.setSchool(*selectedSchool);
+			editedClassClone.clearMembers();
+			for(int i = 0; i < ui.tableWidgetMembers->rowCount(); ++i) {
+				auto member = studentController.findStudent(ui.tableWidgetMembers->item(i, 0)->data(0).toUInt());
+				if (member) {
+					editedClassClone.addMember(*member);
+				}
+				else {
+					showError(fmt::format("Unable to add the user {0}", ui.tableWidgetMembers->item(i, 1)->data(0).toString().toStdString()));
+					return;
+				}
+			}
 			if (controller.updateClass(editedClassClone)) {
 				toggleEditMode(ActionMode::None);
 				refreshItemsTable();

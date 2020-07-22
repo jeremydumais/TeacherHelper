@@ -3,7 +3,6 @@
 #include <qt5/QtWidgets/qmessagebox.h>
 #include <fmt/format.h>
 #include <boost/algorithm/string.hpp>
-#include <vector>
 
 using namespace std;
 
@@ -21,9 +20,12 @@ StudentSelectionForm::StudentSelectionForm(QWidget *parent, const DatabaseConnec
 	connect(ui.tableWidgetStudents->selectionModel(), 
 		SIGNAL(selectionChanged(const QItemSelection &, const QItemSelection &)),
   		SLOT(itemsTableSelectionChanged(const QItemSelection &)));
+	connect(ui.tableWidgetStudents, 
+		SIGNAL(cellDoubleClicked(int, int)), 
+		SLOT(pushButtonOK_Click()));
 	connect(ui.lineEditFilter,
 		SIGNAL(textChanged(const QString &)),
-		SLOT(lineEditFilterTextChanged(const QString &)));
+		SLOT(lineEditFilterTextChanged(const QString &)));	
 }
 
 void StudentSelectionForm::showEvent(QShowEvent *event) 
@@ -39,7 +41,7 @@ void StudentSelectionForm::refreshItemsTable(const string &filter)
 	ui.tableWidgetStudents->model()->removeRows(0, ui.tableWidgetStudents->rowCount());
 	size_t row {0};
     for (const auto &itemStudent : controller.getStudents()) {
-		if (isStudentInFilter(filter, itemStudent)) {
+		if (controller.isStudentInFilter(filter, itemStudent)) {
 			ui.tableWidgetStudents->insertRow(row);
 			ui.tableWidgetStudents->setItem(row, 0, new QTableWidgetItem(to_string(itemStudent.getId()).c_str()));
 			ui.tableWidgetStudents->setItem(row, 1, new QTableWidgetItem(fmt::format("{0}, {1} ({2})", 
@@ -69,31 +71,6 @@ const Student *StudentSelectionForm::getSelectedStudent() const
 	return selectedStudent;
 }
 
-bool StudentSelectionForm::isStudentInFilter(const string &filter, const Student &student) const
-{
-	bool isFound {false};
-	vector<string> filterWords;
-
-	boost::split(filterWords, filter, boost::is_any_of(" "));
-	if (filter == "") {
-		isFound = true;
-	}
-	else {
-		size_t wordFound {0};
-		for(const auto &word : filterWords) {
-			if (boost::contains(boost::to_upper_copy(student.getFirstName()), word) ||
-				boost::contains(boost::to_upper_copy(student.getLastName()), word) ||
-				boost::contains(boost::to_upper_copy(student.getComments()), word)) {
-					wordFound++;
-				}
-		}
-		if (wordFound == filterWords.size()) {
-			isFound = true;
-		}
-	}
-	return isFound;
-} 
-
 void StudentSelectionForm::itemsTableSelectionChanged(const QItemSelection &selected)
 {	
 	toggleTableControls(selected.size() == 1);
@@ -108,9 +85,11 @@ void StudentSelectionForm::lineEditFilterTextChanged(const QString &value)
 void StudentSelectionForm::pushButtonOK_Click()
 {
 	auto row = ui.tableWidgetStudents->selectionModel()->selectedIndexes();
-	selectedStudent = controller.findStudent(row[0].data().toUInt());
-	if (selectedStudent) {
-		close();
+	if (row.size() > 0) {
+		selectedStudent = controller.findStudent(row[0].data().toUInt());
+		if (selectedStudent) {
+			close();
+		}
 	}
 }
 

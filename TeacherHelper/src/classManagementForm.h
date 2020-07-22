@@ -6,6 +6,7 @@
 #include "ui_classManagementForm.h"
 #include "classController.h"
 #include "schoolController.h"
+#include "studentController.h"
 
 class ClassManagementForm : public QDialog, public ManagementFormBase
 {
@@ -19,7 +20,7 @@ private:
 	Ui::classManagementFormClass ui;
 	ClassController controller;
 	SchoolController schoolController;
-	//StudentController studentController;
+	StudentController studentController;
 	void refreshItemsTable() override;
 	void refreshSchoolTable();
 	void toggleTableControls(bool itemSelected) override;
@@ -33,6 +34,7 @@ private slots:
 	void itemsTableSelectionChanged(const QItemSelection &selected);
 	void membersTableSelectionChanged(const QItemSelection &selected);
 	void pushButtonAdd_Click();
+	void pushButtonDuplicate_Click();
 	void pushButtonModify_Click();
 	void pushButtonDelete_Click();
 	void pushButtonOK_Click();

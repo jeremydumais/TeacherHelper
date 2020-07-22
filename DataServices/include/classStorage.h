@@ -4,6 +4,8 @@
 #include "IManagementItemStorage.h"
 #include "class.h"
 #include <list>
+#include <map>
+#include <vector>
 
 class ClassStorage : public IManagementItemStorage<Class>
 {
@@ -17,4 +19,9 @@ public:
 private:
     const DatabaseConnection * const connection;
     std::string lastError;
+    size_t retreiveAssignedClassId();
+    bool insertMembers(size_t classId, const std::vector<size_t> &studentIdToAdd);
+    bool removeMembers(size_t classId,  const std::vector<size_t> &studentIdToRemove);
+    std::multimap<size_t, Student> loadAllMembers();
+    std::list<Student> loadClassMembers(size_t classId);
 };

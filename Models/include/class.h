@@ -22,6 +22,7 @@ public:
     void setSchool(const School &school);
     void addMember(const Student &student);
     void removeMember(const Student &student);
+    void clearMembers();
 private:
     size_t id;
     std::string name;

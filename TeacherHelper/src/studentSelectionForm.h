@@ -2,7 +2,7 @@
 #define STUDENTSELECTIONFORM_H
 
 #include "ui_studentSelectionForm.h"
-#include "studentController.h"
+#include "studentSelectionController.h"
 
 class StudentSelectionForm : public QDialog
 {
@@ -17,9 +17,8 @@ public:
 	const Student *getSelectedStudent() const;
 private:
 	Ui::studentSelectionFormClass ui;
-	StudentController controller;
+	StudentSelectionController controller;
 	const Student *selectedStudent;
-	bool isStudentInFilter(const std::string &filter, const Student &student) const;
 private slots: 
 	void itemsTableSelectionChanged(const QItemSelection &selected);
 	void lineEditFilterTextChanged(const QString &value);
