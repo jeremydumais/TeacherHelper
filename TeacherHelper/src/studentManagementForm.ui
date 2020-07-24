@@ -13,6 +13,10 @@
   <property name="windowTitle">
    <string>Student management</string>
   </property>
+  <property name="windowIcon">
+   <iconset resource="../res/global.qrc">
+    <normaloff>:/global/TeacherHelperIcon.ico</normaloff>:/global/TeacherHelperIcon.ico</iconset>
+  </property>
   <layout class="QVBoxLayout" name="verticalLayout">
    <item>
     <layout class="QHBoxLayout" name="horizontalLayout">
@@ -145,15 +149,18 @@
               <enum>QFrame::Raised</enum>
              </property>
              <layout class="QGridLayout" name="gridLayout">
-              <item row="1" column="1">
-               <widget class="QLineEdit" name="lineEditFirstname"/>
-              </item>
               <item row="1" column="0">
                <widget class="QLabel" name="label">
                 <property name="text">
                  <string>Firstname :</string>
                 </property>
                </widget>
+              </item>
+              <item row="2" column="2">
+               <widget class="QLineEdit" name="lineEditLastname"/>
+              </item>
+              <item row="1" column="2">
+               <widget class="QLineEdit" name="lineEditFirstname"/>
               </item>
               <item row="2" column="0">
                <widget class="QLabel" name="label_2">
@@ -162,8 +169,22 @@
                 </property>
                </widget>
               </item>
-              <item row="2" column="1">
-               <widget class="QLineEdit" name="lineEditLastname"/>
+              <item row="3" column="0">
+               <widget class="QLabel" name="label_3">
+                <property name="text">
+                 <string>Comments : </string>
+                </property>
+                <property name="alignment">
+                 <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignTop</set>
+                </property>
+               </widget>
+              </item>
+              <item row="3" column="2">
+               <widget class="QPlainTextEdit" name="plainTextEditComments">
+                <property name="tabStopWidth">
+                 <number>80</number>
+                </property>
+               </widget>
               </item>
              </layout>
             </widget>
@@ -265,6 +286,7 @@
   <tabstop>pushButtonDelete</tabstop>
   <tabstop>lineEditFirstname</tabstop>
   <tabstop>lineEditLastname</tabstop>
+  <tabstop>plainTextEditComments</tabstop>
   <tabstop>pushButtonOK</tabstop>
   <tabstop>pushButtonCancel</tabstop>
   <tabstop>pushButtonClose</tabstop>

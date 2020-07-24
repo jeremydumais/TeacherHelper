@@ -1,7 +1,7 @@
 #include "cityManagementForm.h"
 #include <qt5/QtGui/QKeyEvent>
 #include <qt5/QtWidgets/qmessagebox.h>
-#include <sstream>
+#include <fmt/format.h>
 #include <boost/algorithm/string.hpp>
 
 using namespace std;
@@ -89,83 +89,101 @@ void CityManagementForm::pushButtonModify_Click()
 {
 	auto row = ui.tableWidgeItems->selectionModel()->selectedIndexes();
 	if (!row.empty()) {
-		ui.lineEditName->setText(row[1].data().toString());
-		toggleEditMode(ActionMode::Modify);
+		//Find the selected city
+		auto editedCity = controller.findCity(row[0].data().toUInt());
+		if (editedCity != nullptr) {
+			ui.lineEditName->setText(editedCity->getName().c_str());
+			toggleEditMode(ActionMode::Modify);
+		}
+		else {
+			showError("Unable to find the selected city.");
+		}
 	}
 }
 
 void CityManagementForm::pushButtonDelete_Click()
 {
 	QMessageBox msgBox;
-	stringstream ss;
 	auto row = ui.tableWidgeItems->selectionModel()->selectedIndexes();
-	//Find the selected city
-	const City *editedCity = controller.findCity(row[0].data().toUInt());
-	ss << "Are you sure you want to delete the city " << editedCity->getName() << "?";
-	msgBox.setText(ss.str().c_str());
-	msgBox.setWindowTitle("Confirmation");
-	msgBox.setStandardButtons(QMessageBox::Yes | QMessageBox::No | QMessageBox::Cancel);
-	msgBox.setDefaultButton(QMessageBox::Cancel);
-
-	if (msgBox.exec() == QMessageBox::Yes) {
-
-		if (controller.deleteCity(row[0].data().toUInt())) {
-			refreshItemsTable();
-		}
-		else {
-			showError(controller.getLastError());
-		}
-	}
-}
-
-void CityManagementForm::pushButtonOK_Click()
-{
-	if (mode == ActionMode::Add) {
-		if (validateEntry()) {
-			//Ensure that the new name is available
-			string newName = ui.lineEditName->text().trimmed().toStdString();
-			if (controller.isNewNameAvailableForAdd(newName)) {
-				if (controller.insertCity(City(ui.lineEditName->text().trimmed().toStdString()))) {
-					toggleEditMode(ActionMode::None);
+	if (!row.empty()) {
+		//Find the selected city
+		auto editedCity = controller.findCity(row[0].data().toUInt());
+		if (editedCity != nullptr) {
+			msgBox.setText(fmt::format("Are you sure you want to delete the city {0}?", editedCity->getName()).c_str());
+			msgBox.setWindowTitle("Confirmation");
+			msgBox.setStandardButtons(QMessageBox::Yes | QMessageBox::No | QMessageBox::Cancel);
+			msgBox.setDefaultButton(QMessageBox::Cancel);
+			if (msgBox.exec() == QMessageBox::Yes) {
+				if (controller.deleteCity(editedCity->getId())) {
 					refreshItemsTable();
 				}
 				else {
 					showError(controller.getLastError());
 				}
 			}
-			else {
-				showError("The new name is already taken.");
-			}
+		}
+		else {
+			showError("Unable to find the selected city.");
 		}
 	}
-	else if (mode == ActionMode::Modify) {
-		if (validateEntry()) {
-			auto row = ui.tableWidgeItems->selectionModel()->selectedIndexes();
-			//Find the selected city
-			size_t currentlyEditedCityId = row[0].data().toUInt();
-			const City *editedCity = controller.findCity(currentlyEditedCityId);
-			if (editedCity != nullptr) {
-				//Ensure that the new name is available
-				string newName = ui.lineEditName->text().trimmed().toStdString();
-				if (controller.isNewNameAvailableForUpdate(newName, currentlyEditedCityId)) {
-					City editedCityClone { *editedCity };
-					editedCityClone.setName(newName);
-					if (controller.updateCity(editedCityClone)) {
-						toggleEditMode(ActionMode::None);
-						refreshItemsTable();
-					}
-					else {
-						showError(controller.getLastError());
-					}
-				}
-				else {
-					showError("The new name is already taken.");
-				}
+}
+
+void CityManagementForm::pushButtonOK_Click()
+{
+	if (validateEntry()) {
+		if (mode == ActionMode::Add) {
+			saveNewItem();
+		}
+		else if (mode == ActionMode::Modify) {
+			updateExistingItem();
+		}
+	}
+}
+
+void CityManagementForm::saveNewItem()
+{
+	//Ensure that the new name is available
+	string newName = ui.lineEditName->text().trimmed().toStdString();
+	if (controller.isNewNameAvailableForAdd(newName)) {
+		if (controller.insertCity(City(ui.lineEditName->text().trimmed().toStdString()))) {
+			toggleEditMode(ActionMode::None);
+			refreshItemsTable();
+		}
+		else {
+			showError(controller.getLastError());
+		}
+	}
+	else {
+		showError("The new name is already taken.");
+	}
+}
+
+void CityManagementForm::updateExistingItem()
+{
+	auto row = ui.tableWidgeItems->selectionModel()->selectedIndexes();
+	//Find the selected city
+	size_t currentlyEditedCityId = row[0].data().toUInt();
+	auto editedCity = controller.findCity(currentlyEditedCityId);
+	if (editedCity != nullptr) {
+		//Ensure that the new name is available
+		string newName = ui.lineEditName->text().trimmed().toStdString();
+		if (controller.isNewNameAvailableForUpdate(newName, currentlyEditedCityId)) {
+			City editedCityClone { *editedCity };
+			editedCityClone.setName(newName);
+			if (controller.updateCity(editedCityClone)) {
+				toggleEditMode(ActionMode::None);
+				refreshItemsTable();
 			}
 			else {
-				showError("Unable to find the selected city.");
+				showError(controller.getLastError());
 			}
-		}	
+		}
+		else {
+			showError("The new name is already taken.");
+		}
+	}
+	else {
+		showError("Unable to find the selected city.");
 	}
 }
 

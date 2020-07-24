@@ -2,6 +2,8 @@
 #include "sqliteInsertOperation.h"
 #include "sqliteSelectOperation.h"
 #include "sqliteUpdateOperation.h"
+#include "sqliteDeleteOperation.h"
+#include <boost/algorithm/string.hpp>
 #include <iostream>
 #include <sqlite3.h>
 #include <string>
@@ -15,12 +17,12 @@ CityStorage::CityStorage(const DatabaseConnection &connection)
 {
 }
 
-list<City> CityStorage::getAllCities()
+list<City> CityStorage::getAllItems()
 {
     int i =1;
     list<City> retVal;
     SQLiteSelectOperation operation(*connection, 
-        "SELECT id, name FROM city WHERE deleted=0 ORDER BY name;");
+        "SELECT id, name FROM city ORDER BY name;");
     if (operation.execute()) {
         sqlite3_stmt *stmt = operation.getStatement();
         int result = sqlite3_step(stmt);
@@ -43,11 +45,11 @@ const std::string &CityStorage::getLastError() const
     return lastError;
 }
 
-bool CityStorage::insertCity(const City &city)
+bool CityStorage::insertItem(const City &city)
 {
     SQLiteInsertOperation operation(*connection, 
         "INSERT INTO city (name) VALUES(?)",
-        vector<string> { city.getName() });
+        vector<string> { boost::trim_copy(city.getName()) });
     if (!operation.execute()) {
         lastError = operation.getLastError();
         return false;
@@ -55,11 +57,11 @@ bool CityStorage::insertCity(const City &city)
     return true;
 }
 
-bool CityStorage::updateCity(const City &city)
+bool CityStorage::updateItem(const City &city)
 {
     SQLiteUpdateOperation operation(*connection, 
         "UPDATE city SET name = ? WHERE id = ?",
-        vector<string> { city.getName(),
+        vector<string> { boost::trim_copy(city.getName()),
             to_string(city.getId()) });
     if (!operation.execute()) {
         lastError = operation.getLastError();
@@ -68,14 +70,15 @@ bool CityStorage::updateCity(const City &city)
     return true;
 }
 
-bool CityStorage::deleteCity(size_t id)
+QueryResult CityStorage::deleteItem(size_t id)
 {
-    SQLiteUpdateOperation operation(*connection, 
-        "UPDATE city SET deleted=1 WHERE id = ?", 
+    //Ensure the the record is not user as a foreign key in another table
+
+    SQLiteDeleteOperation operation(*connection, 
+        "DELETE FROM city WHERE id = ?", 
         vector<string> { to_string(id) });
     if (!operation.execute()) {
         lastError = operation.getLastError();
-        return false;
     }
-    return true;
+    return operation.getExtendedResultInfo();
 }

@@ -21,13 +21,19 @@ set(CMAKE_INCLUDE_CURRENT_DIR ON)
 set(CMAKE_AUTOUIC_SEARCH_PATHS AUTOGEN_BUILD_DIR/include)
 
 set(PROJECT_SOURCE_FILES ${CMAKE_CURRENT_SOURCE_DIR}/src/main.cpp
+                         ${CMAKE_CURRENT_SOURCE_DIR}/src/configurationManager.cpp
                          ${CMAKE_CURRENT_SOURCE_DIR}/src/mainForm.cpp
                          ${CMAKE_CURRENT_SOURCE_DIR}/src/managementFormBase.cpp
                          ${CMAKE_CURRENT_SOURCE_DIR}/src/studentManagementForm.cpp
                          ${CMAKE_CURRENT_SOURCE_DIR}/src/schoolManagementForm.cpp
                          ${CMAKE_CURRENT_SOURCE_DIR}/src/classManagementForm.cpp
                          ${CMAKE_CURRENT_SOURCE_DIR}/src/cityManagementForm.cpp
+                         ${CMAKE_CURRENT_SOURCE_DIR}/src/testTypeManagementForm.cpp
+                         ${CMAKE_CURRENT_SOURCE_DIR}/src/subjectManagementForm.cpp
+                         ${CMAKE_CURRENT_SOURCE_DIR}/src/studentSelectionForm.cpp
                          ${CMAKE_CURRENT_SOURCE_DIR}/src/aboutBoxForm.cpp
+                         ${CMAKE_CURRENT_SOURCE_DIR}/src/imageAttributionsForm.cpp
+                         ${CMAKE_CURRENT_SOURCE_DIR}/res/darkstyle/darkstyle.qrc
                          ${CMAKE_CURRENT_SOURCE_DIR}/res/global.qrc)
 add_executable(${PROJECT_NAME} ${PROJECT_SOURCE_FILES})
 target_link_libraries(${PROJECT_NAME} Models DataServices Controllers Qt5::Widgets sqlite3)
@@ -56,3 +62,10 @@ elseif ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
     "-pedantic-errors" # Like -pedantic, except that errors are produced rather than warnings http://stackoverflow.com/questions/30255294/how-to-hide-extra-output-from-pragma-message
     )
 endif()
+
+# Copy styles and resource images
+configure_file(${CMAKE_CURRENT_SOURCE_DIR}/res/darkstyle/darkstyle.qss ${CMAKE_BINARY_DIR}/res/darkstyle/darkstyle.qss COPYONLY)
+add_custom_target(copy-darkstyle-res ALL
+    COMMAND ${CMAKE_COMMAND} -E copy_directory
+    ${CMAKE_CURRENT_SOURCE_DIR}/res/darkstyle/rc
+    ${CMAKE_BINARY_DIR}/res/darkstyle/rc)

@@ -4,6 +4,8 @@
 
 #include "managementFormBase.h"
 #include "ui_schoolManagementForm.h"
+#include "schoolController.h"
+#include "cityController.h"
 
 class SchoolManagementForm : public QDialog, public ManagementFormBase
 {
@@ -15,10 +17,16 @@ public:
 	void showEvent(QShowEvent *event) override;
 private:
 	Ui::schoolManagementFormClass ui;
+	SchoolController controller;
+	CityController cityController;
 	void refreshItemsTable() override;
+	void refreshCityTable();
 	void toggleTableControls(bool itemSelected) override;
 	void toggleEditMode(ActionMode mode) override;
 	bool validateEntry() const override;
+	void saveNewItem(const City* const selectedCity);
+	void updateExistingItem(const City* const selectedCity);
+	bool selectCityInEditPanel(size_t id);
 private slots:
 	void itemsTableSelectionChanged(const QItemSelection &selected);
 	void pushButtonAdd_Click();

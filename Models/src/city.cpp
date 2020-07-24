@@ -34,5 +34,11 @@ const std::string &City::getName() const
 
 void City::setName(const string &name)
 {
+    if (trim_copy(name).empty()) {
+        throw invalid_argument("name cannot be null or empty.");
+    }
+    if (name.length() > 50) {
+        throw invalid_argument("name must not be larger then 50 chars.");
+    }    
     this->name = name; 
 }

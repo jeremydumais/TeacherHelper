@@ -1,10 +1,19 @@
 <RCC>
   <qresource prefix="global">
+    <file>schools64.png</file>
+    <file>cities64.png</file>
+    <file>TeacherHelper Icon256.png</file>
+    <file>testType64.png</file>
+    <file>subject64.png</file>
+    <file>TeacherHelperIcon.ico</file>
     <file>delete22.png</file>
+    <file>duplicate24.png</file>
     <file>cancel22.png</file>
     <file>edit22.png</file>
+    <file>class64.png</file>
     <file>close22.png</file>
     <file>ok22.png</file>
+    <file>student64.png</file>
     <file>add22.png</file>
   </qresource>
 </RCC>

@@ -4,7 +4,9 @@
 
 #include "managementFormBase.h"
 #include "ui_classManagementForm.h"
-#include "schoolStorage.h"
+#include "classController.h"
+#include "schoolController.h"
+#include "studentController.h"
 
 class ClassManagementForm : public QDialog, public ManagementFormBase
 {
@@ -16,22 +18,30 @@ public:
 	void showEvent(QShowEvent *event) override;
 private:
 	Ui::classManagementFormClass ui;
-	std::list<School> schools;
+	ClassController controller;
+	SchoolController schoolController;
+	StudentController studentController;
 	void refreshItemsTable() override;
 	void refreshSchoolTable();
 	void toggleTableControls(bool itemSelected) override;
+	void toggleMembersTableControls(bool itemSelected);
 	void toggleEditMode(ActionMode mode) override;
 	bool validateEntry() const override;
-	const School* findSchool(size_t id) const;
+	void saveNewItem(const School* const selectedSchool);
+	void updateExistingItem(const School* const selectedSchool);
 	bool selectSchoolInEditPanel(size_t id);
 private slots:
 	void itemsTableSelectionChanged(const QItemSelection &selected);
+	void membersTableSelectionChanged(const QItemSelection &selected);
 	void pushButtonAdd_Click();
+	void pushButtonDuplicate_Click();
 	void pushButtonModify_Click();
 	void pushButtonDelete_Click();
 	void pushButtonOK_Click();
 	void pushButtonCancel_Click();
 	void keyPressEvent(QKeyEvent *e) override;
+	void pushButtonAddMember_Click();
+	void pushButtonRemoveMember_Click();
 };
 
 #endif // CLASSMANAGEMENTNFORM_H

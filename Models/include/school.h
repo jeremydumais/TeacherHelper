@@ -1,21 +1,24 @@
 #pragma once
 
 #include <string>
+#include "city.h"
 
 class School
 {
 public:
     School(const std::string &name, 
-            const std::string &city);
+            const City &city);
     School(size_t id,
             const std::string &name, 
-            const std::string &city);
+            const City &city);
 
     size_t getId() const;
     const std::string &getName() const;
-    const std::string &getCity() const;
+    const City &getCity() const;
+    void setName(const std::string &name);
+    void setCity(const City &city);
 private:
     size_t id;
     std::string name;
-    std::string city;
+    City city;
 };

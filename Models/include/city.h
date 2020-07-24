@@ -5,7 +5,7 @@
 class City
 {
 public:
-    City(const std::string &name);
+    explicit City(const std::string &name);
     City(size_t id,
             const std::string &name);
 

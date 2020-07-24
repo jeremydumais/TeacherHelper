@@ -1,6 +1,5 @@
 #include "studentManagementForm.h"
-#include "studentStorage.h"
-#include <sstream>
+#include <fmt/format.h>
 #include <qt5/QtWidgets/qmessagebox.h>
 #include <qt5/QtGui/QKeyEvent>
 
@@ -9,7 +8,8 @@ using namespace std;
 StudentManagementForm::StudentManagementForm(QWidget *parent, const DatabaseConnection &connection)
 	: QDialog(parent),
 	  ManagementFormBase(connection),
-	  ui(Ui::studentManagementFormClass())
+	  ui(Ui::studentManagementFormClass()),
+	  controller(connection)
 {
 	ui.setupUi(this);
 	ui.frameDetails->setEnabled(false);
@@ -39,16 +39,15 @@ StudentManagementForm::~StudentManagementForm()
 void StudentManagementForm::showEvent(QShowEvent *event) 
 {
     QDialog::showEvent(event);
+	controller.loadStudents();
     refreshItemsTable();
 } 
 
 void StudentManagementForm::refreshItemsTable()
 {
-	StudentStorage studentStorage(*dbConnection);
-	list<Student> students = studentStorage.getAllStudents();
 	ui.tableWidgeItems->model()->removeRows(0, ui.tableWidgeItems->rowCount());
 	size_t row {0};
-    for (const auto &student : students) {
+    for (const auto &student : controller.getStudents()) {
 		ui.tableWidgeItems->insertRow(row);
 		ui.tableWidgeItems->setItem(row, 0, new QTableWidgetItem(to_string(student.getId()).c_str()));
 		ui.tableWidgeItems->setItem(row, 1, new QTableWidgetItem(student.getFirstName().c_str()));
@@ -74,6 +73,7 @@ void StudentManagementForm::toggleEditMode(ActionMode mode)
 	if(!editMode) {
 		ui.lineEditFirstname->clear();
 		ui.lineEditLastname->clear();
+		ui.plainTextEditComments->clear();
 	} 
 	else {
 		ui.lineEditFirstname->setFocus();
@@ -90,74 +90,105 @@ void StudentManagementForm::pushButtonAdd_Click()
 {
 	ui.lineEditFirstname->clear();
 	ui.lineEditLastname->clear();
+	ui.plainTextEditComments->clear();
 	toggleEditMode(ActionMode::Add);
 }
 
 void StudentManagementForm::pushButtonModify_Click()
 {
 	auto row = ui.tableWidgeItems->selectionModel()->selectedIndexes();
-	if (row.size() > 0) {
-		ui.lineEditFirstname->setText(row[1].data().toString());
-		ui.lineEditLastname->setText(row[2].data().toString());
-		toggleEditMode(ActionMode::Modify);
+	if (!row.empty()) {
+		//Find the selected student
+		auto editedStudent = controller.findStudent(row[0].data().toUInt());
+		if (editedStudent != nullptr) {
+			ui.lineEditFirstname->setText(editedStudent->getFirstName().c_str());
+			ui.lineEditLastname->setText(editedStudent->getLastName().c_str());
+			ui.plainTextEditComments->setPlainText(editedStudent->getComments().c_str());
+			toggleEditMode(ActionMode::Modify);
+		}
+		else {
+			showError("Unable to find the student city.");
+		}
 	}
 }
 
 void StudentManagementForm::pushButtonDelete_Click()
 {
 	QMessageBox msgBox;
-	stringstream ss;
 	auto row = ui.tableWidgeItems->selectionModel()->selectedIndexes();
+	if (!row.empty()) {
+		//Find the selected city
+		auto editedStudent = controller.findStudent(row[0].data().toUInt());
+		if (editedStudent) {
+			string message = fmt::format("Are you sure you want to delete the student {0} {1}?", 
+										editedStudent->getFirstName(), 
+										editedStudent->getLastName());
+			msgBox.setText(message.c_str());
+			msgBox.setWindowTitle("Confirmation");
+			msgBox.setStandardButtons(QMessageBox::Yes | QMessageBox::No | QMessageBox::Cancel);
+			msgBox.setDefaultButton(QMessageBox::Cancel);
 
-	ss << "Are you sure you want to delete the student " << row[1].data().toString().toStdString()
-		<< " " << row[2].data().toString().toStdString() << "?";
-	msgBox.setText(ss.str().c_str());
-	msgBox.setWindowTitle("Confirmation");
-	msgBox.setStandardButtons(QMessageBox::Yes | QMessageBox::No | QMessageBox::Cancel);
-	msgBox.setDefaultButton(QMessageBox::Cancel);
-
-	if (msgBox.exec() == QMessageBox::Yes) {
-		StudentStorage storage(*dbConnection);
-
-		if (storage.deleteStudent(row[0].data().toUInt())) {
-			refreshItemsTable();
+			if (msgBox.exec() == QMessageBox::Yes) {
+				if (controller.deleteStudent(editedStudent->getId())) {
+					refreshItemsTable();
+				}
+				else {
+					showError(controller.getLastError());
+				}
+			}
 		}
 		else {
-			showError(storage.getLastError());
+			showError("Unable to find the selected student.");
 		}
 	}
 }
 
 void StudentManagementForm::pushButtonOK_Click()
 {
-	if (mode == ActionMode::Add) {
-		if (validateEntry()) {
-			StudentStorage storage(*dbConnection);
-			if (storage.insertStudent(Student(ui.lineEditFirstname->text().trimmed().toStdString(),
-											ui.lineEditLastname->text().trimmed().toStdString()))) {
-				toggleEditMode(ActionMode::None);
-				refreshItemsTable();
-			}
-			else {
-				showError(storage.getLastError());
-			}
+	if (validateEntry()) {
+		if (mode == ActionMode::Add) {
+			saveNewItem();
+		}
+		else if (mode == ActionMode::Modify) {
+			updateExistingItem();
 		}
 	}
-	else if (mode == ActionMode::Modify) {
-		if (validateEntry()) {
-			StudentStorage storage(*dbConnection);
-			auto row = ui.tableWidgeItems->selectionModel()->selectedIndexes();
+}
 
-			if (storage.updateStudent(Student(row[0].data().toUInt(),
-											ui.lineEditFirstname->text().trimmed().toStdString(),
-											ui.lineEditLastname->text().trimmed().toStdString()))) {
-				toggleEditMode(ActionMode::None);
-				refreshItemsTable();
-			}
-			else {
-				showError(storage.getLastError());
-			}
-		}	
+void StudentManagementForm::saveNewItem() 
+{
+	if (controller.insertStudent(Student(ui.lineEditFirstname->text().trimmed().toStdString(),
+											ui.lineEditLastname->text().trimmed().toStdString(),
+											ui.plainTextEditComments->toPlainText().trimmed().toStdString()))) {
+		toggleEditMode(ActionMode::None);
+		refreshItemsTable();
+	}
+	else {
+		showError(controller.getLastError());
+	}
+}
+
+void StudentManagementForm::updateExistingItem() 
+{
+	auto row = ui.tableWidgeItems->selectionModel()->selectedIndexes();
+	//Find the selected city
+	size_t currentlyEditedStudentId = row[0].data().toUInt();
+	auto editedStudent = controller.findStudent(currentlyEditedStudentId);
+	if (editedStudent != nullptr) {
+		Student editedStudentClone { *editedStudent };
+		editedStudentClone.setFirstName(ui.lineEditFirstname->text().trimmed().toStdString());
+		editedStudentClone.setLastName(ui.lineEditLastname->text().trimmed().toStdString());
+		editedStudentClone.setComments(ui.plainTextEditComments->toPlainText().trimmed().toStdString());
+		if (controller.updateStudent(editedStudentClone)) {
+			toggleEditMode(ActionMode::None);
+			refreshItemsTable();
+		}
+		else {
+			showError(controller.getLastError());
+		}
+	}
+	else {
+		showError("Unable to find the selected student.");
 	}
 }
 
