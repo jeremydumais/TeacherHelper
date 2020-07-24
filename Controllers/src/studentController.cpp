@@ -67,12 +67,15 @@ bool StudentController::updateStudent(const Student &student)
 
 bool StudentController::deleteStudent(size_t id)
 {
-    bool retVal = storage->deleteItem(id);
-    if (retVal) {
+    QueryResult retVal = storage->deleteItem(id);
+    if (retVal == QueryResult::OK) {
         loadStudents();
+    }
+    else if (retVal == QueryResult::CONSTRAINTERROR) {
+        lastError = "Unable to delete the student because it is used by another item. (Probably a class)";
     }
     else {
         lastError = storage->getLastError();
     }
-    return retVal;
+    return retVal == QueryResult::OK;
 }

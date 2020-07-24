@@ -16,7 +16,7 @@ public:
     const std::string &getLastError() const override { return lastError; }
     bool insertItem(const TestType &testType) override { return true; }
     bool updateItem(const TestType &testType) override { return true; }
-    bool deleteItem(size_t id) override { return true; }
+    QueryResult deleteItem(size_t id) override { return QueryResult::OK; }
 private:
 	std::list<TestType> testTypes;
     std::string lastError;

@@ -42,12 +42,16 @@ void StudentSelectionForm::refreshItemsTable(const string &filter)
 	size_t row {0};
     for (const auto &itemStudent : controller.getStudents()) {
 		if (controller.isStudentInFilter(filter, itemStudent)) {
+			string comments = boost::trim_copy(itemStudent.getComments());
+			if (!boost::empty(comments)) {
+				comments = " (" + comments + ")";
+			}
 			ui.tableWidgetStudents->insertRow(row);
 			ui.tableWidgetStudents->setItem(row, 0, new QTableWidgetItem(to_string(itemStudent.getId()).c_str()));
-			ui.tableWidgetStudents->setItem(row, 1, new QTableWidgetItem(fmt::format("{0}, {1} ({2})", 
+			ui.tableWidgetStudents->setItem(row, 1, new QTableWidgetItem(fmt::format("{0}, {1}{2}", 
 																		itemStudent.getLastName(), 
 																		itemStudent.getFirstName(), 
-																		itemStudent.getComments()).c_str()));
+																		comments).c_str()));
 			row++;
 		}
     }

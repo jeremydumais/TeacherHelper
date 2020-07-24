@@ -101,12 +101,15 @@ bool SchoolController::updateSchool(const School &school)
 
 bool SchoolController::deleteSchool(size_t id)
 {
-    bool retVal = storage->deleteItem(id);
-    if (retVal) {
+    QueryResult retVal = storage->deleteItem(id);
+    if (retVal == QueryResult::OK) {
         loadSchools();
+    }
+    else if (retVal == QueryResult::CONSTRAINTERROR) {
+        lastError = "Unable to delete the school because it is used by another item. (Probably a class)";
     }
     else {
         lastError = storage->getLastError();
     }
-    return retVal;
+    return retVal == QueryResult::OK;
 }

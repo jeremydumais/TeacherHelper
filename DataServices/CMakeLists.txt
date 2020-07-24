@@ -9,6 +9,7 @@ add_library(${PROJECT_NAME} SHARED src/databaseConnection.cpp
                                    src/sqliteInsertOperation.cpp
                                    src/sqliteUpdateOperation.cpp
                                    src/sqliteSelectOperation.cpp
+                                   src/sqliteDeleteOperation.cpp
                                    src/sqliteDDLOperation.cpp
                                    src/studentStorage.cpp
                                    src/schoolStorage.cpp

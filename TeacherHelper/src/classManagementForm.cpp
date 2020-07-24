@@ -2,6 +2,7 @@
 #include "studentSelectionForm.h"
 #include <qt5/QtGui/QKeyEvent>
 #include <qt5/QtWidgets/qmessagebox.h>
+#include <boost/algorithm/string.hpp>
 #include <fmt/format.h>
 #include <iostream>
 
@@ -156,12 +157,16 @@ void ClassManagementForm::pushButtonModify_Click()
 			//Add all members
 			size_t row {0};
 			for(const auto &member : editedClass->getMembers()) {
+				string comments = boost::trim_copy(member.getComments());
+				if (!boost::empty(comments)) {
+					comments = " (" + comments + ")";
+				}
 				ui.tableWidgetMembers->insertRow(row);
 				ui.tableWidgetMembers->setItem(row, 0, new QTableWidgetItem(to_string(member.getId()).c_str()));
-				ui.tableWidgetMembers->setItem(row, 1, new QTableWidgetItem(fmt::format("{0}, {1} ({2})", 
+				ui.tableWidgetMembers->setItem(row, 1, new QTableWidgetItem(fmt::format("{0}, {1}{2}", 
 																						member.getLastName(), 
 																						member.getFirstName(), 
-																						member.getComments()).c_str()));
+																						comments).c_str()));
 				}
 			toggleEditMode(ActionMode::Modify);
 		}

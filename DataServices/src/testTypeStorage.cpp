@@ -2,6 +2,7 @@
 #include "sqliteInsertOperation.h"
 #include "sqliteSelectOperation.h"
 #include "sqliteUpdateOperation.h"
+#include "sqliteDeleteOperation.h"
 #include <boost/algorithm/string.hpp>
 #include <iostream>
 #include <sqlite3.h>
@@ -21,7 +22,7 @@ list<TestType> TestTypeStorage::getAllItems()
     int i =1;
     list<TestType> retVal;
     SQLiteSelectOperation operation(*connection, 
-        "SELECT id, name FROM testType WHERE deleted=0 ORDER BY name;");
+        "SELECT id, name FROM testType ORDER BY name;");
     if (operation.execute()) {
         sqlite3_stmt *stmt = operation.getStatement();
         int result = sqlite3_step(stmt);
@@ -69,14 +70,13 @@ bool TestTypeStorage::updateItem(const TestType &testType)
     return true;
 }
 
-bool TestTypeStorage::deleteItem(size_t id)
+QueryResult TestTypeStorage::deleteItem(size_t id)
 {
-    SQLiteUpdateOperation operation(*connection, 
-        "UPDATE testType SET deleted=1 WHERE id = ?", 
+    SQLiteDeleteOperation operation(*connection, 
+        "DELETE FROM testType WHERE id = ?", 
         vector<string> { to_string(id) });
     if (!operation.execute()) {
         lastError = operation.getLastError();
-        return false;
     }
-    return true;
+    return operation.getExtendedResultInfo();
 }

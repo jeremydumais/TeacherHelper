@@ -16,7 +16,7 @@ public:
     const std::string &getLastError() const override { return lastError; }
     bool insertItem(const Student &student) override { return true; }
     bool updateItem(const Student &student) override { return true; }
-    bool deleteItem(size_t id) override { return true; }
+    QueryResult deleteItem(size_t id) override { return QueryResult::OK; }
 private:
 	std::list<Student> students;
     std::string lastError;

@@ -2,6 +2,7 @@
 #include "sqliteInsertOperation.h"
 #include "sqliteSelectOperation.h"
 #include "sqliteUpdateOperation.h"
+#include "sqliteDeleteOperation.h"
 #include <boost/algorithm/string.hpp>
 #include <iostream>
 #include <sqlite3.h>
@@ -21,7 +22,7 @@ list<Subject> SubjectStorage::getAllItems()
     int i =1;
     list<Subject> retVal;
     SQLiteSelectOperation operation(*connection, 
-        "SELECT id, name, isdefault FROM subject WHERE deleted=0 ORDER BY name;");
+        "SELECT id, name, isdefault FROM subject ORDER BY name;");
     if (operation.execute()) {
         sqlite3_stmt *stmt = operation.getStatement();
         int result = sqlite3_step(stmt);
@@ -85,16 +86,15 @@ bool SubjectStorage::updateItem(const Subject &subject)
     return true;
 }
 
-bool SubjectStorage::deleteItem(size_t id)
+QueryResult SubjectStorage::deleteItem(size_t id)
 {
-    SQLiteUpdateOperation operation(*connection, 
-        "UPDATE subject SET deleted=1 WHERE id = ?", 
+    SQLiteDeleteOperation operation(*connection, 
+        "DELETE FROM subject WHERE id = ?", 
         vector<string> { to_string(id) });
     if (!operation.execute()) {
         lastError = operation.getLastError();
-        return false;
     }
-    return true;
+    return operation.getExtendedResultInfo();
 }
 
 bool SubjectStorage::updateAllRowsToRemoveDefault(size_t currentSubjectId)

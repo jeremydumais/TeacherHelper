@@ -15,7 +15,7 @@ public:
     const std::string &getLastError() const override;
     bool insertItem(const Class &p_class) override;
     bool updateItem(const Class &p_class) override;
-    bool deleteItem(size_t id) override;
+    QueryResult deleteItem(size_t id) override;
 private:
     const DatabaseConnection * const connection;
     std::string lastError;

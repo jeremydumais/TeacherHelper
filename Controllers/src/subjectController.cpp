@@ -101,12 +101,15 @@ bool SubjectController::updateSubject(const Subject &subject)
 
 bool SubjectController::deleteSubject(size_t id)
 {
-    bool retVal = storage->deleteItem(id);
-    if (retVal) {
+    QueryResult retVal = storage->deleteItem(id);
+    if (retVal == QueryResult::OK) {
         loadSubjects();
+    }
+    else if (retVal == QueryResult::CONSTRAINTERROR) {
+        lastError = "Unable to delete the subject because it is used by another item. (Probably a test)";
     }
     else {
         lastError = storage->getLastError();
     }
-    return retVal;
+    return retVal == QueryResult::OK;
 }

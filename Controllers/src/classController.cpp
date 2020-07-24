@@ -106,12 +106,15 @@ bool ClassController::updateClass(const Class &p_class)
 
 bool ClassController::deleteClass(size_t id)
 {
-    bool retVal = storage->deleteItem(id);
-    if (retVal) {
+    QueryResult retVal = storage->deleteItem(id);
+    if (retVal == QueryResult::OK) {
         loadClasses();
+    }
+    else if (retVal == QueryResult::CONSTRAINTERROR) {
+        lastError = "Unable to delete the class because it is used by another item.";
     }
     else {
         lastError = storage->getLastError();
     }
-    return retVal;
+    return retVal == QueryResult::OK;
 }

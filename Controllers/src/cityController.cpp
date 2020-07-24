@@ -101,12 +101,15 @@ bool CityController::updateCity(const City &city)
 
 bool CityController::deleteCity(size_t id)
 {
-    bool retVal = storage->deleteItem(id);
-    if (retVal) {
+    QueryResult retVal = storage->deleteItem(id);
+    if (retVal == QueryResult::OK) {
         loadCities();
+    }
+    else if (retVal == QueryResult::CONSTRAINTERROR) {
+        lastError = "Unable to delete the city because it is used by another item. (Probably a school)";
     }
     else {
         lastError = storage->getLastError();
     }
-    return retVal;
+    return retVal == QueryResult::OK;
 }

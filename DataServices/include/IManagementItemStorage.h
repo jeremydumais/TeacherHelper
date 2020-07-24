@@ -1,5 +1,6 @@
 #pragma once
 
+#include "queryResult.h"
 #include <list>
 
 template <class T>
@@ -11,5 +12,5 @@ public:
     virtual const std::string &getLastError() const = 0;
     virtual bool insertItem(const T &city) = 0;
     virtual bool updateItem(const T &city) = 0;
-    virtual bool deleteItem(size_t id) = 0;
+    virtual QueryResult deleteItem(size_t id) = 0;
 };

@@ -2,6 +2,7 @@
 #include "sqliteInsertOperation.h"
 #include "sqliteSelectOperation.h"
 #include "sqliteUpdateOperation.h"
+#include "sqliteDeleteOperation.h"
 #include <algorithm>
 #include <iostream>
 #include <sqlite3.h>
@@ -24,7 +25,7 @@ list<Class> ClassStorage::getAllItems()
         "FROM class "
         "INNER JOIN school ON school.id = class.school_id " 
         "INNER JOIN city ON city.id = school.city_id " 
-        "WHERE class.deleted = 0 AND school.deleted=0 AND city.deleted = 0 ORDER BY class.name, school.name");
+        "ORDER BY class.name, school.name");
     if (operation.execute()) {
         sqlite3_stmt *stmt = operation.getStatement();
         int result = sqlite3_step(stmt);
@@ -133,16 +134,32 @@ bool ClassStorage::updateItem(const Class &p_class)
     return insertMembers(p_class.getId(), studentIdsToAdd);
 }
 
-bool ClassStorage::deleteItem(size_t id)
+QueryResult ClassStorage::deleteItem(size_t id)
 {
-    SQLiteUpdateOperation operation(*connection, 
-        "UPDATE class SET deleted=1 WHERE id = ?", 
+    //Load old members
+    list<Student> oldMembers;
+    try {
+        oldMembers = loadClassMembers(id);
+    }
+    catch(runtime_error &err) {
+        lastError = err.what();
+        return QueryResult::ERROR;
+    }
+    //Delete all the members of the class
+    vector<size_t> memberIdsToRemove;
+    transform(oldMembers.begin(), oldMembers.end(), std::back_inserter(memberIdsToRemove),
+               [](Student const& x) { return x.getId(); });
+    if (!removeMembers(id, memberIdsToRemove)) {
+        return QueryResult::ERROR;
+    }
+    //Delete the class
+    SQLiteDeleteOperation operation(*connection, 
+        "DELETE FROM class WHERE id = ?", 
         vector<string> { to_string(id) });
     if (!operation.execute()) {
         lastError = operation.getLastError();
-        return false;
     }
-    return true;
+    return operation.getExtendedResultInfo();
 }
 
 size_t ClassStorage::retreiveAssignedClassId()

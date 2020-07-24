@@ -1,6 +1,7 @@
 #include "sqliteInsertOperation.h"
 #include "sqliteSelectOperation.h"
 #include "sqliteUpdateOperation.h"
+#include "sqliteDeleteOperation.h"
 #include "studentStorage.h"
 #include <iostream>
 #include <sqlite3.h>
@@ -19,7 +20,7 @@ list<Student> StudentStorage::getAllItems()
 {
     list<Student> retVal;
     SQLiteSelectOperation operation(*connection, 
-        "SELECT id, firstname, lastname, comments FROM student WHERE deleted=0 ORDER BY lastname, firstname;");
+        "SELECT id, firstname, lastname, comments FROM student ORDER BY lastname, firstname;");
     if (operation.execute()) {
         sqlite3_stmt *stmt = operation.getStatement();
         int result = sqlite3_step(stmt);
@@ -71,14 +72,13 @@ bool StudentStorage::updateItem(const Student &student)
     return true;
 }
 
-bool StudentStorage::deleteItem(size_t id)
+QueryResult StudentStorage::deleteItem(size_t id)
 {
-    SQLiteUpdateOperation operation(*connection, 
-        "UPDATE student SET deleted=1 WHERE id = ?", 
+    SQLiteDeleteOperation operation(*connection, 
+        "DELETE FROM student WHERE id = ?", 
         vector<string> { to_string(id) });
     if (!operation.execute()) {
         lastError = operation.getLastError();
-        return false;
     }
-    return true;
+    return operation.getExtendedResultInfo();
 }
