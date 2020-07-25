@@ -268,10 +268,10 @@ std::list<Student> ClassStorage::loadClassMembers(size_t classId)
         sqlite3_stmt *stmt = operationLoadMembers.getStatement();
         int result = sqlite3_step(stmt);
         while (result == SQLITE_ROW) {
-            retVal.emplace_back(Student(sqlite3_column_int(stmt, 0),
+            retVal.emplace_back(sqlite3_column_int(stmt, 0),
                                         reinterpret_cast<const char *>((sqlite3_column_text(stmt, 1))),
                                         reinterpret_cast<const char *>((sqlite3_column_text(stmt, 2))),
-                                        reinterpret_cast<const char *>((sqlite3_column_text(stmt, 3)))));
+                                        reinterpret_cast<const char *>((sqlite3_column_text(stmt, 3))));
             result = sqlite3_step(stmt);
         }
         sqlite3_finalize(stmt);

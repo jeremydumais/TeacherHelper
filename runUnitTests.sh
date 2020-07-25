@@ -1,2 +1,2 @@
 cd build
-./Models_unittests && ./DataServices_unittests && ./Controllers_unittests
+./bin/Models_unittests && ./bin/DataServices_unittests && ./bin/Controllers_unittests

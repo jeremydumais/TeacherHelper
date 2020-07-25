@@ -10,7 +10,7 @@
 #include <boost/filesystem.hpp>
 #include <boost/property_tree/ptree.hpp>
 #include <boost/property_tree/json_parser.hpp>
-#include <qfile.h>
+#include <QtCore/qfile.h>
 #include <qt5/QtWidgets/qmessagebox.h>
 
 using namespace std;

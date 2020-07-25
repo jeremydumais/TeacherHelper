@@ -1,6 +1,5 @@
 #include "mainForm.h"
 #include <cstdio>
-#include <qfile.h>
 
 QString styleSheet();
 

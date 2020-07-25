@@ -2,8 +2,7 @@
 set(PROJECT_NAME    "TeacherHelperApp")
 
 #set(CMAKE_BUILD_TYPE Debug)
-include_directories("/usr/include/x86_64-linux-gnu/qt5"
-    ${CMAKE_CURRENT_SOURCE_DIR}/include
+include_directories(${CMAKE_CURRENT_SOURCE_DIR}/include
     ${CMAKE_SOURCE_DIR}/Models/include
     ${CMAKE_SOURCE_DIR}/DataServices/include
     ${CMAKE_SOURCE_DIR}/Controllers/include)
@@ -11,7 +10,6 @@ include_directories("/usr/include/x86_64-linux-gnu/qt5"
 find_package(Qt5 COMPONENTS Widgets REQUIRED)
 
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fpic")
-
 
 #Generate QT Form headers
 set(CMAKE_AUTOUIC ON)
@@ -64,8 +62,8 @@ elseif ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
 endif()
 
 # Copy styles and resource images
-configure_file(${CMAKE_CURRENT_SOURCE_DIR}/res/darkstyle/darkstyle.qss ${CMAKE_BINARY_DIR}/res/darkstyle/darkstyle.qss COPYONLY)
+configure_file(${CMAKE_CURRENT_SOURCE_DIR}/res/darkstyle/darkstyle.qss ${CMAKE_BINARY_DIR}/bin/res/darkstyle/darkstyle.qss COPYONLY)
 add_custom_target(copy-darkstyle-res ALL
     COMMAND ${CMAKE_COMMAND} -E copy_directory
     ${CMAKE_CURRENT_SOURCE_DIR}/res/darkstyle/rc
-    ${CMAKE_BINARY_DIR}/res/darkstyle/rc)
+    ${CMAKE_BINARY_DIR}/bin/res/darkstyle/rc)

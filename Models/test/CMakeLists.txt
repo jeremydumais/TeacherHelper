@@ -13,5 +13,5 @@ add_executable(${PROJECT_UNITTEST_NAME} ${INCLUDE_PATH}
   ${CMAKE_CURRENT_SOURCE_DIR}/testType_unittest.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/subject_unittest.cpp)
 
-target_link_libraries(${PROJECT_UNITTEST_NAME} PRIVATE Models gtest gtest_main pthread)
+target_link_libraries(${PROJECT_UNITTEST_NAME} PRIVATE Models ${CONAN_LIBS})
 add_test(AllTestsInMain ${PROJECT_UNITTEST_NAME})
