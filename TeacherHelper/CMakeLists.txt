@@ -8,12 +8,11 @@ include_directories(${CMAKE_CURRENT_SOURCE_DIR}/include
     ${QT_INCLUDE_PATH})
 
 if ("${CMAKE_QT_PATH}" STREQUAL "")
-  message("No QT path submitted")
+  message("-- No QT path submitted")
   find_package(Qt5 COMPONENTS Widgets REQUIRED)
 else()
   find_package(Qt5 COMPONENTS Widgets REQUIRED PATHS ${CMAKE_QT_PATH}/lib/cmake/Qt5)
 endif()
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fpic")
 
 #Generate QT Form headers
 set(CMAKE_AUTOUIC ON)
