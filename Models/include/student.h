@@ -2,7 +2,17 @@
 
 #include <string>
 
-class Student
+#ifdef _WIN32
+    #ifdef MODELS_EXPORTS  
+        #define STUDENT_API __declspec(dllexport)   
+    #else  
+        #define STUDENT_API __declspec(dllimport)   
+    #endif
+#else
+    #define STUDENT_API
+#endif
+
+class STUDENT_API Student
 {
 public:
     Student(const std::string &firstName, 
@@ -12,7 +22,7 @@ public:
             const std::string &firstName, 
             const std::string &lastName,
             const std::string &comments = "");
-    friend bool operator==(const Student& lhs, const Student &rhs);
+    STUDENT_API friend bool operator==(const Student& lhs, const Student &rhs);
     size_t getId() const;
     const std::string &getFirstName() const;
     const std::string &getLastName() const;

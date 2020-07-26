@@ -7,7 +7,17 @@
 #include <map>
 #include <vector>
 
-class ClassStorage : public IManagementItemStorage<Class>
+#ifdef _WIN32
+    #ifdef DATASERVICES_EXPORTS  
+        #define CLASSSTORAGE_API __declspec(dllexport)   
+    #else  
+        #define CLASSSTORAGE_API __declspec(dllimport)   
+    #endif
+#else
+    #define CLASSSTORAGE_API
+#endif
+
+class CLASSSTORAGE_API ClassStorage : public IManagementItemStorage<Class>
 {
 public:
     explicit ClassStorage(const DatabaseConnection &connection);

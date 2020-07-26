@@ -1,7 +1,7 @@
 #include "studentManagementForm.h"
 #include <fmt/format.h>
-#include <qt5/QtWidgets/qmessagebox.h>
-#include <qt5/QtGui/QKeyEvent>
+#include <QtWidgets/qmessagebox.h>
+#include <QtGui/QKeyEvent>
 
 using namespace std;
 

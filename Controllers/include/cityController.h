@@ -6,7 +6,17 @@
 #include <list>
 #include <memory>
 
-class CityController
+#ifdef _WIN32
+    #ifdef CONTROLLERS_EXPORTS  
+        #define CITYCONTROLLER_API __declspec(dllexport)   
+    #else  
+        #define CITYCONTROLLER_API __declspec(dllimport)   
+    #endif
+#else
+    #define CITYCONTROLLER_API
+#endif
+
+class CITYCONTROLLER_API CityController
 {
 public:
     explicit CityController(const DatabaseConnection &dbConnection,

@@ -14,6 +14,7 @@ public:
 private:
 	Ui::MainForm ui;
 	DatabaseConnection *dbConnection;
+	std::string userConfigFolder;
 	void showErrorMessage(const std::string &message,
 						  const std::string &internalError) const;
 	void setAppStylesheet(const std::string &style);

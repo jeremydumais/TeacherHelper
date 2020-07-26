@@ -1,6 +1,7 @@
 #include "mainForm.h"
 #include "aboutBoxForm.h"
 #include "configurationManager.h"
+#include "specialFolders.h"
 #include "cityManagementForm.h"
 #include "classManagementForm.h"
 #include "schoolManagementForm.h"
@@ -10,8 +11,9 @@
 #include <boost/filesystem.hpp>
 #include <boost/property_tree/ptree.hpp>
 #include <boost/property_tree/json_parser.hpp>
+#include <fmt/format.h>
 #include <QtCore/qfile.h>
-#include <qt5/QtWidgets/qmessagebox.h>
+#include <QtWidgets/qmessagebox.h>
 
 using namespace std;
 using namespace boost::property_tree;
@@ -19,7 +21,7 @@ using namespace boost::property_tree;
 MainForm::MainForm(QWidget *parent)
 	: QMainWindow(parent),
 	  ui(Ui::MainForm()),
-	  dbConnection(new DatabaseConnection("teacherdb")) 
+	  dbConnection(nullptr)
 {
 	ui.setupUi(this);
 	this->showMaximized();
@@ -34,12 +36,22 @@ MainForm::MainForm(QWidget *parent)
     connect(ui.action_LightTheme, SIGNAL(triggered()), this, SLOT(action_LightTheme_Click()));
     connect(ui.action_DarkTheme, SIGNAL(triggered()), this, SLOT(action_DarkTheme_Click()));
 
+	//Check if the user configuration folder exist
+	userConfigFolder = SpecialFolders::getUserConfigDirectory();
+	if (!boost::filesystem::exists(userConfigFolder)) {
+		if (!boost::filesystem::create_directory(userConfigFolder)) {
+			showErrorMessage(fmt::format("Unable to create the folder {0}", userConfigFolder), "");
+			exit(1);
+		}
+	}
+
 	//Check if the configuration file exist
-	ConfigurationManager configManager("config.json");
+	ConfigurationManager configManager(userConfigFolder + "config.json");
 	setAppStylesheet(configManager.getStringValue(ConfigurationManager::THEME_PATH));
 
 	//Check if the database exist. If not, ask for creation.
-	if (!boost::filesystem::exists("teacherdb")) {
+	dbConnection = new DatabaseConnection(userConfigFolder + "teacherdb");
+	if (!boost::filesystem::exists(userConfigFolder + "teacherdb")) {
 		QMessageBox msgBox;
 		msgBox.setText("The database doesn't seem to exist.");
 		msgBox.setInformativeText("Do you want to create it?");
@@ -119,7 +131,7 @@ void MainForm::action_About_Click()
 
 void MainForm::action_LightTheme_Click()
 {
-	ConfigurationManager configManager("config.json");
+	ConfigurationManager configManager(userConfigFolder + "config.json");
 	configManager.setStringValue(ConfigurationManager::THEME_PATH, "");
 	setAppStylesheet(configManager.getStringValue(ConfigurationManager::THEME_PATH));
 	if (!configManager.save()) {
@@ -130,7 +142,7 @@ void MainForm::action_LightTheme_Click()
 
 void MainForm::action_DarkTheme_Click()
 {
-	ConfigurationManager configManager("config.json");
+	ConfigurationManager configManager(userConfigFolder + "config.json");
 	configManager.setStringValue(ConfigurationManager::THEME_PATH, "Dark");
 	setAppStylesheet(configManager.getStringValue(ConfigurationManager::THEME_PATH));
 	if (!configManager.save()) {

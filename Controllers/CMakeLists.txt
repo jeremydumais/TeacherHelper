@@ -14,6 +14,7 @@ add_library(${PROJECT_NAME} SHARED ${CMAKE_CURRENT_SOURCE_DIR}/src/cityControlle
                                    ${CMAKE_CURRENT_SOURCE_DIR}/src/subjectController.cpp
                                    ${CMAKE_CURRENT_SOURCE_DIR}/src/studentSelectionController.cpp)
 
+target_compile_definitions(${PROJECT_NAME} PRIVATE CONTROLLERS_EXPORTS)
 set_target_properties(${PROJECT_NAME} PROPERTIES ENABLE_EXPORTS 1)
 target_link_libraries(${PROJECT_NAME} DataServices ${CONAN_LIBS})
 set_target_properties(
