@@ -7,12 +7,7 @@ include_directories(${CMAKE_CURRENT_SOURCE_DIR}/include
     ${CMAKE_SOURCE_DIR}/Controllers/include
     ${QT_INCLUDE_PATH})
 
-if ("${CMAKE_QT_PATH}" STREQUAL "")
-  message("-- No QT path submitted")
-  find_package(Qt5 COMPONENTS Widgets REQUIRED)
-else()
-  find_package(Qt5 COMPONENTS Widgets REQUIRED PATHS ${CMAKE_QT_PATH}/lib/cmake/Qt5)
-endif()
+find_package(Qt5 COMPONENTS Widgets REQUIRED)
 
 #Generate QT Form headers
 set(CMAKE_AUTOUIC ON)
@@ -20,6 +15,14 @@ set(CMAKE_AUTOMOC ON)
 set(CMAKE_AUTORCC ON)
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
 set(CMAKE_AUTOUIC_SEARCH_PATHS AUTOGEN_BUILD_DIR/include)
+
+set (RESOURCE_FILES ${CMAKE_CURRENT_SOURCE_DIR}/res/darkstyle/darkstyle.qss)
+
+if (WIN32)
+    set(APP_RESOURCE_FILES ${CMAKE_CURRENT_SOURCE_DIR}/res/global.rc)
+elseif (APPLE)
+    set(APP_RESOURCE_FILES ${CMAKE_CURRENT_SOURCE_DIR}/res/TeacherHelperIcon256.icns)
+endif()
 
 set(PROJECT_SOURCE_FILES ${CMAKE_CURRENT_SOURCE_DIR}/src/main.cpp
                          ${CMAKE_CURRENT_SOURCE_DIR}/src/configurationManager.cpp
@@ -37,13 +40,18 @@ set(PROJECT_SOURCE_FILES ${CMAKE_CURRENT_SOURCE_DIR}/src/main.cpp
                          ${CMAKE_CURRENT_SOURCE_DIR}/src/imageAttributionsForm.cpp
                          ${CMAKE_CURRENT_SOURCE_DIR}/res/darkstyle/darkstyle.qrc
                          ${CMAKE_CURRENT_SOURCE_DIR}/res/global.qrc
-                         ${CMAKE_CURRENT_SOURCE_DIR}/res/global.rc)
+                         ${APP_RESOURCE_FILES})
 add_executable(${PROJECT_NAME} ${PROJECT_SOURCE_FILES})
+
 if (WIN32)
   set_property(TARGET ${PROJECT_NAME} PROPERTY WIN32_EXECUTABLE true)
+elseif (APPLE)
+  set_property(TARGET ${PROJECT_NAME} PROPERTY MACOSX_BUNDLE true)
+  set_property(TARGET ${PROJECT_NAME} PROPERTY MACOSX_BUNDLE_ICON_FILE TeacherHelperIcon256.icns)
+  set_source_files_properties(${CMAKE_CURRENT_SOURCE_DIR}/res/TeacherHelperIcon256.icns PROPERTIES MACOSX_PACKAGE_LOCATION Resources)
 endif()
-target_link_libraries(${PROJECT_NAME} Models DataServices Controllers Qt5::Widgets sqlite3)
 
+target_link_libraries(${PROJECT_NAME} Models DataServices Controllers Qt5::Widgets sqlite3)
 
 if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU") #gcc
   # https://gcc.gnu.org/onlinedocs/gcc/Warning-Options.html
@@ -76,14 +84,13 @@ elseif ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "MSVC")
       INTERFACE _SCL_SECURE_NO_WARNINGS) # disable security-paranoia warning
 endif()
 
-# Copy styles and resource images
-configure_file(${CMAKE_CURRENT_SOURCE_DIR}/res/darkstyle/darkstyle.qss ${CMAKE_BINARY_DIR}/bin/res/darkstyle/darkstyle.qss COPYONLY)
-add_custom_target(copy-darkstyle-res ALL
-    COMMAND ${CMAKE_COMMAND} -E copy_directory
-    ${CMAKE_CURRENT_SOURCE_DIR}/res/darkstyle/rc
-    ${CMAKE_BINARY_DIR}/bin/res/darkstyle/rc)
-
 if (WIN32)
+    # Copy styles and resource images
+    configure_file(${CMAKE_CURRENT_SOURCE_DIR}/res/darkstyle/darkstyle.qss ${CMAKE_BINARY_DIR}/bin/res/darkstyle/darkstyle.qss COPYONLY)
+    add_custom_target(copy-darkstyle-res ALL
+        COMMAND ${CMAKE_COMMAND} -E copy_directory
+        ${CMAKE_CURRENT_SOURCE_DIR}/res/darkstyle/rc
+        ${CMAKE_BINARY_DIR}/bin/res/darkstyle/rc)
     # On Windows copy QT required dll to the binary dir
     if (LOWERCASE_CMAKE_BUILD_TYPE MATCHES "^(debug)$" OR LOWERCASE_CMAKE_BUILD_TYPE STREQUAL "")
         configure_file(${CMAKE_QT_PATH}/bin/Qt5Cored.dll ${CMAKE_BINARY_DIR}/bin/Qt5Cored.dll COPYONLY)
@@ -99,3 +106,6 @@ if (WIN32)
         ${CMAKE_QT_PATH}/plugins
         ${CMAKE_BINARY_DIR}/bin/plugins)
 endif()
+
+install(TARGETS ${PROJECT_NAME} DESTINATION bin)
+install(FILES ${RESOURCE_FILES} DESTINATION share/${PROJECT_NAME}/res)

@@ -175,7 +175,12 @@ void MainForm::setAppStylesheet(const std::string &style)
 	ui.action_LightTheme->setChecked(false);
 	ui.action_DarkTheme->setChecked(false);
 	if (style == "Dark") {
-		QFile file("res/darkstyle/darkstyle.qss");
+		#ifdef _WIN32
+			string stylePath = "";
+		#else
+			string stylePath = "/usr/local/share/TeacherHelperApp/res/";
+		#endif
+		QFile file(fmt::format("{0}darkstyle.qss", stylePath).c_str());
 		file.open(QFile::ReadOnly);
 		const QString styleSheet = QLatin1String(file.readAll());
 		this->setStyleSheet(styleSheet);

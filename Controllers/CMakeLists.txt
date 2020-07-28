@@ -23,4 +23,8 @@ set_target_properties(
   COMPILE_FLAGS "${WARNING_FLAGS}"
 )
 
-add_subdirectory("test")
+if (NOT DEFINED BUILD_TESTING OR BUILD_TESTING)
+  add_subdirectory("test")
+endif()
+
+install(TARGETS ${PROJECT_NAME} DESTINATION lib)
