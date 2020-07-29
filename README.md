@@ -27,8 +27,8 @@ _The development of the Test form and reports are coming..._
 
 - [Linux](https://github.com/jeremydumais/TeacherHelper/wiki/How-to-build-TeacherHelper-from-source-in-Linux) 
 - Windows
-- macOS
-
+- [macOS](https://github.com/jeremydumais/TeacherHelper/wiki/How-to-build-TeacherHelper-from-source-in-macOS)
+ 
 ### Some screenshots
 
 City management form
