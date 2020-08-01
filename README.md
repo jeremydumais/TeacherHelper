@@ -26,7 +26,7 @@ _The development of the Test form and reports are coming..._
 ### How to build source
 
 - [Linux](https://github.com/jeremydumais/TeacherHelper/wiki/How-to-build-TeacherHelper-from-source-in-Linux) 
-- Windows
+- [Windows](https://github.com/jeremydumais/TeacherHelper/wiki/How-to-build-TeacherHelper-from-source-in-Windows)
 - [macOS](https://github.com/jeremydumais/TeacherHelper/wiki/How-to-build-TeacherHelper-from-source-in-macOS)
  
 ### Some screenshots
