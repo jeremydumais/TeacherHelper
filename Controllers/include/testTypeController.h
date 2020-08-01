@@ -6,7 +6,17 @@
 #include <list>
 #include <memory>
 
-class TestTypeController
+#ifdef _WIN32
+    #ifdef CONTROLLERS_EXPORTS  
+        #define TESTTYPECONTROLLER_API __declspec(dllexport)   
+    #else  
+        #define TESTTYPECONTROLLER_API __declspec(dllimport)   
+    #endif
+#else
+    #define TESTTYPECONTROLLER_API
+#endif
+
+class TESTTYPECONTROLLER_API TestTypeController
 {
 public:
     explicit TestTypeController(const DatabaseConnection &dbConnection,

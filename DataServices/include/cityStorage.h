@@ -6,7 +6,17 @@
 #include "sqliteDeleteOperation.h"
 #include <list>
 
-class CityStorage : public IManagementItemStorage<City>
+#ifdef _WIN32
+    #ifdef DATASERVICES_EXPORTS  
+        #define CITYSTORAGE_API __declspec(dllexport)   
+    #else  
+        #define CITYSTORAGE_API __declspec(dllimport)   
+    #endif
+#else
+    #define CITYSTORAGE_API
+#endif
+
+class CITYSTORAGE_API CityStorage : public IManagementItemStorage<City>
 {
 public:
     explicit CityStorage(const DatabaseConnection &connection);

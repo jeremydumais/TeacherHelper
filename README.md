@@ -1,9 +1,13 @@
+<img src="https://github.com/jeremydumais/TeacherHelper/raw/medias/TeacherHelper%20Icon256.png" alt="drawing" width="96"/> 
+
 # TeacherHelper
 ## A software that help teachers to manage their student's grades.
 
+Current version: 0.0.1
+
 **Still in development...**
 
-The software is developped to be cross-platform. Currently it has only been tested on Linux (Ubuntu).
+The software is developped to be cross-platform. Currently it has been tested on Ubuntu (Linux), Windows 10 and macOS Catalina.
 
 All the Management forms are created :
 * Cities
@@ -19,6 +23,12 @@ You can also choose between two color themes :
 
 _The development of the Test form and reports are coming..._
 
+### How to build source
+
+- [Linux](https://github.com/jeremydumais/TeacherHelper/wiki/How-to-build-TeacherHelper-from-source-in-Linux) 
+- [Windows](https://github.com/jeremydumais/TeacherHelper/wiki/How-to-build-TeacherHelper-from-source-in-Windows)
+- [macOS](https://github.com/jeremydumais/TeacherHelper/wiki/How-to-build-TeacherHelper-from-source-in-macOS)
+ 
 ### Some screenshots
 
 City management form

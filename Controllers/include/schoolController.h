@@ -6,7 +6,17 @@
 #include <list>
 #include <memory>
 
-class SchoolController
+#ifdef _WIN32
+    #ifdef CONTROLLERS_EXPORTS  
+        #define SCHOOLCONTROLLER_API __declspec(dllexport)   
+    #else  
+        #define SCHOOLCONTROLLER_API __declspec(dllimport)   
+    #endif
+#else
+    #define SCHOOLCONTROLLER_API
+#endif
+
+class SCHOOLCONTROLLER_API SchoolController
 {
 public:
     explicit SchoolController(const DatabaseConnection &dbConnection,

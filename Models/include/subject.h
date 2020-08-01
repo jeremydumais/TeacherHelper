@@ -2,7 +2,17 @@
 
 #include <string>
 
-class Subject
+#ifdef _WIN32
+    #ifdef MODELS_EXPORTS  
+        #define SUBJECT_API __declspec(dllexport)   
+    #else  
+        #define SUBJECT_API __declspec(dllimport)   
+    #endif
+#else
+    #define SUBJECT_API
+#endif
+
+class SUBJECT_API Subject
 {
 public:
     explicit Subject(const std::string &name,

@@ -6,7 +6,17 @@
 #include <list>
 #include <memory>
 
-class SubjectController
+#ifdef _WIN32
+    #ifdef CONTROLLERS_EXPORTS  
+        #define SUBJECTCONTROLLER_API __declspec(dllexport)   
+    #else  
+        #define SUBJECTCONTROLLER_API __declspec(dllimport)   
+    #endif
+#else
+    #define SUBJECTCONTROLLER_API
+#endif
+
+class SUBJECTCONTROLLER_API SubjectController
 {
 public:
     explicit SubjectController(const DatabaseConnection &dbConnection,

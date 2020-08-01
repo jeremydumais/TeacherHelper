@@ -2,7 +2,17 @@
 
 #include <string>
 
-class TestType
+#ifdef _WIN32
+    #ifdef MODELS_EXPORTS  
+        #define TESTTYPE_API __declspec(dllexport)   
+    #else  
+        #define TESTTYPE_API __declspec(dllimport)   
+    #endif
+#else
+    #define TESTTYPE_API
+#endif
+
+class TESTTYPE_API TestType
 {
 public:
     explicit TestType(const std::string &name);

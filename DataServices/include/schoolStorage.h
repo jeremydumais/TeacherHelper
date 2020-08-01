@@ -5,7 +5,17 @@
 #include "school.h"
 #include <list>
 
-class SchoolStorage : public IManagementItemStorage<School>
+#ifdef _WIN32
+    #ifdef DATASERVICES_EXPORTS  
+        #define SCHOOLSTORAGE_API __declspec(dllexport)   
+    #else  
+        #define SCHOOLSTORAGE_API __declspec(dllimport)   
+    #endif
+#else
+    #define SCHOOLSTORAGE_API
+#endif
+
+class SCHOOLSTORAGE_API SchoolStorage : public IManagementItemStorage<School>
 {
 public:
     explicit SchoolStorage(const DatabaseConnection &connection);

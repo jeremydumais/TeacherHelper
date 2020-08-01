@@ -3,7 +3,17 @@
 #include <string>
 #include <sqlite3.h>
 
-class DatabaseConnection
+#ifdef _WIN32
+    #ifdef DATASERVICES_EXPORTS  
+        #define DATABASECONNECTION_API __declspec(dllexport)   
+    #else  
+        #define DATABASECONNECTION_API __declspec(dllimport)   
+    #endif
+#else
+    #define DATABASECONNECTION_API
+#endif
+
+class DATABASECONNECTION_API DatabaseConnection
 {
 public:
     explicit DatabaseConnection(const std::string &dbName);

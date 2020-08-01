@@ -5,7 +5,17 @@
 #include "IManagementItemStorage.h"
 #include <list>
 
-class SubjectStorage : public IManagementItemStorage<Subject>
+#ifdef _WIN32
+    #ifdef DATASERVICES_EXPORTS  
+        #define SUBJECTSTORAGE_API __declspec(dllexport)   
+    #else  
+        #define SUBJECTSTORAGE_API __declspec(dllimport)   
+    #endif
+#else
+    #define SUBJECTSTORAGE_API
+#endif
+
+class SUBJECTSTORAGE_API SubjectStorage : public IManagementItemStorage<Subject>
 {
 public:
     explicit SubjectStorage(const DatabaseConnection &connection);

@@ -1,6 +1,6 @@
 #include "cityManagementForm.h"
-#include <qt5/QtGui/QKeyEvent>
-#include <qt5/QtWidgets/qmessagebox.h>
+#include <QtGui/QKeyEvent>
+#include <QtWidgets/qmessagebox.h>
 #include <fmt/format.h>
 #include <boost/algorithm/string.hpp>
 

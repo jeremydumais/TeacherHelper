@@ -2,7 +2,17 @@
 
 #include <string>
 
-class City
+#ifdef _WIN32
+    #ifdef MODELS_EXPORTS  
+        #define CITY_API __declspec(dllexport)   
+    #else  
+        #define CITY_API __declspec(dllimport)   
+    #endif
+#else
+    #define CITY_API
+#endif
+
+class CITY_API City
 {
 public:
     explicit City(const std::string &name);

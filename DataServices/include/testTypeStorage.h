@@ -5,7 +5,17 @@
 #include "IManagementItemStorage.h"
 #include <list>
 
-class TestTypeStorage : public IManagementItemStorage<TestType>
+#ifdef _WIN32
+    #ifdef DATASERVICES_EXPORTS  
+        #define TESTTYPESTORAGE_API __declspec(dllexport)   
+    #else  
+        #define TESTTYPESTORAGE_API __declspec(dllimport)   
+    #endif
+#else
+    #define TESTTYPESTORAGE_API
+#endif
+
+class TESTTYPESTORAGE_API TestTypeStorage : public IManagementItemStorage<TestType>
 {
 public:
     explicit TestTypeStorage(const DatabaseConnection &connection);

@@ -3,7 +3,17 @@
 #include <string>
 #include "city.h"
 
-class School
+#ifdef _WIN32
+    #ifdef MODELS_EXPORTS  
+        #define SCHOOL_API __declspec(dllexport)   
+    #else  
+        #define SCHOOL_API __declspec(dllimport)   
+    #endif
+#else
+    #define SCHOOL_API
+#endif
+
+class SCHOOL_API School
 {
 public:
     School(const std::string &name, 

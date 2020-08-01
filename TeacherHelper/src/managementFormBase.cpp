@@ -1,5 +1,5 @@
 #include "managementFormBase.h"
-#include <qt5/QtWidgets/qmessagebox.h>
+#include <QtWidgets/qmessagebox.h>
 
 using namespace std;
 

@@ -5,7 +5,17 @@
 #include <list>
 #include <string>
 
-class Class
+#ifdef _WIN32
+    #ifdef MODELS_EXPORTS  
+        #define CLASS_API __declspec(dllexport)   
+    #else  
+        #define CLASS_API __declspec(dllimport)   
+    #endif
+#else
+        #define CLASS_API
+#endif
+
+class CLASS_API Class
 {
 public:
     Class(const std::string &name, 
