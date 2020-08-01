@@ -14,6 +14,9 @@
 #include <fmt/format.h>
 #include <QtCore/qfile.h>
 #include <QtWidgets/qmessagebox.h>
+#ifdef _WIN32
+	#include <windows.h>
+#endif
 
 using namespace std;
 using namespace boost::property_tree;
@@ -176,7 +179,16 @@ void MainForm::setAppStylesheet(const std::string &style)
 	ui.action_DarkTheme->setChecked(false);
 	if (style == "Dark") {
 		#ifdef _WIN32
-			string stylePath = "";
+			char exePath[MAX_PATH]; 
+			// When NULL is passed to GetModuleHandle, the handle of the exe itself is returned
+			HMODULE hModule = GetModuleHandle(nullptr);
+			if (hModule != nullptr)
+			{
+				// Use GetModuleFileName() with module handle to get the path
+				GetModuleFileName(hModule, exePath, (sizeof(exePath))); 
+			}
+			boost::filesystem::path path(exePath);
+			string stylePath { fmt::format("{0}\\res\\", path.parent_path().string())};
 		#else
 			string stylePath = "/usr/local/share/TeacherHelperApp/res/";
 		#endif

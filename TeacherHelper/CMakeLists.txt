@@ -86,26 +86,22 @@ endif()
 
 if (WIN32)
     # Copy styles and resource images
-    configure_file(${CMAKE_CURRENT_SOURCE_DIR}/res/darkstyle/darkstyle.qss ${CMAKE_BINARY_DIR}/bin/res/darkstyle/darkstyle.qss COPYONLY)
-    add_custom_target(copy-darkstyle-res ALL
-        COMMAND ${CMAKE_COMMAND} -E copy_directory
-        ${CMAKE_CURRENT_SOURCE_DIR}/res/darkstyle/rc
-        ${CMAKE_BINARY_DIR}/bin/res/darkstyle/rc)
-    # On Windows copy QT required dll to the binary dir
+    configure_file(${CMAKE_CURRENT_SOURCE_DIR}/res/darkstyle/darkstyle.qss ${CMAKE_BINARY_DIR}/bin/res/darkstyle.qss COPYONLY)
+    set(Qt5_BIN_DIR ${Qt5_DIR}/../../../bin)
     if (LOWERCASE_CMAKE_BUILD_TYPE MATCHES "^(debug)$" OR LOWERCASE_CMAKE_BUILD_TYPE STREQUAL "")
-        configure_file(${CMAKE_QT_PATH}/bin/Qt5Cored.dll ${CMAKE_BINARY_DIR}/bin/Qt5Cored.dll COPYONLY)
-        configure_file(${CMAKE_QT_PATH}/bin/Qt5Guid.dll ${CMAKE_BINARY_DIR}/bin/Qt5Guid.dll COPYONLY)
-        configure_file(${CMAKE_QT_PATH}/bin/Qt5Widgetsd.dll ${CMAKE_BINARY_DIR}/bin/Qt5Widgetsd.dll COPYONLY)
+        configure_file(${Qt5_BIN_DIR}/Qt5Cored.dll ${CMAKE_BINARY_DIR}/bin/Qt5Cored.dll COPYONLY)
+        configure_file(${Qt5_BIN_DIR}/Qt5Guid.dll ${CMAKE_BINARY_DIR}/bin/Qt5Guid.dll COPYONLY)
+        configure_file(${Qt5_BIN_DIR}/Qt5Widgetsd.dll ${CMAKE_BINARY_DIR}/bin/Qt5Widgetsd.dll COPYONLY)
     elseif(LOWERCASE_CMAKE_BUILD_TYPE MATCHES "^(release)$")
-        configure_file(${CMAKE_QT_PATH}/bin/Qt5Core.dll ${CMAKE_BINARY_DIR}/bin/Qt5Core.dll COPYONLY)
-        configure_file(${CMAKE_QT_PATH}/bin/Qt5Gui.dll ${CMAKE_BINARY_DIR}/bin/Qt5Gui.dll COPYONLY)
-        configure_file(${CMAKE_QT_PATH}/bin/Qt5Widgets.dll ${CMAKE_BINARY_DIR}/bin/Qt5Widgets.dll COPYONLY)
+        configure_file(${Qt5_BIN_DIR}/Qt5Core.dll ${CMAKE_BINARY_DIR}/bin/Qt5Core.dll COPYONLY)
+        configure_file(${Qt5_BIN_DIR}/Qt5Gui.dll ${CMAKE_BINARY_DIR}/bin/Qt5Gui.dll COPYONLY)
+        configure_file(${Qt5_BIN_DIR}/Qt5Widgets.dll ${CMAKE_BINARY_DIR}/bin/Qt5Widgets.dll COPYONLY)
     endif()
     add_custom_target(copy-qt-platform-package ALL
         COMMAND ${CMAKE_COMMAND} -E copy_directory
-        ${CMAKE_QT_PATH}/plugins
-        ${CMAKE_BINARY_DIR}/bin/plugins)
+        ${Qt5_BIN_DIR}/../plugins/platforms
+        ${CMAKE_BINARY_DIR}/bin/plugins/platforms)
+else()
+    install(TARGETS ${PROJECT_NAME} DESTINATION bin)
+    install(FILES ${RESOURCE_FILES} DESTINATION share/${PROJECT_NAME}/res)
 endif()
-
-install(TARGETS ${PROJECT_NAME} DESTINATION bin)
-install(FILES ${RESOURCE_FILES} DESTINATION share/${PROJECT_NAME}/res)
