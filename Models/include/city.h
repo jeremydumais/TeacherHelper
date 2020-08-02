@@ -18,7 +18,7 @@ public:
     explicit City(const std::string &name);
     City(size_t id,
             const std::string &name);
-
+    CITY_API friend bool operator==(const City& lhs, const City &rhs);
     size_t getId() const;
     const std::string &getName() const;
     void setName(const std::string &name);

@@ -8,12 +8,14 @@
 #include "studentManagementForm.h"
 #include "testTypeManagementForm.h"
 #include "subjectManagementForm.h"
+#include <algorithm>
 #include <boost/filesystem.hpp>
 #include <boost/property_tree/ptree.hpp>
 #include <boost/property_tree/json_parser.hpp>
 #include <fmt/format.h>
 #include <QtCore/qfile.h>
 #include <QtWidgets/qmessagebox.h>
+#include <qtimer.h>
 #ifdef _WIN32
 	#include <windows.h>
 #endif
@@ -24,7 +26,8 @@ using namespace boost::property_tree;
 MainForm::MainForm(QWidget *parent)
 	: QMainWindow(parent),
 	  ui(Ui::MainForm()),
-	  dbConnection(nullptr)
+	  dbConnection(nullptr),
+	  functionAfterShownCalled(false)
 {
 	ui.setupUi(this);
 	this->showMaximized();
@@ -83,11 +86,31 @@ MainForm::MainForm(QWidget *parent)
 	   showErrorMessage("Can't open database", err.what());
 	   exit(1);
 	}
+
+	loadControllers();
+	refreshTreeViewTestNavigation();
 }
 
 MainForm::~MainForm()
 {
 	delete dbConnection;
+}
+
+void MainForm::functionAfterShown()
+{
+	const int WINDOWWIDTH {this->size().width()};
+	ui.splitter->setSizes({static_cast<int>(WINDOWWIDTH*0.2f), static_cast<int>(WINDOWWIDTH*0.8f)});
+}
+
+bool MainForm::event(QEvent *event)
+{
+    const bool ret_val = QMainWindow::event(event);
+    if(!functionAfterShownCalled && event->type() == QEvent::Paint)
+    {
+        functionAfterShownCalled = true;
+        functionAfterShown();
+    }
+    return ret_val;
 }
 	
 void MainForm::action_StudentsManagement_Click()
@@ -128,6 +151,8 @@ void MainForm::action_SubjectsManagement_Click()
 
 void MainForm::action_About_Click()
 {
+	showErrorMessage(to_string(this->size().width()) ,"");
+
 	AboutBoxForm aboutBoxForm(this);
 	aboutBoxForm.exec();
 }
@@ -202,4 +227,52 @@ void MainForm::setAppStylesheet(const std::string &style)
 		this->setStyleSheet("");
 		ui.action_LightTheme->setChecked(true);
 	}
+}
+
+void MainForm::loadControllers() 
+{
+	schoolController = make_unique<SchoolController>(*dbConnection);
+	if (schoolController) {
+		schoolController->loadSchools();
+	}
+	else {
+		showErrorMessage("Can't create the School controller", "");
+	   	exit(1);
+	}
+
+	classController = make_unique<ClassController>(*dbConnection);
+	if (classController) {
+		classController->loadClasses();
+	}
+	else {
+		showErrorMessage("Can't create the Class controller", "");
+	   	exit(1);
+	}
+}
+
+void MainForm::refreshTreeViewTestNavigation() 
+{
+	QList<QTreeWidgetItem *> items;
+	for (const auto &itemSchool : schoolController->getSchools()) {
+		auto newSchoolItem = new QTreeWidgetItem(static_cast<QTreeWidget *>(nullptr), QStringList(QString("%1").arg(itemSchool.getName().c_str())));
+		auto classes = classController->getClasses();
+		list<Class> classesFiltered;
+		copy_if(classes.begin(), 
+				classes.end(), 
+				back_inserter(classesFiltered), 
+				[&itemSchool] (const Class &itemClass) { 
+					return itemClass.getSchool() == itemSchool;
+				});
+		for (const auto &itemClass : classesFiltered) {
+			auto newClassItem = new QTreeWidgetItem(static_cast<QTreeWidget *>(nullptr), QStringList(QString("%1").arg(itemClass.getName().c_str())));
+			QVariant idVariant;
+			idVariant.setValue<size_t>(itemClass.getId());
+			newClassItem->setData(1, 0, idVariant);
+			newSchoolItem->addChild(newClassItem);
+		}
+		items.append(newSchoolItem);
+
+	}
+	ui.treeWidget->setColumnHidden(1, true);
+	ui.treeWidget->insertTopLevelItems(0, items);
 }

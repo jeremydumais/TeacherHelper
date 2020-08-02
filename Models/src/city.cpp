@@ -22,6 +22,12 @@ City::City(size_t id,
     }    
 }
 
+bool operator==(const City& lhs, const City &rhs)
+{
+    return lhs.id == rhs.id &&
+           lhs.name == rhs.name;
+}
+
 size_t City::getId() const
 {
     return id;

@@ -39,7 +39,9 @@ Student::Student(size_t id,
 
 bool operator==(const Student& lhs, const Student &rhs)
 {
-    return lhs.getId() == rhs.getId();
+    return lhs.id == rhs.id &&
+           lhs.firstName == rhs.firstName &&
+           lhs.lastName == rhs.lastName;
 }
 
 size_t Student::getId() const

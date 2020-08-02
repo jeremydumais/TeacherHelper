@@ -25,6 +25,13 @@ School::School(size_t id,
     }    
 }
 
+bool operator==(const School& lhs, const School &rhs)
+{
+    return lhs.id == rhs.id &&
+           lhs.name == rhs.name &&
+           lhs.city == rhs.city;
+}
+
 size_t School::getId() const
 {
     return id;

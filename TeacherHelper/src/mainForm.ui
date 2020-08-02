@@ -17,7 +17,42 @@
    <iconset resource="../res/global.qrc">
     <normaloff>:/global/TeacherHelperIcon.ico</normaloff>:/global/TeacherHelperIcon.ico</iconset>
   </property>
-  <widget class="QWidget" name="centralwidget"/>
+  <widget class="QWidget" name="centralwidget">
+   <layout class="QGridLayout" name="gridLayout">
+    <item row="0" column="0">
+     <widget class="QWidget" name="widget" native="true">
+      <layout class="QGridLayout" name="gridLayout_4">
+       <item row="0" column="0">
+        <widget class="QSplitter" name="splitter">
+         <property name="orientation">
+          <enum>Qt::Horizontal</enum>
+         </property>
+         <widget class="QTreeWidget" name="treeWidget">
+          <property name="columnCount">
+           <number>2</number>
+          </property>
+          <attribute name="headerVisible">
+           <bool>false</bool>
+          </attribute>
+          <column>
+           <property name="text">
+            <string notr="true">1</string>
+           </property>
+          </column>
+          <column>
+           <property name="text">
+            <string notr="true">2</string>
+           </property>
+          </column>
+         </widget>
+         <widget class="QTableWidget" name="tableWidget"/>
+        </widget>
+       </item>
+      </layout>
+     </widget>
+    </item>
+   </layout>
+  </widget>
   <widget class="QMenuBar" name="menubar">
    <property name="geometry">
     <rect>
@@ -70,8 +105,17 @@
     </property>
     <addaction name="actionList_of_cities"/>
    </widget>
+   <widget class="QMenu" name="menu_Test">
+    <property name="title">
+     <string>&amp;Test</string>
+    </property>
+    <addaction name="action_AddTest"/>
+    <addaction name="action_EditTest"/>
+    <addaction name="action_RemoveTest"/>
+   </widget>
    <addaction name="menu_File"/>
    <addaction name="menu_View"/>
+   <addaction name="menu_Test"/>
    <addaction name="menuGestion"/>
    <addaction name="menu_Report"/>
    <addaction name="menuHelp"/>
@@ -93,6 +137,10 @@
    <attribute name="toolBarBreak">
     <bool>false</bool>
    </attribute>
+   <addaction name="action_AddTest"/>
+   <addaction name="action_EditTest"/>
+   <addaction name="action_RemoveTest"/>
+   <addaction name="separator"/>
    <addaction name="action_Cities"/>
    <addaction name="action_Schools"/>
    <addaction name="action_Classes"/>
@@ -184,6 +232,39 @@
   <action name="actionList_of_cities">
    <property name="text">
     <string>List of cities</string>
+   </property>
+  </action>
+  <action name="action_AddTest">
+   <property name="icon">
+    <iconset resource="../res/global.qrc">
+     <normaloff>:/global/addTest64.png</normaloff>:/global/addTest64.png</iconset>
+   </property>
+   <property name="text">
+    <string>&amp;Add a test...</string>
+   </property>
+  </action>
+  <action name="action_RemoveTest">
+   <property name="icon">
+    <iconset resource="../res/global.qrc">
+     <normaloff>:/global/deleteTest64.png</normaloff>:/global/deleteTest64.png</iconset>
+   </property>
+   <property name="text">
+    <string>&amp;Delete the test</string>
+   </property>
+   <property name="toolTip">
+    <string>Delete the test</string>
+   </property>
+  </action>
+  <action name="action_EditTest">
+   <property name="icon">
+    <iconset resource="../res/global.qrc">
+     <normaloff>:/global/editTest64.png</normaloff>:/global/editTest64.png</iconset>
+   </property>
+   <property name="text">
+    <string>&amp;Edit the test...</string>
+   </property>
+   <property name="toolTip">
+    <string>Edit a test</string>
    </property>
   </action>
  </widget>
