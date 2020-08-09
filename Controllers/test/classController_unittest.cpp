@@ -53,6 +53,29 @@ TEST_F(ClassControllerTest, getClasses_Return2Classes)
 	}
 }
 
+TEST_F(ClassControllerTest, getClassesBySchoolWithSchool1_Return1Class)
+{
+	controller.loadClasses();
+	auto classes = controller.getClassesBySchool(School(1, "Thomas Jefferson High School", City("Alexandria")));
+	ASSERT_EQ(1, classes.size());
+	ASSERT_EQ("First Grade", classes.begin()->getName());
+}
+
+TEST_F(ClassControllerTest, getClassesBySchoolWithSchool2_Return1Class)
+{
+	controller.loadClasses();
+	auto classes = controller.getClassesBySchool(School(2, "Carnegie Vanguard High School", City("Houston")));
+	ASSERT_EQ(1, classes.size());
+	ASSERT_EQ("Second Grade", classes.begin()->getName());
+}
+
+TEST_F(ClassControllerTest, getClassesBySchoolWithNotExistantSchool_Return1Class)
+{
+	controller.loadClasses();
+	auto classes = controller.getClassesBySchool(School(3, "Not existing school", City("Houston")));
+	ASSERT_EQ(0, classes.size());
+}
+
 TEST_F(ClassControllerTest, findClass_WithIdZero_ReturnNullPtr) 
 {
 	controller.loadClasses();

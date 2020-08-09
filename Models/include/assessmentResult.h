@@ -5,19 +5,19 @@
 
 #ifdef _WIN32
     #ifdef MODELS_EXPORTS  
-        #define TESTRESULT_API __declspec(dllexport)   
+        #define ASSESSMENTRESULT_API __declspec(dllexport)   
     #else  
-        #define TESTRESULT_API __declspec(dllimport)   
+        #define ASSESSMENTRESULT_API __declspec(dllimport)   
     #endif
 #else
-    #define TESTRESULT_API
+    #define ASSESSMENTRESULT_API
 #endif
 
-class TESTRESULT_API TestResult
+class ASSESSMENTRESULT_API AssessmentResult
 {
 public:
-    TestResult(const Student &student, const float result, const std::string &comments = "");
-    TestResult(size_t id, 
+    AssessmentResult(const Student &student, const float result, const std::string &comments = "");
+    AssessmentResult(size_t id, 
                const Student &student, 
                const float result, 
                const std::string &comments = "");

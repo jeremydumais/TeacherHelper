@@ -19,6 +19,18 @@ const std::list<Class> &ClassController::getClasses() const
     return classes;
 }
 
+const std::list<Class> ClassController::getClassesBySchool(const School &school) const
+{
+    list<Class> retVal {};
+    copy_if(classes.begin(), 
+            classes.end(), 
+            back_inserter(retVal), 
+            [&school] (const Class &itemClass) { 
+                return itemClass.getSchool() == school;
+            });
+    return retVal;
+}
+
 const Class *ClassController::findClass(size_t id) const
 {
 	const Class *retVal = nullptr;

@@ -22,30 +22,95 @@
     <item row="0" column="0">
      <widget class="QWidget" name="widget" native="true">
       <layout class="QGridLayout" name="gridLayout_4">
-       <item row="0" column="0">
+       <item row="0" column="1">
         <widget class="QSplitter" name="splitter">
          <property name="orientation">
           <enum>Qt::Horizontal</enum>
          </property>
-         <widget class="QTreeWidget" name="treeWidget">
-          <property name="columnCount">
-           <number>2</number>
-          </property>
-          <attribute name="headerVisible">
-           <bool>false</bool>
-          </attribute>
-          <column>
-           <property name="text">
-            <string notr="true">1</string>
-           </property>
-          </column>
-          <column>
-           <property name="text">
-            <string notr="true">2</string>
-           </property>
-          </column>
+         <widget class="QWidget" name="verticalLayoutWidget">
+          <layout class="QVBoxLayout" name="verticalLayout">
+           <item>
+            <widget class="QFrame" name="frame">
+             <property name="frameShape">
+              <enum>QFrame::StyledPanel</enum>
+             </property>
+             <property name="frameShadow">
+              <enum>QFrame::Raised</enum>
+             </property>
+             <layout class="QHBoxLayout" name="horizontalLayout_2">
+              <item>
+               <widget class="QToolButton" name="toolButtonExpandAll">
+                <property name="toolTip">
+                 <string>Expand all</string>
+                </property>
+                <property name="text">
+                 <string>Expand all</string>
+                </property>
+                <property name="icon">
+                 <iconset resource="../res/global.qrc">
+                  <normaloff>:/global/expand64.png</normaloff>:/global/expand64.png</iconset>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <widget class="QToolButton" name="toolButtonCollapseAll">
+                <property name="toolTip">
+                 <string>Collapse all</string>
+                </property>
+                <property name="text">
+                 <string>Collapse all</string>
+                </property>
+                <property name="icon">
+                 <iconset resource="../res/global.qrc">
+                  <normaloff>:/global/collapse64.png</normaloff>:/global/collapse64.png</iconset>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <spacer name="horizontalSpacer">
+                <property name="orientation">
+                 <enum>Qt::Horizontal</enum>
+                </property>
+                <property name="sizeHint" stdset="0">
+                 <size>
+                  <width>40</width>
+                  <height>20</height>
+                 </size>
+                </property>
+               </spacer>
+              </item>
+             </layout>
+            </widget>
+           </item>
+           <item>
+            <widget class="QTreeWidget" name="treeWidget">
+             <property name="columnCount">
+              <number>2</number>
+             </property>
+             <attribute name="headerVisible">
+              <bool>false</bool>
+             </attribute>
+             <column>
+              <property name="text">
+               <string notr="true">1</string>
+              </property>
+             </column>
+             <column>
+              <property name="text">
+               <string notr="true">2</string>
+              </property>
+             </column>
+            </widget>
+           </item>
+          </layout>
          </widget>
-         <widget class="QTableWidget" name="tableWidget"/>
+         <widget class="QWidget" name="verticalLayoutWidget_2">
+          <layout class="QVBoxLayout" name="verticalLayout_3">
+           <item>
+            <widget class="QTableWidget" name="tableWidget"/>
+           </item>
+          </layout>
+         </widget>
         </widget>
        </item>
       </layout>
@@ -107,11 +172,11 @@
    </widget>
    <widget class="QMenu" name="menu_Test">
     <property name="title">
-     <string>&amp;Test</string>
+     <string>&amp;Assessment</string>
     </property>
-    <addaction name="action_AddTest"/>
-    <addaction name="action_EditTest"/>
-    <addaction name="action_RemoveTest"/>
+    <addaction name="action_AddAssessment"/>
+    <addaction name="action_EditAssessment"/>
+    <addaction name="action_RemoveAssessment"/>
    </widget>
    <addaction name="menu_File"/>
    <addaction name="menu_View"/>
@@ -137,9 +202,9 @@
    <attribute name="toolBarBreak">
     <bool>false</bool>
    </attribute>
-   <addaction name="action_AddTest"/>
-   <addaction name="action_EditTest"/>
-   <addaction name="action_RemoveTest"/>
+   <addaction name="action_AddAssessment"/>
+   <addaction name="action_EditAssessment"/>
+   <addaction name="action_RemoveAssessment"/>
    <addaction name="separator"/>
    <addaction name="action_Cities"/>
    <addaction name="action_Schools"/>
@@ -234,37 +299,37 @@
     <string>List of cities</string>
    </property>
   </action>
-  <action name="action_AddTest">
+  <action name="action_AddAssessment">
    <property name="icon">
     <iconset resource="../res/global.qrc">
      <normaloff>:/global/addTest64.png</normaloff>:/global/addTest64.png</iconset>
    </property>
    <property name="text">
-    <string>&amp;Add a test...</string>
+    <string>&amp;Add an assessment...</string>
    </property>
   </action>
-  <action name="action_RemoveTest">
+  <action name="action_RemoveAssessment">
    <property name="icon">
     <iconset resource="../res/global.qrc">
      <normaloff>:/global/deleteTest64.png</normaloff>:/global/deleteTest64.png</iconset>
    </property>
    <property name="text">
-    <string>&amp;Delete the test</string>
+    <string>&amp;Delete the assessment</string>
    </property>
    <property name="toolTip">
-    <string>Delete the test</string>
+    <string>Delete the assessment</string>
    </property>
   </action>
-  <action name="action_EditTest">
+  <action name="action_EditAssessment">
    <property name="icon">
     <iconset resource="../res/global.qrc">
      <normaloff>:/global/editTest64.png</normaloff>:/global/editTest64.png</iconset>
    </property>
    <property name="text">
-    <string>&amp;Edit the test...</string>
+    <string>&amp;Edit the assessment...</string>
    </property>
    <property name="toolTip">
-    <string>Edit a test</string>
+    <string>Edit the assessment</string>
    </property>
   </action>
  </widget>

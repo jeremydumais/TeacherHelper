@@ -10,7 +10,8 @@ add_library(${PROJECT_NAME} SHARED src/city.cpp
                                    src/student.cpp
                                    src/testType.cpp
                                    src/subject.cpp
-                                   src/testResult.cpp)
+                                   src/assessmentResult.cpp
+                                   src/assessment.cpp)
 if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "MSVC")
     add_definitions(-D_CRT_SECURE_NO_WARNINGS)
     target_compile_definitions(${PROJECT_NAME}

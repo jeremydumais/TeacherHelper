@@ -29,6 +29,7 @@ private:
 	void loadControllers();
 	void refreshTreeViewTestNavigation();
 private slots:
+	void action_AddAssessment_Click();
 	void action_StudentsManagement_Click();
 	void action_SchoolsManagement_Click();
 	void action_ClassesManagement_Click();
@@ -38,6 +39,8 @@ private slots:
 	void action_About_Click();
 	void action_LightTheme_Click();
 	void action_DarkTheme_Click();
+	void toolButtonExpandAll_Click();
+	void toolButtonCollapseAll_Click();
 };
 
 #endif // MAINFORM_H

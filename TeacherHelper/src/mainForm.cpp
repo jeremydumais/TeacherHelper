@@ -2,6 +2,7 @@
 #include "aboutBoxForm.h"
 #include "configurationManager.h"
 #include "specialFolders.h"
+#include "editAssessmentForm.h"
 #include "cityManagementForm.h"
 #include "classManagementForm.h"
 #include "schoolManagementForm.h"
@@ -32,6 +33,7 @@ MainForm::MainForm(QWidget *parent)
 	ui.setupUi(this);
 	this->showMaximized();
     connect(ui.action_Quit, SIGNAL(triggered()), this, SLOT(close()));
+    connect(ui.action_AddAssessment, SIGNAL(triggered()), this, SLOT(action_AddAssessment_Click()));
     connect(ui.action_Students, SIGNAL(triggered()), this, SLOT(action_StudentsManagement_Click()));
     connect(ui.action_Schools, SIGNAL(triggered()), this, SLOT(action_SchoolsManagement_Click()));
     connect(ui.action_Classes, SIGNAL(triggered()), this, SLOT(action_ClassesManagement_Click()));
@@ -41,6 +43,8 @@ MainForm::MainForm(QWidget *parent)
     connect(ui.action_About, SIGNAL(triggered()), this, SLOT(action_About_Click()));
     connect(ui.action_LightTheme, SIGNAL(triggered()), this, SLOT(action_LightTheme_Click()));
     connect(ui.action_DarkTheme, SIGNAL(triggered()), this, SLOT(action_DarkTheme_Click()));
+    connect(ui.toolButtonExpandAll, SIGNAL(clicked()), this, SLOT(toolButtonExpandAll_Click()));
+    connect(ui.toolButtonCollapseAll, SIGNAL(clicked()), this, SLOT(toolButtonCollapseAll_Click()));
 
 	//Check if the user configuration folder exist
 	userConfigFolder = SpecialFolders::getUserConfigDirectory();
@@ -112,6 +116,14 @@ bool MainForm::event(QEvent *event)
     }
     return ret_val;
 }
+
+void MainForm::action_AddAssessment_Click() 
+{
+	EditAssessmentForm formEditAssessment(this, *dbConnection, EditAssessmentActionMode::Add);
+	if (formEditAssessment.exec() == QDialog::DialogCode::Accepted) {
+		//Refresh the navigation and test list
+	}
+}
 	
 void MainForm::action_StudentsManagement_Click()
 {
@@ -151,8 +163,6 @@ void MainForm::action_SubjectsManagement_Click()
 
 void MainForm::action_About_Click()
 {
-	showErrorMessage(to_string(this->size().width()) ,"");
-
 	AboutBoxForm aboutBoxForm(this);
 	aboutBoxForm.exec();
 }
@@ -255,14 +265,7 @@ void MainForm::refreshTreeViewTestNavigation()
 	QList<QTreeWidgetItem *> items;
 	for (const auto &itemSchool : schoolController->getSchools()) {
 		auto newSchoolItem = new QTreeWidgetItem(static_cast<QTreeWidget *>(nullptr), QStringList(QString("%1").arg(itemSchool.getName().c_str())));
-		auto classes = classController->getClasses();
-		list<Class> classesFiltered;
-		copy_if(classes.begin(), 
-				classes.end(), 
-				back_inserter(classesFiltered), 
-				[&itemSchool] (const Class &itemClass) { 
-					return itemClass.getSchool() == itemSchool;
-				});
+		auto classesFiltered = classController->getClassesBySchool(itemSchool);
 		for (const auto &itemClass : classesFiltered) {
 			auto newClassItem = new QTreeWidgetItem(static_cast<QTreeWidget *>(nullptr), QStringList(QString("%1").arg(itemClass.getName().c_str())));
 			QVariant idVariant;
@@ -275,4 +278,14 @@ void MainForm::refreshTreeViewTestNavigation()
 	}
 	ui.treeWidget->setColumnHidden(1, true);
 	ui.treeWidget->insertTopLevelItems(0, items);
+}
+
+void MainForm::toolButtonExpandAll_Click() 
+{
+	ui.treeWidget->expandAll();
+}
+
+void MainForm::toolButtonCollapseAll_Click() 
+{
+	ui.treeWidget->collapseAll();
 }

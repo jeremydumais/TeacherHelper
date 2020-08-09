@@ -1,8 +1,10 @@
 <RCC>
   <qresource prefix="global">
+    <file>collapse64.png</file>
     <file>schools64.png</file>
     <file>cities64.png</file>
     <file>deleteTest64.png</file>
+    <file>expand64.png</file>
     <file>TeacherHelper Icon256.png</file>
     <file>testType64.png</file>
     <file>subject64.png</file>
