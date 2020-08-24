@@ -135,12 +135,22 @@ void MainForm::action_SchoolsManagement_Click()
 {
 	SchoolManagementForm formSchoolManagement(this, *dbConnection);
 	formSchoolManagement.exec();
+	if (formSchoolManagement.getDataHasChanged()) {
+		schoolController->loadSchools();
+		classController->loadClasses();
+		refreshTreeViewTestNavigation();
+	}
 }
 
 void MainForm::action_ClassesManagement_Click()
 {
 	ClassManagementForm formClassManagement(this, *dbConnection);
 	formClassManagement.exec();
+	if (formClassManagement.getDataHasChanged()) {
+		schoolController->loadSchools();
+		classController->loadClasses();
+		refreshTreeViewTestNavigation();
+	}
 }
 
 void MainForm::action_CitiesManagement_Click()
@@ -262,6 +272,7 @@ void MainForm::loadControllers()
 
 void MainForm::refreshTreeViewTestNavigation() 
 {
+	ui.treeWidgetSchoolClassNav->clear();
 	QList<QTreeWidgetItem *> items;
 	for (const auto &itemSchool : schoolController->getSchools()) {
 		auto newSchoolItem = new QTreeWidgetItem(static_cast<QTreeWidget *>(nullptr), QStringList(QString("%1").arg(itemSchool.getName().c_str())));
@@ -276,16 +287,17 @@ void MainForm::refreshTreeViewTestNavigation()
 		items.append(newSchoolItem);
 
 	}
-	ui.treeWidget->setColumnHidden(1, true);
-	ui.treeWidget->insertTopLevelItems(0, items);
+	ui.treeWidgetSchoolClassNav->setColumnHidden(1, true);
+	ui.treeWidgetSchoolClassNav->insertTopLevelItems(0, items);
+	ui.tableWidgetAssessments->clear();
 }
 
 void MainForm::toolButtonExpandAll_Click() 
 {
-	ui.treeWidget->expandAll();
+	ui.treeWidgetSchoolClassNav->expandAll();
 }
 
 void MainForm::toolButtonCollapseAll_Click() 
 {
-	ui.treeWidget->collapseAll();
+	ui.treeWidgetSchoolClassNav->collapseAll();
 }

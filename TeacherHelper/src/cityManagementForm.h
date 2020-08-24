@@ -25,6 +25,7 @@ private:
 	void updateExistingItem();
 private slots: 
 	void itemsTableSelectionChanged(const QItemSelection &selected);
+	void itemsTableSelectionDoubleClicked(QTableWidgetItem *item);
 	void pushButtonAdd_Click();
 	void pushButtonModify_Click();
 	void pushButtonDelete_Click();

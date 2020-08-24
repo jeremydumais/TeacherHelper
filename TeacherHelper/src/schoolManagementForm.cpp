@@ -42,7 +42,7 @@ void SchoolManagementForm::showEvent(QShowEvent *event)
 	cityController.loadCities();
 	refreshCityTable();
     refreshItemsTable();
-} 
+}
 
 void SchoolManagementForm::refreshItemsTable()
 {
@@ -143,6 +143,7 @@ void SchoolManagementForm::pushButtonDelete_Click()
 			else {
 				showError(controller.getLastError());
 			}
+			dataHasChanged = true;
 		}
 	}
 }
@@ -179,6 +180,7 @@ void SchoolManagementForm::saveNewItem(const City* const selectedCity)
 		else {
 			showError(controller.getLastError());
 		}
+		dataHasChanged = true;
 	}
 	else {
 		showError("The new name is already taken.");
@@ -205,6 +207,7 @@ void SchoolManagementForm::updateExistingItem(const City* const selectedCity)
 			else {
 				showError(controller.getLastError());
 			}
+			dataHasChanged = true;
 		}
 		else {
 			showError("The new name is already taken.");

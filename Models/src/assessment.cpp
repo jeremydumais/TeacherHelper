@@ -8,8 +8,9 @@ using namespace boost;
 Assessment::Assessment(const string &name, 
            const TestType &testType,
            const Subject &subject,
-           const Class &itemClass)
-    : Assessment(0, name, testType, subject, itemClass)
+           const Class &itemClass,
+           const boost::posix_time::ptime &itemDate)
+    : Assessment(0, name, testType, subject, itemClass, itemDate)
 {  
 }
 
@@ -17,68 +18,93 @@ Assessment::Assessment(size_t id,
            const string &name, 
            const TestType &testType,
            const Subject &subject,
-           const Class &itemClass)
+           const Class &itemClass,
+           const boost::posix_time::ptime &itemDate)
     : id(id), 
       name(name),
       testType(testType),
       subject(subject),
-      itemClass(itemClass)
+      itemClass(itemClass),
+      itemDate(itemDate),
+      results(vector<AssessmentResult>())
 {    
-    /*if (trim_copy(name).empty()) {
+    if (trim_copy(name).empty()) {
         throw invalid_argument("name cannot be null or empty.");
     }
-    if (name.length() > 50) {
-        throw invalid_argument("name must not be larger then 50 chars.");
-    } */   
+    if (name.length() > 100) {
+        throw invalid_argument("name must not be larger then 100 chars.");
+    }
 }
 
 size_t Assessment::getId() const
 {
     return id;
 }
-/*
-const std::string &Test::getName() const
+
+const std::string &Assessment::getName() const
 {
     return name;
 }
 
-const School &Test::getSchool() const
+const TestType& Assessment::getTestType() const
 {
-    return school;
+    return testType;
 }
 
-const std::list<Student>& Test::getMembers() const
+const Subject& Assessment::getSubject() const
 {
-    return members;
+    return subject;
 }
 
-void Test::setName(const std::string &name) 
+const Class& Assessment::getClass() const
+{
+    return itemClass;
+}
+
+const std::vector<AssessmentResult>& Assessment::getResults() const
+{
+    return results;
+}
+
+
+void Assessment::setName(const std::string &name) 
 {
     if (trim_copy(name).empty()) {
         throw invalid_argument("name cannot be null or empty.");
     }
-    if (name.length() > 50) {
-        throw invalid_argument("name must not be larger then 50 chars.");
+    if (name.length() > 100) {
+        throw invalid_argument("name must not be larger then 100 chars.");
     }   
     this->name = name;
 }
 
-void Test::setSchool(const School &school) 
+void Assessment::setTestType(const TestType &testType) 
 {
-    this->school = school;
+    this->testType = testType;
 }
 
-void Test::addMember(const Student &student) 
+void Assessment::setSubject(const Subject &subject) 
 {
-    //Ensure the student is not already in the list
-    auto resultIterator = find(members.cbegin(),
-                               members.cend(),
-                               student);
-    if (resultIterator!=members.cend())
-        throw invalid_argument("Cannot add the same member twice.");
-    members.emplace_back(student);
+    this->subject = subject;
 }
 
+void Assessment::setClass(const Class &itemClass) 
+{
+    this->itemClass = itemClass;
+}
+
+void Assessment::addResult(const AssessmentResult &assessmentResult) 
+{
+    //Ensure the assessment result is not already in the vector
+     auto resultIterator = find(results.cbegin(),
+                                results.cend(),
+                                assessmentResult);
+    if (resultIterator!=results.cend())
+        throw invalid_argument("Cannot add the same assessment result twice.");
+    results.emplace_back(assessmentResult);
+}
+
+/*
 void Test::removeMember(const Student &student) 
 {
     //Ensure the student is in the list

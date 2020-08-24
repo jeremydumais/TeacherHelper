@@ -15,9 +15,11 @@ public:
     ManagementFormBase(const DatabaseConnection &connection);
     virtual ~ManagementFormBase();
 	void setDatabaseConnection(const DatabaseConnection &connection);
+	virtual bool getDataHasChanged() const;
 protected:
 	ActionMode mode;
     const DatabaseConnection * dbConnection;
+	bool dataHasChanged;
 	void showError(const std::string &message) const;
 private:
     virtual void refreshItemsTable() = 0;

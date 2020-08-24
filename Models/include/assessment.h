@@ -1,9 +1,11 @@
 #pragma once
 
+#include "assessmentResult.h"
 #include "class.h"
 #include "subject.h"
 #include "testType.h"
-#include <list>
+#include "boost/date_time/posix_time/posix_time.hpp"
+#include <vector>
 #include <string>
 
 #ifdef _WIN32
@@ -22,19 +24,26 @@ public:
     Assessment(const std::string &name, 
             const TestType &testType,
             const Subject &subject,
-            const Class &itemClass);
+            const Class &itemClass,
+            const boost::posix_time::ptime &itemDate);
     Assessment(size_t id,
             const std::string &name, 
             const TestType &testType,
             const Subject &subject,
-            const Class &itemClass);
+            const Class &itemClass,
+            const boost::posix_time::ptime &itemDate);
     size_t getId() const;
-    /*const std::string &getName() const;
-    const School &getSchool() const;
-    const std::list<Student> &getMembers() const;
+    const std::string &getName() const;
+    const TestType &getTestType() const;
+    const Subject &getSubject() const;
+    const Class &getClass() const;
+    const std::vector<AssessmentResult> &getResults() const;
     void setName(const std::string &name);
-    void setSchool(const School &school);
-    void addMember(const Student &student);
+    void setTestType(const TestType &testType);
+    void setSubject(const Subject &subject);
+    void setClass(const Class &itemClass);
+    void addResult(const AssessmentResult &assessmentResult);
+    /*void addMember(const Student &student);
     void removeMember(const Student &student);
     void clearMembers();*/
 private:
@@ -43,8 +52,8 @@ private:
     TestType testType;
     Subject subject;
     Class itemClass;
-    /*School school;
-    std::list<Student> members;*/
+    boost::posix_time::ptime itemDate;
+    std::vector<AssessmentResult> results;
 };
 
 

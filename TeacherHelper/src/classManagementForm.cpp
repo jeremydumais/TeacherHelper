@@ -207,6 +207,7 @@ void ClassManagementForm::pushButtonDelete_Click()
 			else {
 				showError(controller.getLastError());
 			}
+			dataHasChanged = true;
 		}
 	}
 }
@@ -276,6 +277,7 @@ void ClassManagementForm::saveNewItem(const School* const selectedSchool)
 		else {
 			showError(controller.getLastError());
 		}
+		dataHasChanged = true;
 	}
 	else {
 		showError("The new name is already taken.");
@@ -313,6 +315,7 @@ void ClassManagementForm::updateExistingItem(const School* const selectedSchool)
 			else {
 				showError(controller.getLastError());
 			}
+			dataHasChanged = true;
 		}
 		else {
 			showError("The new name is already taken.");

@@ -25,6 +25,12 @@ AssessmentResult::AssessmentResult(size_t id,
     }   
 }
 
+bool operator==(const AssessmentResult &lhs, const AssessmentResult &rhs)
+{
+    return lhs.id == rhs.id &&
+           lhs.student == rhs.student;
+}
+
 size_t AssessmentResult::getId() const
 {
     return id;

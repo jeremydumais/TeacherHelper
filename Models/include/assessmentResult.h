@@ -21,6 +21,7 @@ public:
                const Student &student, 
                const float result, 
                const std::string &comments = "");
+    ASSESSMENTRESULT_API friend bool operator==(const AssessmentResult &lhs, const AssessmentResult &rhs);
     size_t getId() const;
     const Student &getStudent() const;
     const float getResult() const;

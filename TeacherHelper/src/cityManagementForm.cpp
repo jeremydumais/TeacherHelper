@@ -14,22 +14,24 @@ CityManagementForm::CityManagementForm(QWidget *parent, const DatabaseConnection
 {
 	ui.setupUi(this);
 	ui.frameDetails->setEnabled(false);
-	connect(ui.pushButtonClose, SIGNAL(clicked()), this, SLOT(close()));
-	connect(ui.pushButtonAdd, SIGNAL(clicked()), this, SLOT(pushButtonAdd_Click()));
-	connect(ui.pushButtonModify, SIGNAL(clicked()), this, SLOT(pushButtonModify_Click()));
-	connect(ui.pushButtonDelete, SIGNAL(clicked()), this, SLOT(pushButtonDelete_Click()));
-	connect(ui.pushButtonOK, SIGNAL(clicked()), this, SLOT(pushButtonOK_Click()));
-	connect(ui.pushButtonCancel, SIGNAL(clicked()), this, SLOT(pushButtonCancel_Click()));
+	connect(ui.pushButtonClose, &QPushButton::clicked, this, &CityManagementForm::close);
+	connect(ui.pushButtonAdd, &QPushButton::clicked, this, &CityManagementForm::pushButtonAdd_Click);
+	connect(ui.pushButtonModify, &QPushButton::clicked, this, &CityManagementForm::pushButtonModify_Click);
+	connect(ui.pushButtonDelete, &QPushButton::clicked, this, &CityManagementForm::pushButtonDelete_Click);
+	connect(ui.pushButtonOK, &QPushButton::clicked, this, &CityManagementForm::pushButtonOK_Click);
+	connect(ui.pushButtonCancel, &QPushButton::clicked, this, &CityManagementForm::pushButtonCancel_Click);
 
 	ui.tableWidgeItems->setHorizontalHeaderItem(0, new QTableWidgetItem("Id"));
 	ui.tableWidgeItems->setHorizontalHeaderItem(1, new QTableWidgetItem("Name"));
 	ui.tableWidgeItems->setColumnHidden(0, true);
 	connect(ui.tableWidgeItems->selectionModel(), 
-		SIGNAL(selectionChanged(const QItemSelection &, const QItemSelection &)),
-  		SLOT(itemsTableSelectionChanged(const QItemSelection &)));
+		&QItemSelectionModel::selectionChanged, 
+		this,
+  		&CityManagementForm::itemsTableSelectionChanged);
 	connect(ui.tableWidgeItems, 
-		SIGNAL(cellDoubleClicked(int, int)), 
-		SLOT(pushButtonModify_Click()));
+		&QTableWidget::itemDoubleClicked,
+		this,
+		&CityManagementForm::itemsTableSelectionDoubleClicked);
 }
 
 void CityManagementForm::showEvent(QShowEvent *event) 
@@ -77,6 +79,13 @@ void CityManagementForm::toggleEditMode(ActionMode mode)
 void CityManagementForm::itemsTableSelectionChanged(const QItemSelection &selected)
 {	
 	toggleTableControls(selected.size() == 1);
+}
+
+void CityManagementForm::itemsTableSelectionDoubleClicked(QTableWidgetItem *item) 
+{
+	if (item) {
+		pushButtonModify_Click();
+	}
 }
 
 void CityManagementForm::pushButtonAdd_Click()

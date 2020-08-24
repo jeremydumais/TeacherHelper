@@ -5,7 +5,8 @@ using namespace std;
 
 ManagementFormBase::ManagementFormBase(const DatabaseConnection &connection)
     : mode(ActionMode::None),
-      dbConnection(&connection)
+      dbConnection(&connection),
+	  dataHasChanged(false)
 {
 }
 
@@ -17,6 +18,11 @@ void ManagementFormBase::setDatabaseConnection(const DatabaseConnection &connect
 {
 	this->dbConnection = &connection;
 }
+
+bool ManagementFormBase::getDataHasChanged() const
+{
+	return dataHasChanged;
+} 
 
 void ManagementFormBase::showError(const string &message) const
 {
