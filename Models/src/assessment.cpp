@@ -4,6 +4,7 @@
 
 using namespace std;
 using namespace boost;
+using namespace boost::posix_time;
 
 Assessment::Assessment(const string &name, 
            const TestType &testType,
@@ -61,6 +62,11 @@ const Class& Assessment::getClass() const
     return itemClass;
 }
 
+const boost::posix_time::ptime& Assessment::getDate() const
+{
+    return itemDate;
+}
+
 const std::vector<AssessmentResult>& Assessment::getResults() const
 {
     return results;
@@ -93,15 +99,20 @@ void Assessment::setClass(const Class &itemClass)
     this->itemClass = itemClass;
 }
 
+void Assessment::setDate(const ptime &itemDate) 
+{
+    this->itemDate = itemDate;
+}
+
 void Assessment::addResult(const AssessmentResult &assessmentResult) 
 {
     //Ensure the assessment result is not already in the vector
-     auto resultIterator = find(results.cbegin(),
+    /*auto resultIterator = find(results.cbegin(),
                                 results.cend(),
                                 assessmentResult);
     if (resultIterator!=results.cend())
         throw invalid_argument("Cannot add the same assessment result twice.");
-    results.emplace_back(assessmentResult);
+    results.emplace_back(assessmentResult);*/
 }
 
 /*

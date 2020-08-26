@@ -37,15 +37,14 @@ public:
     const TestType &getTestType() const;
     const Subject &getSubject() const;
     const Class &getClass() const;
+    const boost::posix_time::ptime &getDate() const;
     const std::vector<AssessmentResult> &getResults() const;
     void setName(const std::string &name);
     void setTestType(const TestType &testType);
     void setSubject(const Subject &subject);
     void setClass(const Class &itemClass);
+    void setDate(const boost::posix_time::ptime &itemDate);
     void addResult(const AssessmentResult &assessmentResult);
-    /*void addMember(const Student &student);
-    void removeMember(const Student &student);
-    void clearMembers();*/
 private:
     size_t id;
     std::string name;

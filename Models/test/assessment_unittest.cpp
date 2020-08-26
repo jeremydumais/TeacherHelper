@@ -53,17 +53,19 @@ TEST(Assessment_Constructor, NameGreaterThenLimit_ThrowInvalidArgument)
 
 TEST(Assessment_Constructor, ValidEntry_ReturnSuccess)
 {
+	auto dateExpected { ptime(date(2020, Aug, 23), time_duration(13, 21, 33)) };
 	Assessment assessment("Intra Exam", 
 			  TestType("Exam"),
 			  Subject("History"),
 			  Class("MyClass", School("Test", City("CityTest"))),
-				  ptime(date(2020, Aug, 23), time_duration(13, 21, 33)));
+			  dateExpected);
 	ASSERT_EQ("Intra Exam", assessment.getName());  
 	ASSERT_EQ("Exam", assessment.getTestType().getName());
 	ASSERT_EQ("History", assessment.getSubject().getName());
 	ASSERT_EQ("MyClass", assessment.getClass().getName());
 	ASSERT_EQ("Test", assessment.getClass().getSchool().getName());
 	ASSERT_EQ("CityTest", assessment.getClass().getSchool().getCity().getName());
+	ASSERT_EQ(dateExpected, assessment.getDate());
 }
 
 TEST(Assessment_ConstructorWithId, EmptyName_ThrowInvalidArgument)
@@ -111,14 +113,14 @@ TEST(Assessment_ConstructorWithId, NameGreaterThenLimit_ThrowInvalidArgument)
 	}
 }
 
-
 TEST(Assessment_ConstructorWithId, ValidEntry_ReturnSuccess)
 {
+	auto dateExpected { ptime(date(2020, Aug, 23), time_duration(13, 21, 33)) };
 	Assessment assessment(1, "Intra Exam", 
 			  TestType("Exam"),
 			  Subject("History"),
 			  Class("MyClass", School("Test", City("CityTest"))),
-				  ptime(date(2020, Aug, 23), time_duration(13, 21, 33)));
+			  dateExpected);
 	ASSERT_EQ(1, assessment.getId());  
 	ASSERT_EQ("Intra Exam", assessment.getName());  
 	ASSERT_EQ("Exam", assessment.getTestType().getName());
@@ -126,6 +128,7 @@ TEST(Assessment_ConstructorWithId, ValidEntry_ReturnSuccess)
 	ASSERT_EQ("MyClass", assessment.getClass().getName());
 	ASSERT_EQ("Test", assessment.getClass().getSchool().getName());
 	ASSERT_EQ("CityTest", assessment.getClass().getSchool().getCity().getName());
+	ASSERT_EQ(dateExpected, assessment.getDate());
 }
 
 TEST(Assessment_getId, WithId1_Return1)
@@ -178,7 +181,18 @@ TEST(Assessment_getClass, WithClassMyClass_ReturnMyClass)
 	ASSERT_EQ("MyClass", assessment.getClass().getName());
 }
 
-TEST(Assessment_getResults, WithNoResults_ReturnEmptyVector)
+TEST(Assessment_getDate, With2020Aug24190405_ReturnSameDate)
+{
+	auto dateExpected { ptime(date(2020, Aug, 24), time_duration(19, 04, 05)) };
+	Assessment assessment(1, "Intra Exam", 
+			  TestType("Exam"),
+			  Subject("History"),
+			  Class("MyClass", School("Test", City("CityTest"))),
+			  dateExpected);
+	ASSERT_EQ(dateExpected, assessment.getDate());
+}
+
+/*TEST(Assessment_getResults, WithNoResults_ReturnEmptyVector)
 {
 	Assessment assessment(1, "Intra Exam", 
 			  TestType("Exam"),
@@ -205,7 +219,7 @@ TEST(Assessment_getResults, WithTwoResults_ReturnVectorWith2Results)
 	ASSERT_EQ("Jane", results[1].getStudent().getFirstName());
 	ASSERT_EQ("Doe", results[1].getStudent().getLastName());
 	ASSERT_EQ(81.2f, results[1].getResult());
-}
+}*/
 
 TEST(Assessment_setName, WithNameTestUpdated_ReturnSuccess)
 {
@@ -303,6 +317,18 @@ TEST(Assessment_setClass, WithClassAnotherClass_ReturnSuccess)
 				  ptime(date(2020, Aug, 23), time_duration(13, 21, 33)));
 	assessment.setClass(Class("AnotherClass", School("Test", City("CityTest"))));
 	ASSERT_EQ("AnotherClass", assessment.getClass().getName());
+}
+
+TEST(Assessment_setDate, WithClassAnotherClass_ReturnSuccess)
+{
+	auto expected { ptime(date(2019, Jan, 13), time_duration(3, 1, 3)) };
+	Assessment assessment(1, "Intra Exam", 
+			  TestType("Exam"),
+			  Subject("History"),
+			  Class("MyClass", School("Test", City("CityTest"))),
+			  ptime(date(2020, Aug, 23), time_duration(13, 21, 33)));
+	assessment.setDate(expected);
+	ASSERT_EQ(expected, assessment.getDate());
 }
 
 /*
