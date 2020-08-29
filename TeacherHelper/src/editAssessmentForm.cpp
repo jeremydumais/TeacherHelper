@@ -3,6 +3,8 @@
 #include <fmt/format.h>
 
 using namespace std;
+using namespace boost::posix_time;
+using namespace boost::gregorian;
 
 EditAssessmentForm::EditAssessmentForm(QWidget *parent, 
 						   const DatabaseConnection &connection,
@@ -10,6 +12,7 @@ EditAssessmentForm::EditAssessmentForm(QWidget *parent,
 	: QDialog(parent),
 	  ui(Ui::editAssessmentFormClass()),
 	  editMode(editMode),
+	  controller(connection),
 	  testTypeController(connection),
 	  subjectController(connection),
 	  schoolController(connection),
@@ -55,16 +58,16 @@ void EditAssessmentForm::pushButtonOK_Click()
 
 void EditAssessmentForm::saveNewItem() 
 {
-	done(QDialog::DialogCode::Accepted);
-	/*if (controller.insertStudent(Student(ui.lineEditFirstname->text().trimmed().toStdString(),
-											ui.lineEditLastname->text().trimmed().toStdString(),
-											ui.plainTextEditComments->toPlainText().trimmed().toStdString()))) {
-		toggleEditMode(ActionMode::None);
-		refreshItemsTable();
+	if (controller.insertAssessment(Assessment(ui.lineEditName->text().trimmed().toStdString(),
+											*testTypeController.findTestType(ui.comboBoxTestType->currentData().toInt()),
+											*subjectController.findSubject(ui.comboBoxSubject->currentData().toInt()),
+											*classController.findClass(ui.comboBoxClass->currentData().toInt()),
+											getSelectedDateTime()))) {
+		done(QDialog::DialogCode::Accepted);
 	}
 	else {
 		showError(controller.getLastError());
-	}*/
+	}
 }
 
 void EditAssessmentForm::updateExistingItem() 
@@ -106,23 +109,35 @@ bool EditAssessmentForm::validateEntry() const
 		showError("The name must not be greater than 100 characters!");
 		return false;
 	}
-	if (ui.comboBoxTestType->currentData().toInt() < 1) {
+	if (ui.comboBoxTestType->currentData().toInt() < 1 || 
+		testTypeController.findTestType(ui.comboBoxTestType->currentData().toInt()) == nullptr) {
 		showError("The test type is required!");
 		return false;
 	}
-	if (ui.comboBoxSubject->currentData().toInt() < 1) {
+	if (ui.comboBoxSubject->currentData().toInt() < 1 || 
+		subjectController.findSubject(ui.comboBoxSubject->currentData().toInt()) == nullptr) {
 		showError("The subject is required!");
 		return false;
 	}
-	if (ui.comboBoxSchool->currentData().toInt() < 1) {
+	if (ui.comboBoxSchool->currentData().toInt() < 1 || 
+		schoolController.findSchool(ui.comboBoxSchool->currentData().toInt()) == nullptr) {
 		showError("The school is required!");
 		return false;
 	}
-	if (ui.comboBoxClass->currentData().toInt() < 1) {
+	if (ui.comboBoxClass->currentData().toInt() < 1 || 
+		classController.findClass(ui.comboBoxClass->currentData().toInt()) == nullptr) {
 		showError("The class is required!");
 		return false;
 	}
 	return true;
+}
+
+ptime EditAssessmentForm::getSelectedDateTime() const
+{
+	auto selectedDate = ui.dateEditAssessmentDate->date();
+	auto selectedTime = ui.timeEditAssessmentTime->time();
+	return ptime(date(selectedDate.year(), selectedDate.month(), selectedDate.day()),
+				time_duration(selectedTime.hour(), selectedTime.minute(), selectedTime.second()));
 }
 
 void EditAssessmentForm::refreshTestTypeComboBox()
@@ -186,3 +201,4 @@ void EditAssessmentForm::showError(const string &message) const
 	msgBox.setIcon(QMessageBox::Icon::Critical);
 	msgBox.exec();
 }
+

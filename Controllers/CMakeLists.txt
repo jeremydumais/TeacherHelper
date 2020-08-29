@@ -12,7 +12,8 @@ add_library(${PROJECT_NAME} SHARED ${CMAKE_CURRENT_SOURCE_DIR}/src/cityControlle
                                    ${CMAKE_CURRENT_SOURCE_DIR}/src/classController.cpp
                                    ${CMAKE_CURRENT_SOURCE_DIR}/src/testTypeController.cpp
                                    ${CMAKE_CURRENT_SOURCE_DIR}/src/subjectController.cpp
-                                   ${CMAKE_CURRENT_SOURCE_DIR}/src/studentSelectionController.cpp)
+                                   ${CMAKE_CURRENT_SOURCE_DIR}/src/studentSelectionController.cpp
+                                   ${CMAKE_CURRENT_SOURCE_DIR}/src/assessmentController.cpp)
 
 target_compile_definitions(${PROJECT_NAME} PRIVATE CONTROLLERS_EXPORTS)
 set_target_properties(${PROJECT_NAME} PROPERTIES ENABLE_EXPORTS 1)

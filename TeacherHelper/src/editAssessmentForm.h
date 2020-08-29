@@ -4,6 +4,7 @@
 
 #include "databaseConnection.h"
 #include "classController.h"
+#include "assessmentController.h"
 #include "schoolController.h"
 #include "subjectController.h"
 #include "testTypeController.h"
@@ -27,6 +28,7 @@ public:
 private:
 	Ui::editAssessmentFormClass ui;
 	EditAssessmentActionMode editMode;
+	AssessmentController controller;
 	TestTypeController testTypeController;
 	SubjectController subjectController;
 	SchoolController schoolController;
@@ -34,6 +36,7 @@ private:
 	void saveNewItem();
 	void updateExistingItem();
 	bool validateEntry() const;
+	boost::posix_time::ptime getSelectedDateTime() const;
 	void refreshTestTypeComboBox();
 	void refreshSubjectComboBox();
 	void refreshSchoolComboBox();

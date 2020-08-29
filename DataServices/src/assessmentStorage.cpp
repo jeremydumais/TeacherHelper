@@ -47,13 +47,19 @@ const std::string &AssessmentStorage::getLastError() const
 
 bool AssessmentStorage::insertItem(const Assessment &assessment)
 {
-    /*SQLiteInsertOperation operation(*connection, 
-        "INSERT INTO city (name) VALUES(?)",
-        vector<string> { boost::trim_copy(city.getName()) });
+    SQLiteInsertOperation operation(*connection, 
+        "INSERT INTO assessment (name, testType_id, subject_id, class_id, date) "
+        "VALUES(?, ?, ?, ?, ?)",
+        vector<string> { boost::trim_copy(assessment.getName()),
+                         to_string(assessment.getTestType().getId()), 
+                         to_string(assessment.getSubject().getId()), 
+                         to_string(assessment.getClass().getId()), 
+                         
+                       });
     if (!operation.execute()) {
         lastError = operation.getLastError();
         return false;
-    }*/
+    }
     return true;
 }
 
@@ -74,11 +80,12 @@ QueryResult AssessmentStorage::deleteItem(size_t id)
 {
     //Ensure the the record is not user as a foreign key in another table
 
-    SQLiteDeleteOperation operation(*connection, 
+    /*SQLiteDeleteOperation operation(*connection, 
         "DELETE FROM city WHERE id = ?", 
         vector<string> { to_string(id) });
     if (!operation.execute()) {
         lastError = operation.getLastError();
     }
-    return operation.getExtendedResultInfo();
+    return operation.getExtendedResultInfo();*/
+    return QueryResult::ERROR;
 }

@@ -80,17 +80,17 @@
           <item row="5" column="1">
            <layout class="QHBoxLayout" name="horizontalLayout_4">
             <item>
-             <widget class="QDateTimeEdit" name="dateTimeEditAssessmentDate">
-              <property name="displayFormat">
-               <string>yyyy-MM-dd</string>
-              </property>
+             <widget class="QDateEdit" name="dateEditAssessmentDate">
               <property name="calendarPopup">
                <bool>true</bool>
               </property>
              </widget>
             </item>
             <item>
-             <widget class="QTimeEdit" name="timeEdit">
+             <widget class="QTimeEdit" name="timeEditAssessmentTime">
+              <property name="displayFormat">
+               <string>hh:mm</string>
+              </property>
               <property name="calendarPopup">
                <bool>true</bool>
               </property>
@@ -175,6 +175,8 @@
   <tabstop>comboBoxSubject</tabstop>
   <tabstop>comboBoxSchool</tabstop>
   <tabstop>comboBoxClass</tabstop>
+  <tabstop>dateEditAssessmentDate</tabstop>
+  <tabstop>timeEditAssessmentTime</tabstop>
   <tabstop>pushButtonOK</tabstop>
   <tabstop>pushButtonCancel</tabstop>
  </tabstops>
