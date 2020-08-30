@@ -16,12 +16,26 @@ class SQLITEDATETIME_API SQLiteDateTime
 {
 public:
     const boost::posix_time::ptime &getBoostPTime() const;
-	SQLITEDATETIME_API friend bool operator==(const SQLiteDateTime& lhs, const SQLiteDateTime &rhs);
-    SQLITEDATETIME_API friend bool operator!=(const SQLiteDateTime& lhs, const SQLiteDateTime &rhs);
+	std::string toSQLiteString() const;
+    SQLITEDATETIME_API friend bool operator==(const SQLiteDateTime &lhs, const SQLiteDateTime &rhs);
+    SQLITEDATETIME_API friend bool operator!=(const SQLiteDateTime &lhs, const SQLiteDateTime &rhs);
     SQLITEDATETIME_API friend bool operator<(const SQLiteDateTime &lhs, const SQLiteDateTime &rhs);
 	SQLITEDATETIME_API friend bool operator>(const SQLiteDateTime &lhs, const SQLiteDateTime &rhs);
 	SQLITEDATETIME_API friend bool operator<=(const SQLiteDateTime &lhs, const SQLiteDateTime &rhs);
 	SQLITEDATETIME_API friend bool operator>=(const SQLiteDateTime &lhs, const SQLiteDateTime &rhs);
+	
+    SQLITEDATETIME_API friend bool operator==(const SQLiteDateTime &lhs, const boost::posix_time::ptime &rhs);
+    SQLITEDATETIME_API friend bool operator==(const boost::posix_time::ptime &lhs, const SQLiteDateTime &rhs);
+    SQLITEDATETIME_API friend bool operator!=(const SQLiteDateTime &lhs, const boost::posix_time::ptime &rhs);
+    SQLITEDATETIME_API friend bool operator!=(const boost::posix_time::ptime &lhs, const SQLiteDateTime &rhs);
+    SQLITEDATETIME_API friend bool operator<(const SQLiteDateTime &lhs, const boost::posix_time::ptime &rhs);
+    SQLITEDATETIME_API friend bool operator<(const boost::posix_time::ptime &lhs, const SQLiteDateTime &rhs);
+    SQLITEDATETIME_API friend bool operator>(const SQLiteDateTime &lhs, const boost::posix_time::ptime &rhs);
+    SQLITEDATETIME_API friend bool operator>(const boost::posix_time::ptime &lhs, const SQLiteDateTime &rhs);
+    SQLITEDATETIME_API friend bool operator<=(const SQLiteDateTime &lhs, const boost::posix_time::ptime &rhs);
+    SQLITEDATETIME_API friend bool operator<=(const boost::posix_time::ptime &lhs, const SQLiteDateTime &rhs);
+    SQLITEDATETIME_API friend bool operator>=(const SQLiteDateTime &lhs, const boost::posix_time::ptime &rhs);
+    SQLITEDATETIME_API friend bool operator>=(const boost::posix_time::ptime &lhs, const SQLiteDateTime &rhs);
     friend class SQLiteDateTimeFactory;
 private:
     boost::posix_time::ptime datetime;

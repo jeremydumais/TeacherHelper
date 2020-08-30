@@ -21,11 +21,15 @@ class ASSESSMENTSTORAGE_API AssessmentStorage : public IManagementItemStorage<As
 public:
     explicit AssessmentStorage(const DatabaseConnection &connection);
     std::list<Assessment> getAllItems() override;
+    std::list<Assessment> getItemsByClassId(const size_t classId);
+    std::list<Assessment> loadItemsFromDB(const std::string &whereClause = "");
     const std::string &getLastError() const override;
     bool insertItem(const Assessment &assessment) override;
+    size_t retreiveAssignedAssessmentId();
     bool updateItem(const Assessment &assessment) override;
     QueryResult deleteItem(size_t id) override;
 private:
     const DatabaseConnection * const connection;
     std::string lastError;
 };
+

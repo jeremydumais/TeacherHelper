@@ -25,6 +25,7 @@ public:
     const Assessment* findAssessment(size_t id) const;
     const std::string &getLastError() const;
     void loadAssessments();
+    void loadAssessmentsByClass(const size_t classId);
     bool insertAssessment(const Assessment &assessment);
     bool updateAssessment(const Assessment &assessment);
     bool deleteAssessment(size_t id);

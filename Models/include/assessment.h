@@ -37,7 +37,7 @@ public:
     const TestType &getTestType() const;
     const Subject &getSubject() const;
     const Class &getClass() const;
-    const boost::posix_time::ptime &getDate() const;
+    const boost::posix_time::ptime &getDateTime() const;
     const std::vector<AssessmentResult> &getResults() const;
     void setName(const std::string &name);
     void setTestType(const TestType &testType);

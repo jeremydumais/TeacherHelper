@@ -62,7 +62,7 @@ const Class& Assessment::getClass() const
     return itemClass;
 }
 
-const boost::posix_time::ptime& Assessment::getDate() const
+const boost::posix_time::ptime& Assessment::getDateTime() const
 {
     return itemDate;
 }

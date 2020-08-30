@@ -45,7 +45,7 @@ private:
 private slots:
 	void pushButtonOK_Click();
 	void pushButtonCancel_Click();
-	void comboBoxSchool_CurrentIndexChanged(int index);
+	void comboBoxSchool_CurrentIndexChanged();
 };
 
 #endif // EDITASSESSMENTFORM_H

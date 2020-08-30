@@ -65,7 +65,7 @@ TEST(Assessment_Constructor, ValidEntry_ReturnSuccess)
 	ASSERT_EQ("MyClass", assessment.getClass().getName());
 	ASSERT_EQ("Test", assessment.getClass().getSchool().getName());
 	ASSERT_EQ("CityTest", assessment.getClass().getSchool().getCity().getName());
-	ASSERT_EQ(dateExpected, assessment.getDate());
+	ASSERT_EQ(dateExpected, assessment.getDateTime());
 }
 
 TEST(Assessment_ConstructorWithId, EmptyName_ThrowInvalidArgument)
@@ -128,7 +128,7 @@ TEST(Assessment_ConstructorWithId, ValidEntry_ReturnSuccess)
 	ASSERT_EQ("MyClass", assessment.getClass().getName());
 	ASSERT_EQ("Test", assessment.getClass().getSchool().getName());
 	ASSERT_EQ("CityTest", assessment.getClass().getSchool().getCity().getName());
-	ASSERT_EQ(dateExpected, assessment.getDate());
+	ASSERT_EQ(dateExpected, assessment.getDateTime());
 }
 
 TEST(Assessment_getId, WithId1_Return1)
@@ -189,7 +189,7 @@ TEST(Assessment_getDate, With2020Aug24190405_ReturnSameDate)
 			  Subject("History"),
 			  Class("MyClass", School("Test", City("CityTest"))),
 			  dateExpected);
-	ASSERT_EQ(dateExpected, assessment.getDate());
+	ASSERT_EQ(dateExpected, assessment.getDateTime());
 }
 
 /*TEST(Assessment_getResults, WithNoResults_ReturnEmptyVector)
@@ -328,7 +328,7 @@ TEST(Assessment_setDate, WithClassAnotherClass_ReturnSuccess)
 			  Class("MyClass", School("Test", City("CityTest"))),
 			  ptime(date(2020, Aug, 23), time_duration(13, 21, 33)));
 	assessment.setDate(expected);
-	ASSERT_EQ(expected, assessment.getDate());
+	ASSERT_EQ(expected, assessment.getDateTime());
 }
 
 /*

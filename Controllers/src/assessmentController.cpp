@@ -36,9 +36,17 @@ const std::string &AssessmentController::getLastError() const
     return lastError;
 }
 
-void AssessmentController::loadAssessments()
+void AssessmentController::loadAssessments() 
 {
 	assessments = storage->getAllItems();
+}
+
+void AssessmentController::loadAssessmentsByClass(const size_t classId)
+{
+	auto assessmentStorage =  dynamic_cast<AssessmentStorage*>(storage.get());
+    if (assessmentStorage) {
+        assessments = assessmentStorage->getItemsByClassId(classId);
+    }
 }
 
 bool AssessmentController::insertAssessment(const Assessment &assessment)

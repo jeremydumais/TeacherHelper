@@ -23,8 +23,13 @@ bool SQLiteSelectOperation::execute()
                           &stmt, 
                           nullptr);
     if(result != SQLITE_OK) {
-      lastError = string(zErrMsg);
-      sqlite3_free(zErrMsg);
+        if (zErrMsg) {
+            lastError = string(zErrMsg);
+            sqlite3_free(zErrMsg);  
+        } else {
+            lastError = "Unknown error";
+        }
+        return false;
     }
 
     for(int i=1; i<=args.size(); i++) {

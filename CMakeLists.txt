@@ -20,6 +20,7 @@ include(${CMAKE_BINARY_DIR}/conanbuildinfo.cmake)
 conan_basic_setup()
 
 enable_testing()
+include(GoogleTest)
 
 add_subdirectory("Models")
 add_subdirectory("DataServices")

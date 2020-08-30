@@ -12,7 +12,6 @@
 #include <algorithm>
 #include <boost/filesystem.hpp>
 #include <boost/property_tree/ptree.hpp>
-#include <boost/property_tree/json_parser.hpp>
 #include <fmt/format.h>
 #include <QtCore/qfile.h>
 #include <QtWidgets/qmessagebox.h>
@@ -32,20 +31,20 @@ MainForm::MainForm(QWidget *parent)
 {
 	ui.setupUi(this);
 	this->showMaximized();
-    connect(ui.action_Quit, SIGNAL(triggered()), this, SLOT(close()));
-    connect(ui.action_AddAssessment, SIGNAL(triggered()), this, SLOT(action_AddAssessment_Click()));
-    connect(ui.action_Students, SIGNAL(triggered()), this, SLOT(action_StudentsManagement_Click()));
-    connect(ui.action_Schools, SIGNAL(triggered()), this, SLOT(action_SchoolsManagement_Click()));
-    connect(ui.action_Classes, SIGNAL(triggered()), this, SLOT(action_ClassesManagement_Click()));
-    connect(ui.action_Cities, SIGNAL(triggered()), this, SLOT(action_CitiesManagement_Click()));
-    connect(ui.action_TestTypes, SIGNAL(triggered()), this, SLOT(action_TestTypesManagement_Click()));
-    connect(ui.action_Subjects, SIGNAL(triggered()), this, SLOT(action_SubjectsManagement_Click()));
-    connect(ui.action_About, SIGNAL(triggered()), this, SLOT(action_About_Click()));
-    connect(ui.action_LightTheme, SIGNAL(triggered()), this, SLOT(action_LightTheme_Click()));
-    connect(ui.action_DarkTheme, SIGNAL(triggered()), this, SLOT(action_DarkTheme_Click()));
-    connect(ui.toolButtonExpandAll, SIGNAL(clicked()), this, SLOT(toolButtonExpandAll_Click()));
-    connect(ui.toolButtonCollapseAll, SIGNAL(clicked()), this, SLOT(toolButtonCollapseAll_Click()));
-
+	connect(ui.action_Quit, &QAction::triggered, this, &MainForm::close);
+	connect(ui.action_AddAssessment, &QAction::triggered, this, &MainForm::action_AddAssessment_Click);
+	connect(ui.action_Students, &QAction::triggered, this, &MainForm::action_StudentsManagement_Click);
+	connect(ui.action_Schools, &QAction::triggered, this, &MainForm::action_SchoolsManagement_Click);
+	connect(ui.action_Classes, &QAction::triggered, this, &MainForm::action_ClassesManagement_Click);
+	connect(ui.action_Cities, &QAction::triggered, this, &MainForm::action_CitiesManagement_Click);
+	connect(ui.action_TestTypes, &QAction::triggered, this, &MainForm::action_TestTypesManagement_Click);
+	connect(ui.action_Subjects, &QAction::triggered, this, &MainForm::action_SubjectsManagement_Click);
+	connect(ui.action_About, &QAction::triggered, this, &MainForm::action_About_Click);
+	connect(ui.action_LightTheme, &QAction::triggered, this, &MainForm::action_LightTheme_Click);
+	connect(ui.action_DarkTheme, &QAction::triggered, this, &MainForm::action_DarkTheme_Click);
+	connect(ui.toolButtonExpandAll, &QToolButton::clicked, this, &MainForm::toolButtonExpandAll_Click);
+	connect(ui.toolButtonCollapseAll, &QToolButton::clicked, this, &MainForm::toolButtonCollapseAll_Click);
+	connect(ui.treeWidgetSchoolClassNav, &QTreeWidget::currentItemChanged, this, &MainForm::treeWidgetSchoolClassNav_currentItemChanged);
 	//Check if the user configuration folder exist
 	userConfigFolder = SpecialFolders::getUserConfigDirectory();
 	if (!boost::filesystem::exists(userConfigFolder)) {
@@ -91,6 +90,13 @@ MainForm::MainForm(QWidget *parent)
 	   exit(1);
 	}
 
+	ui.tableWidgetAssessments->setHorizontalHeaderItem(0, new QTableWidgetItem("Id"));
+	ui.tableWidgetAssessments->setHorizontalHeaderItem(1, new QTableWidgetItem("Date"));
+	ui.tableWidgetAssessments->setHorizontalHeaderItem(2, new QTableWidgetItem("Name"));
+	ui.tableWidgetAssessments->setHorizontalHeaderItem(3, new QTableWidgetItem("Test type"));
+	ui.tableWidgetAssessments->setHorizontalHeaderItem(4, new QTableWidgetItem("Subject"));
+	ui.tableWidgetAssessments->setColumnHidden(0, true);
+
 	loadControllers();
 	refreshTreeViewTestNavigation();
 }
@@ -122,6 +128,7 @@ void MainForm::action_AddAssessment_Click()
 	EditAssessmentForm formEditAssessment(this, *dbConnection, EditAssessmentActionMode::Add);
 	if (formEditAssessment.exec() == QDialog::DialogCode::Accepted) {
 		//Refresh the navigation and test list
+		refreshTreeViewTestNavigation();
 	}
 }
 	
@@ -251,6 +258,12 @@ void MainForm::setAppStylesheet(const std::string &style)
 
 void MainForm::loadControllers() 
 {
+	assessmentController = make_unique<AssessmentController>(*dbConnection);
+	if (!assessmentController) {
+		showErrorMessage("Can't create the assessment controller", "");
+	   	exit(1);
+	}
+
 	schoolController = make_unique<SchoolController>(*dbConnection);
 	if (schoolController) {
 		schoolController->loadSchools();
@@ -289,7 +302,7 @@ void MainForm::refreshTreeViewTestNavigation()
 	}
 	ui.treeWidgetSchoolClassNav->setColumnHidden(1, true);
 	ui.treeWidgetSchoolClassNav->insertTopLevelItems(0, items);
-	ui.tableWidgetAssessments->clear();
+	ui.tableWidgetAssessments->model()->removeRows(0, ui.tableWidgetAssessments->rowCount());
 }
 
 void MainForm::toolButtonExpandAll_Click() 
@@ -300,4 +313,25 @@ void MainForm::toolButtonExpandAll_Click()
 void MainForm::toolButtonCollapseAll_Click() 
 {
 	ui.treeWidgetSchoolClassNav->collapseAll();
+}
+
+void MainForm::treeWidgetSchoolClassNav_currentItemChanged(QTreeWidgetItem *current) 
+{
+	if (current != nullptr && current->parent() != nullptr) {
+		//Retreive selected class id
+		size_t classId = current->data(1, 0).toUInt();
+		//Load the class assessments
+		assessmentController->loadAssessmentsByClass(classId);
+		ui.tableWidgetAssessments->model()->removeRows(0, ui.tableWidgetAssessments->rowCount());
+		size_t row {0};
+		for(const auto &assessment : assessmentController->getAssessments()) {
+			ui.tableWidgetAssessments->insertRow(row);
+			ui.tableWidgetAssessments->setItem(row, 0, new QTableWidgetItem(to_string(assessment.getId()).c_str()));
+			ui.tableWidgetAssessments->setItem(row, 1, new QTableWidgetItem(to_simple_string(assessment.getDateTime()).c_str()));
+			ui.tableWidgetAssessments->setItem(row, 2, new QTableWidgetItem(assessment.getName().c_str()));
+			ui.tableWidgetAssessments->setItem(row, 3, new QTableWidgetItem(assessment.getTestType().getName().c_str()));
+			ui.tableWidgetAssessments->setItem(row, 4, new QTableWidgetItem(assessment.getSubject().getName().c_str()));
+			row++;
+		}
+	}
 }

@@ -22,7 +22,7 @@ EditAssessmentForm::EditAssessmentForm(QWidget *parent,
 	ui.setupUi(this);
 	connect(ui.pushButtonOK, SIGNAL(clicked()), this, SLOT(pushButtonOK_Click()));
 	connect(ui.pushButtonCancel, SIGNAL(clicked()), this, SLOT(pushButtonCancel_Click()));
-	connect(ui.comboBoxSchool, SIGNAL(currentIndexChanged(int)), this, SLOT(comboBoxSchool_CurrentIndexChanged(int)));
+	connect(ui.comboBoxSchool, SIGNAL(currentIndexChanged(int)), this, SLOT(comboBoxSchool_CurrentIndexChanged()));
 
 	if (this->editMode == EditAssessmentActionMode::Add) {
 		this->setWindowTitle("Create an assessment");
@@ -182,7 +182,7 @@ void EditAssessmentForm::refreshClassComboBox(const School &school)
 	}
 }
 
-void EditAssessmentForm::comboBoxSchool_CurrentIndexChanged(int index) 
+void EditAssessmentForm::comboBoxSchool_CurrentIndexChanged() 
 {
 	//Find the selected school
 	if (ui.comboBoxSchool->currentData().toInt() >= 1) {

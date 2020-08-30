@@ -16,4 +16,4 @@ add_executable(${PROJECT_UNITTEST_NAME} ${INCLUDE_PATH}
   ${CMAKE_CURRENT_SOURCE_DIR}/assessment_unittest.cpp)
 
 target_link_libraries(${PROJECT_UNITTEST_NAME} PRIVATE Models ${CONAN_LIBS})
-add_test(${PROJECT_UNITTEST_NAME} ${CMAKE_BINARY_DIR}/bin/${PROJECT_UNITTEST_NAME})
+gtest_discover_tests(${PROJECT_UNITTEST_NAME})

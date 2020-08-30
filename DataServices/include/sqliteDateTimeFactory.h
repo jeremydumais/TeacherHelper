@@ -16,4 +16,5 @@ class SQLITEDATETIMEFACTORY_API SQLiteDateTimeFactory
 {
 public:
     static SQLiteDateTime NewDateTimeFromPTime(const boost::posix_time::ptime &datetime);
+    static SQLiteDateTime NewDateTimeFromISOExtended(const std::string &textDateTime);
 };

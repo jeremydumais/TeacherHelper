@@ -3,6 +3,7 @@
 
 #include "databaseConnection.h"
 #include "ui_mainForm.h"
+#include "assessmentController.h"
 #include "schoolController.h"
 #include "classController.h"
 #include <memory>
@@ -19,6 +20,7 @@ public:
 private:
 	Ui::MainForm ui;
 	DatabaseConnection *dbConnection;
+	std::unique_ptr<AssessmentController> assessmentController;
 	std::unique_ptr<SchoolController> schoolController;
 	std::unique_ptr<ClassController> classController;
 	std::string userConfigFolder;
@@ -41,6 +43,7 @@ private slots:
 	void action_DarkTheme_Click();
 	void toolButtonExpandAll_Click();
 	void toolButtonCollapseAll_Click();
+	void treeWidgetSchoolClassNav_currentItemChanged(QTreeWidgetItem *current);
 };
 
 #endif // MAINFORM_H

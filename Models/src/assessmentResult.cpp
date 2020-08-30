@@ -41,7 +41,7 @@ const Student& AssessmentResult::getStudent() const
     return student;
 }
 
-const float AssessmentResult::getResult() const
+float AssessmentResult::getResult() const
 {
     return result;
 }
