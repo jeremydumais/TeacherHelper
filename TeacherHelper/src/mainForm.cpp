@@ -45,6 +45,14 @@ MainForm::MainForm(QWidget *parent)
 	connect(ui.toolButtonExpandAll, &QToolButton::clicked, this, &MainForm::toolButtonExpandAll_Click);
 	connect(ui.toolButtonCollapseAll, &QToolButton::clicked, this, &MainForm::toolButtonCollapseAll_Click);
 	connect(ui.treeWidgetSchoolClassNav, &QTreeWidget::currentItemChanged, this, &MainForm::treeWidgetSchoolClassNav_currentItemChanged);
+
+	ui.tableWidgetAssessments->setHorizontalHeaderItem(0, new QTableWidgetItem("Id"));
+	ui.tableWidgetAssessments->setHorizontalHeaderItem(1, new QTableWidgetItem("Date"));
+	ui.tableWidgetAssessments->setHorizontalHeaderItem(2, new QTableWidgetItem("Name"));
+	ui.tableWidgetAssessments->setHorizontalHeaderItem(3, new QTableWidgetItem("Test type"));
+	ui.tableWidgetAssessments->setHorizontalHeaderItem(4, new QTableWidgetItem("Subject"));
+	ui.tableWidgetAssessments->setColumnHidden(0, true);
+
 	//Check if the user configuration folder exist
 	userConfigFolder = SpecialFolders::getUserConfigDirectory();
 	if (!boost::filesystem::exists(userConfigFolder)) {
@@ -89,13 +97,6 @@ MainForm::MainForm(QWidget *parent)
 	   showErrorMessage("Can't open database", err.what());
 	   exit(1);
 	}
-
-	ui.tableWidgetAssessments->setHorizontalHeaderItem(0, new QTableWidgetItem("Id"));
-	ui.tableWidgetAssessments->setHorizontalHeaderItem(1, new QTableWidgetItem("Date"));
-	ui.tableWidgetAssessments->setHorizontalHeaderItem(2, new QTableWidgetItem("Name"));
-	ui.tableWidgetAssessments->setHorizontalHeaderItem(3, new QTableWidgetItem("Test type"));
-	ui.tableWidgetAssessments->setHorizontalHeaderItem(4, new QTableWidgetItem("Subject"));
-	ui.tableWidgetAssessments->setColumnHidden(0, true);
 
 	loadControllers();
 	refreshTreeViewTestNavigation();

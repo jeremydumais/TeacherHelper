@@ -81,6 +81,9 @@
            <layout class="QHBoxLayout" name="horizontalLayout_4">
             <item>
              <widget class="QDateEdit" name="dateEditAssessmentDate">
+              <property name="displayFormat">
+               <string>yyyy-MM-dd</string>
+              </property>
               <property name="calendarPopup">
                <bool>true</bool>
               </property>

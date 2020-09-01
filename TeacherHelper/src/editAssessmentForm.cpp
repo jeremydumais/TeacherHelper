@@ -26,6 +26,8 @@ EditAssessmentForm::EditAssessmentForm(QWidget *parent,
 
 	if (this->editMode == EditAssessmentActionMode::Add) {
 		this->setWindowTitle("Create an assessment");
+		ui.dateEditAssessmentDate->setDate(QDate::currentDate());
+		ui.timeEditAssessmentTime->setTime(QTime(QTime::currentTime().hour(), 0));
 	}
 	else {
 		this->setWindowTitle("Edit assessment");
