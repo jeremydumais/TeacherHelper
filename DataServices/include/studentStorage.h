@@ -2,8 +2,10 @@
 
 #include "databaseConnection.h"
 #include "IManagementItemStorage.h"
+#include "IStorageOperationFactory.h"
 #include "student.h"
 #include <list>
+#include <memory>
 
 #ifdef _WIN32
     #ifdef DATASERVICES_EXPORTS  
@@ -18,7 +20,8 @@
 class STUDENTSTORAGE_API StudentStorage : public IManagementItemStorage<Student>
 {
 public:
-    explicit StudentStorage(const DatabaseConnection &connection);
+    explicit StudentStorage(const DatabaseConnection &connection, 
+                            const std::unique_ptr<IStorageOperationFactory> operationFactory = nullptr);
     std::list<Student> getAllItems() override;
     const std::string &getLastError() const override;
     bool insertItem(const Student &student) override;
@@ -27,4 +30,5 @@ public:
 private:
     const DatabaseConnection * const connection;
     std::string lastError;
+    std::unique_ptr<IStorageOperationFactory> operationFactory;
 };

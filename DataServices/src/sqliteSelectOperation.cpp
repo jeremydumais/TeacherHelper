@@ -6,7 +6,7 @@ using namespace std;
 SQLiteSelectOperation::SQLiteSelectOperation(const DatabaseConnection &connection, 
                                              const std::string &query,
                                              const vector<string> &args)
-    : OperationBase(connection, query, args),
+    : IStorageSelectOperation(connection, query, args),
       stmt(nullptr)
 {
 }
@@ -45,8 +45,30 @@ bool SQLiteSelectOperation::execute()
     return true;
 }
 
+void SQLiteSelectOperation::close() 
+{
+    sqlite3_finalize(stmt);
+}
+
 sqlite3_stmt *SQLiteSelectOperation::getStatement() const
 {
     return stmt;
 }
+
+bool SQLiteSelectOperation::getRow()
+{
+    return sqlite3_step(stmt) == SQLITE_ROW;
+}
+
+int SQLiteSelectOperation::getIntValue(int columnNumber) const
+{
+    return sqlite3_column_int(stmt, columnNumber);
+}
+
+std::string SQLiteSelectOperation::getStringValue(int columnNumber) const
+{
+    return reinterpret_cast<const char *>(sqlite3_column_text(stmt, columnNumber));
+}
+
+
 

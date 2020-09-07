@@ -1,4 +1,4 @@
-#include "cityStorage.h"
+#include "schoolStorage.h"
 #include "IStorageOperationFactory.h"
 #include "IStorageUpdateOperation.h"
 #include "FakeDeleteOperation.h"
@@ -10,84 +10,84 @@
 
 using namespace std;
 
-TEST(CityStorage_getAllItems, NoError_ReturnListCities)
+TEST(SchoolStorage_getAllItems, NoError_ReturnListSchools)
 {
     auto factory { make_unique<FakeOperationFactory>( vector<FakeOperationResult> { 
         FakeOperationResultFactory::createNewSelectResult(true, "", 2)
     }) };
-    CityStorage storage(DatabaseConnection("fake"), move(factory));
+    SchoolStorage storage(DatabaseConnection("fake"), move(factory));
     ASSERT_EQ(2, storage.getAllItems().size());
 }
 
-TEST(CityStorage_getAllItems, Error_ReturnEmptyList)
+TEST(SchoolStorage_getAllItems, Error_ReturnEmptyList)
 {
     auto factory { make_unique<FakeOperationFactory>( vector<FakeOperationResult> { 
         FakeOperationResultFactory::createNewSelectResult(false, "An error occurred while doing the select operation")
     }) };
-    CityStorage storage(DatabaseConnection("fake"), move(factory));
+    SchoolStorage storage(DatabaseConnection("fake"), move(factory));
    
     ASSERT_EQ(0, storage.getAllItems().size());
     ASSERT_EQ("An error occurred while doing the select operation", storage.getLastError());
 }
 
-TEST(CityStorage_insertItem, ValidInsert_ReturnTrue)
+TEST(SchoolStorage_insertItem, ValidInsert_ReturnTrue)
 {
     auto factory { make_unique<FakeOperationFactory>( vector<FakeOperationResult> { 
         FakeOperationResultFactory::createNewInsertResult(true)
     }) };
-    CityStorage storage(DatabaseConnection("fake"), move(factory));
+    SchoolStorage storage(DatabaseConnection("fake"), move(factory));
 
-    ASSERT_TRUE(storage.insertItem(City("New York")));
+    ASSERT_TRUE(storage.insertItem(School("First grade", City("New York"))));
 }
 
-TEST(CityStorage_insertItem, FailedInsert_ReturnFalse)
+TEST(SchoolStorage_insertItem, FailedInsert_ReturnFalse)
 {
     auto factory { make_unique<FakeOperationFactory>( vector<FakeOperationResult> { 
         FakeOperationResultFactory::createNewInsertResult(false, "Error during the insert operation")
     }) };
-    CityStorage storage(DatabaseConnection("fake"), move(factory));
+    SchoolStorage storage(DatabaseConnection("fake"), move(factory));
 
-    ASSERT_FALSE(storage.insertItem(City("New York")));
+    ASSERT_FALSE(storage.insertItem(School("First grade", City("New York"))));
     ASSERT_EQ("Error during the insert operation", storage.getLastError());
 }
 
-TEST(CityStorage_updateItem, ValidUpdate_ReturnTrue)
+TEST(SchoolStorage_updateItem, ValidUpdate_ReturnTrue)
 {
     auto factory { make_unique<FakeOperationFactory>( vector<FakeOperationResult> { 
         FakeOperationResultFactory::createNewUpdateResult(true)
     }) };
-    CityStorage storage(DatabaseConnection("fake"), move(factory));
+    SchoolStorage storage(DatabaseConnection("fake"), move(factory));
 
-    ASSERT_TRUE(storage.updateItem(City("New York")));
+    ASSERT_TRUE(storage.updateItem(School("First grade", City("New York"))));
 }
 
-TEST(CityStorage_updateItem, FailedUpdate_ReturnFalse)
+TEST(SchoolStorage_updateItem, FailedUpdate_ReturnFalse)
 {
     auto factory { make_unique<FakeOperationFactory>( vector<FakeOperationResult> { 
         FakeOperationResultFactory::createNewUpdateResult(false, "Error during the update operation")
     }) };
-    CityStorage storage(DatabaseConnection("fake"), move(factory));
+    SchoolStorage storage(DatabaseConnection("fake"), move(factory));
 
-    ASSERT_FALSE(storage.updateItem(City("New York")));
+    ASSERT_FALSE(storage.updateItem(School("First grade", City("New York"))));
     ASSERT_EQ("Error during the update operation", storage.getLastError());
 }
 
-TEST(CityStorage_deleteItem, ValidDelete_ReturnTrue)
+TEST(SchoolStorage_deleteItem, ValidDelete_ReturnTrue)
 {
     auto factory { make_unique<FakeOperationFactory>( vector<FakeOperationResult> { 
         FakeOperationResultFactory::createNewDeleteResult(true)
     }) };
-    CityStorage storage(DatabaseConnection("fake"), move(factory));
+    SchoolStorage storage(DatabaseConnection("fake"), move(factory));
 
     ASSERT_EQ(QueryResult::OK, storage.deleteItem(1));
 }
 
-TEST(CityStorage_deleteItem, FailedDelete_ReturnFalse)
+TEST(SchoolStorage_deleteItem, FailedDelete_ReturnFalse)
 {
     auto factory { make_unique<FakeOperationFactory>( vector<FakeOperationResult> { 
         FakeOperationResultFactory::createNewDeleteResult(false, "Constraint error during the delete operation", QueryResult::CONSTRAINTERROR)
     }) };
-    CityStorage storage(DatabaseConnection("fake"), move(factory));
+    SchoolStorage storage(DatabaseConnection("fake"), move(factory));
 
     ASSERT_EQ(QueryResult::CONSTRAINTERROR, storage.deleteItem(1));
     ASSERT_EQ("Constraint error during the delete operation", storage.getLastError());

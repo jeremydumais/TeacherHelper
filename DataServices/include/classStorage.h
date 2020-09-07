@@ -2,9 +2,11 @@
 
 #include "databaseConnection.h"
 #include "IManagementItemStorage.h"
+#include "IStorageOperationFactory.h"
 #include "class.h"
 #include <list>
 #include <map>
+#include <memory>
 #include <vector>
 
 #ifdef _WIN32
@@ -20,7 +22,8 @@
 class CLASSSTORAGE_API ClassStorage : public IManagementItemStorage<Class>
 {
 public:
-    explicit ClassStorage(const DatabaseConnection &connection);
+    explicit ClassStorage(const DatabaseConnection &connection, 
+                          const std::unique_ptr<IStorageOperationFactory> operationFactory = nullptr);
     std::list<Class> getAllItems() override;
     const std::string &getLastError() const override;
     bool insertItem(const Class &p_class) override;
@@ -34,4 +37,5 @@ private:
     bool removeMembers(size_t classId,  const std::vector<size_t> &studentIdToRemove);
     std::multimap<size_t, Student> loadAllMembers();
     std::list<Student> loadClassMembers(size_t classId);
+    std::unique_ptr<IStorageOperationFactory> operationFactory;
 };

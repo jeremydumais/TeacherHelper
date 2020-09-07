@@ -6,7 +6,7 @@ using namespace std;
 SQLiteInsertOperation::SQLiteInsertOperation(const DatabaseConnection &connection, 
                                              const std::string &query,
                                              const vector<string> &args)
-    : OperationBase(connection, query, args)
+    : IStorageInsertOperation(connection, query, args)
 {
 }
 

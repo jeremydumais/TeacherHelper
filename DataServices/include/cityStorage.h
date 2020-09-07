@@ -4,8 +4,6 @@
 #include "databaseConnection.h"
 #include "IManagementItemStorage.h"
 #include "IStorageOperationFactory.h"
-#include "IStorageUpdateOperation.h"
-#include "sqliteDeleteOperation.h"
 #include <list>
 #include <memory>
 
@@ -22,7 +20,8 @@
 class CITYSTORAGE_API CityStorage : public IManagementItemStorage<City>
 {
 public:
-    explicit CityStorage(const DatabaseConnection &connection, const std::unique_ptr<IStorageOperationFactory> operationFactory = nullptr);
+    explicit CityStorage(const DatabaseConnection &connection, 
+                         const std::unique_ptr<IStorageOperationFactory> operationFactory = nullptr);
     std::list<City> getAllItems() override;
     const std::string &getLastError() const override;
     bool insertItem(const City &city) override;
