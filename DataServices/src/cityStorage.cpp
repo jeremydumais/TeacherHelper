@@ -3,6 +3,7 @@
 #include "sqliteSelectOperation.h"
 #include "sqliteUpdateOperation.h"
 #include "sqliteDeleteOperation.h"
+#include "sqliteOperationFactory.h"
 #include <boost/algorithm/string.hpp>
 #include <iostream>
 #include <sqlite3.h>
@@ -11,9 +12,13 @@
 
 using namespace std;
 
-CityStorage::CityStorage(const DatabaseConnection &connection)
+CityStorage::CityStorage(const DatabaseConnection &connection, 
+                         unique_ptr<IStorageOperationFactory> operationFactory)
     : connection(&connection),
-      lastError("")
+      lastError(""),
+      operationFactory { operationFactory ? 
+                         move(operationFactory) : 
+                         make_unique<SQLiteOperationFactory>()}
 {
 }
 
@@ -59,12 +64,12 @@ bool CityStorage::insertItem(const City &city)
 
 bool CityStorage::updateItem(const City &city)
 {
-    SQLiteUpdateOperation operation(*connection, 
+    auto operation = operationFactory->createUpateOperation(*connection, 
         "UPDATE city SET name = ? WHERE id = ?",
         vector<string> { boost::trim_copy(city.getName()),
             to_string(city.getId()) });
-    if (!operation.execute()) {
-        lastError = operation.getLastError();
+    if (!operation->execute()) {
+        lastError = operation->getLastError();
         return false;
     }
     return true;

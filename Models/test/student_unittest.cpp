@@ -260,7 +260,8 @@ TEST(Student_setLastName, LastNameGreaterThenLimit_ThrowInvalidArgument)
 TEST(Student_setComments, WithCommentsTest_ReturnTest)
 {
 	Student student("Joe", "Blow", "Test");
-	ASSERT_EQ("Test", student.getComments());
+	student.setComments("Another test");
+	ASSERT_EQ("Another test", student.getComments());
 }
 
 TEST(Student_setComments, CommentsGreaterThenLimit_ThrowInvalidArgument)

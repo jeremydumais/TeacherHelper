@@ -12,6 +12,7 @@ add_library(${PROJECT_NAME} SHARED src/databaseConnection.cpp
                                    src/sqliteDeleteOperation.cpp
                                    src/sqliteDDLOperation.cpp
                                    src/studentStorage.cpp
+                                   src/sqliteOperationFactory.cpp
                                    src/schoolStorage.cpp
                                    src/classStorage.cpp
                                    src/cityStorage.cpp
@@ -22,6 +23,7 @@ add_library(${PROJECT_NAME} SHARED src/databaseConnection.cpp
                                    src/assessmentStorage.cpp)
 target_compile_definitions(${PROJECT_NAME} PRIVATE DATASERVICES_EXPORTS)
 set_target_properties(${PROJECT_NAME} PROPERTIES ENABLE_EXPORTS 1)
+
 target_link_libraries(${PROJECT_NAME} Models ${CONAN_LIBS})
 set_target_properties(
   ${PROJECT_NAME} PROPERTIES

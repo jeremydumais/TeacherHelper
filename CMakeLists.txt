@@ -21,7 +21,7 @@ set(CMAKE_CXX_STANDARD 14)
 include(${CMAKE_BINARY_DIR}/conanbuildinfo.cmake)
 conan_basic_setup()
 
-if (${CODE_COVERAGE} )
+if (${CODE_COVERAGE})
     include(CodeCoverage)
     append_coverage_compiler_flags()
 endif()

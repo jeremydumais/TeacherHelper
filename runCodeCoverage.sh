@@ -9,4 +9,4 @@ lcov -r main_coverage.info "*boost*" -o main_coverage.info
 lcov -r main_coverage.info "*gtest*" -o main_coverage.info
 
 genhtml main_coverage.info --output-directory out
-xdg-open out/index.html
+#xdg-open out/index.html

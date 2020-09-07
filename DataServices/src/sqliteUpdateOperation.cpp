@@ -6,7 +6,7 @@ using namespace std;
 SQLiteUpdateOperation::SQLiteUpdateOperation(const DatabaseConnection &connection, 
                                              const string &query,
                                              const vector<string> &args)
-    : OperationBase(connection, query, args)
+    : IStorageUpdateOperation(connection, query, args)
 {
 }
 

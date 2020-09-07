@@ -14,22 +14,32 @@ public:
 		}) {}
     std::list<City> getAllItems() override { return cities;	}
     const std::string &getLastError() const override { return lastError; }
-    bool insertItem(const City &city) override { return true; }
-    bool updateItem(const City &city) override { return true; }
-    QueryResult deleteItem(size_t id) override { return QueryResult::OK; }
+    bool insertItem(const City &city) override { return insertResult; }
+    bool updateItem(const City &city) override { return updateResult; }
+    QueryResult deleteItem(size_t id) override { return deleteResult; }
+	bool insertResult = true;
+	bool updateResult = true;
+	QueryResult deleteResult = QueryResult::OK;
+    std::string lastError;
 private:
 	std::list<City> cities;
-    std::string lastError;
 };
 
 class CityControllerTest : public ::testing::Test
 {
 public:
-	CityControllerTest()
-	  : controller(DatabaseConnection("nulldb"), 
-				   unique_ptr<IManagementItemStorage<City>>(make_unique<FakeCityStorage>()))
+	CityControllerTest() 
+		: fakeStorage { make_unique<FakeCityStorage>()}
 	{}
-	CityController controller;
+
+	void prepareController()
+	{
+		controller = make_unique<CityController>(DatabaseConnection("nulldb"), 
+												 std::move(fakeStorage));
+	}
+
+	unique_ptr<IManagementItemStorage<City>> fakeStorage;								 
+	unique_ptr<CityController> controller;
 };
 
 TEST(CityController_Constructor, ValidArguments_ReturnSuccess)
@@ -39,10 +49,11 @@ TEST(CityController_Constructor, ValidArguments_ReturnSuccess)
 
 TEST_F(CityControllerTest, getCities_Return2Cities)
 {
-	controller.loadCities();
-	ASSERT_EQ(2, controller.getCities().size());
+	this->prepareController();
+	controller->loadCities();
+	ASSERT_EQ(2, controller->getCities().size());
 	size_t index {0};
-	for(const auto &city : controller.getCities()) {
+	for(const auto &city : controller->getCities()) {
 		if (index == 0) {
 			ASSERT_EQ("New York", city.getName());
 		}
@@ -55,135 +66,218 @@ TEST_F(CityControllerTest, getCities_Return2Cities)
 
 TEST_F(CityControllerTest, findCity_WithIdZero_ReturnNullPtr) 
 {
-	controller.loadCities();
-	ASSERT_EQ(nullptr, controller.findCity(0));
+	this->prepareController();
+	controller->loadCities();
+	ASSERT_EQ(nullptr, controller->findCity(0));
 }
 
 TEST_F(CityControllerTest, findCity_WithIdOne_ReturnNewYork) 
 {
-	controller.loadCities();
-	ASSERT_NE(nullptr, controller.findCity(1));
-	ASSERT_EQ("New York", controller.findCity(1)->getName());
+	this->prepareController();
+	controller->loadCities();
+	ASSERT_NE(nullptr, controller->findCity(1));
+	ASSERT_EQ("New York", controller->findCity(1)->getName());
 }
 
 TEST_F(CityControllerTest, findCity_WithIdTwo_ReturnLosAngeles) 
 {
-	controller.loadCities();
-	ASSERT_NE(nullptr, controller.findCity(2));
-	ASSERT_EQ("Los Angeles", controller.findCity(2)->getName());
+	this->prepareController();
+	controller->loadCities();
+	ASSERT_NE(nullptr, controller->findCity(2));
+	ASSERT_EQ("Los Angeles", controller->findCity(2)->getName());
 }
 
 TEST_F(CityControllerTest, isNewNameAvailableForAdd_WithNonExistantName_ReturnTrue)
 {
-	controller.loadCities();
-	ASSERT_TRUE(controller.isNewNameAvailableForAdd("Chicago"));
+	this->prepareController();
+	controller->loadCities();
+	ASSERT_TRUE(controller->isNewNameAvailableForAdd("Chicago"));
 }
 
 TEST_F(CityControllerTest, isNewNameAvailableForAdd_WithExistantName_ReturnFalse)
 {
-	controller.loadCities();
-	ASSERT_FALSE(controller.isNewNameAvailableForAdd("New York"));
+	this->prepareController();
+	controller->loadCities();
+	ASSERT_FALSE(controller->isNewNameAvailableForAdd("New York"));
 }
 
 TEST_F(CityControllerTest, isNewNameAvailableForAdd_WithExistantNameDifferentCase_ReturnFalse)
 {
-	controller.loadCities();
-	ASSERT_FALSE(controller.isNewNameAvailableForAdd("NEW YoRk"));
+	this->prepareController();
+	controller->loadCities();
+	ASSERT_FALSE(controller->isNewNameAvailableForAdd("NEW YoRk"));
 }
 
 TEST_F(CityControllerTest, isNewNameAvailableForAdd_WithExistantNameBeginWithSpaces_ReturnFalse)
 {
-	controller.loadCities();
-	ASSERT_FALSE(controller.isNewNameAvailableForAdd("   New York"));
+	this->prepareController();
+	controller->loadCities();
+	ASSERT_FALSE(controller->isNewNameAvailableForAdd("   New York"));
 }
 
 TEST_F(CityControllerTest, isNewNameAvailableForAdd_WithExistantNameEndWithSpaces_ReturnFalse)
 {
-	controller.loadCities();
-	ASSERT_FALSE(controller.isNewNameAvailableForAdd("New York   "));
+	this->prepareController();
+	controller->loadCities();
+	ASSERT_FALSE(controller->isNewNameAvailableForAdd("New York   "));
 }
 
 TEST_F(CityControllerTest, isNewNameAvailableForAdd_WithExistantNameBeginAndEndWithSpaces_ReturnFalse)
 {
-	controller.loadCities();
-	ASSERT_FALSE(controller.isNewNameAvailableForAdd("   New York   "));
+	this->prepareController();
+	controller->loadCities();
+	ASSERT_FALSE(controller->isNewNameAvailableForAdd("   New York   "));
 }
 
 TEST_F(CityControllerTest, isNewNameAvailableForAdd_WithEmpty_ReturnFalse)
 {
-	controller.loadCities();
-	ASSERT_FALSE(controller.isNewNameAvailableForAdd(""));
+	this->prepareController();
+	controller->loadCities();
+	ASSERT_FALSE(controller->isNewNameAvailableForAdd(""));
 }
 
 TEST_F(CityControllerTest, isNewNameAvailableForAdd_WithOnlySpaces_ReturnFalse)
 {
-	controller.loadCities();
-	ASSERT_FALSE(controller.isNewNameAvailableForAdd("   "));
+	this->prepareController();
+	controller->loadCities();
+	ASSERT_FALSE(controller->isNewNameAvailableForAdd("   "));
 }
 
 TEST_F(CityControllerTest, isNewNameAvailableForUpdate_WithNonExistantName_ReturnTrue)
 {
-	controller.loadCities();
-	ASSERT_TRUE(controller.isNewNameAvailableForUpdate("Chicago", 1));
+	this->prepareController();
+	controller->loadCities();
+	ASSERT_TRUE(controller->isNewNameAvailableForUpdate("Chicago", 1));
 }
 
 TEST_F(CityControllerTest, isNewNameAvailableForUpdate_WithExistantNameButSameRecord_ReturnTrue)
 {
-	controller.loadCities();
-	ASSERT_TRUE(controller.isNewNameAvailableForUpdate("New York", 1));
+	this->prepareController();
+	controller->loadCities();
+	ASSERT_TRUE(controller->isNewNameAvailableForUpdate("New York", 1));
 }
 
 TEST_F(CityControllerTest, isNewNameAvailableForUpdate_WithExistantNameButDifferentRecord_ReturnFalse)
 {
-	controller.loadCities();
-	ASSERT_FALSE(controller.isNewNameAvailableForUpdate("New York", 2));
+	this->prepareController();
+	controller->loadCities();
+	ASSERT_FALSE(controller->isNewNameAvailableForUpdate("New York", 2));
 }
 
 TEST_F(CityControllerTest, isNewNameAvailableForUpdate_WithExistantNameDifferentCaseDifferentRecord_ReturnFalse)
 {
-	controller.loadCities();
-	ASSERT_FALSE(controller.isNewNameAvailableForUpdate("NEW YoRk", 2));
+	this->prepareController();
+	controller->loadCities();
+	ASSERT_FALSE(controller->isNewNameAvailableForUpdate("NEW YoRk", 2));
 }
 
 TEST_F(CityControllerTest, isNewNameAvailableForUpdate_WithExistantNameDifferentCaseSameRecord_ReturnTrue)
 {
-	controller.loadCities();
-	ASSERT_TRUE(controller.isNewNameAvailableForUpdate("NEW YoRk", 1));
+	this->prepareController();
+	controller->loadCities();
+	ASSERT_TRUE(controller->isNewNameAvailableForUpdate("NEW YoRk", 1));
 }
 
 TEST_F(CityControllerTest, isNewNameAvailableForUpdate_WithExistantNameBeginWithSpacesDifferentRecord_ReturnFalse)
 {
-	controller.loadCities();
-	ASSERT_FALSE(controller.isNewNameAvailableForUpdate("   New York", 2));
+	this->prepareController();
+	controller->loadCities();
+	ASSERT_FALSE(controller->isNewNameAvailableForUpdate("   New York", 2));
 }
 
 TEST_F(CityControllerTest, isNewNameAvailableForUpdate_WithExistantNameBeginWithSpacesSameRecord_ReturnTrue)
 {
-	controller.loadCities();
-	ASSERT_TRUE(controller.isNewNameAvailableForUpdate("   New York", 1));
+	this->prepareController();
+	controller->loadCities();
+	ASSERT_TRUE(controller->isNewNameAvailableForUpdate("   New York", 1));
 }
 
 TEST_F(CityControllerTest, isNewNameAvailableForUpdate_WithExistantNameEndWithSpaces_ReturnFalse)
 {
-	controller.loadCities();
-	ASSERT_FALSE(controller.isNewNameAvailableForUpdate("New York   ", 2));
+	this->prepareController();
+	controller->loadCities();
+	ASSERT_FALSE(controller->isNewNameAvailableForUpdate("New York   ", 2));
 }
 
 TEST_F(CityControllerTest, isNewNameAvailableForUpdate_WithExistantNameBeginAndEndWithSpaces_ReturnFalse)
 {
-	controller.loadCities();
-	ASSERT_FALSE(controller.isNewNameAvailableForUpdate("   New York   ", 2));
+	this->prepareController();
+	controller->loadCities();
+	ASSERT_FALSE(controller->isNewNameAvailableForUpdate("   New York   ", 2));
 }
 
 TEST_F(CityControllerTest, isNewNameAvailableForUpdate_WithEmpty_ReturnFalse)
 {
-	controller.loadCities();
-	ASSERT_FALSE(controller.isNewNameAvailableForUpdate("", 1));
+	this->prepareController();
+	controller->loadCities();
+	ASSERT_FALSE(controller->isNewNameAvailableForUpdate("", 1));
 }
 
 TEST_F(CityControllerTest, isNewNameAvailableForUpdate_WithOnlySpaces_ReturnFalse)
 {
-	controller.loadCities();
-	ASSERT_FALSE(controller.isNewNameAvailableForUpdate("   ", 1));
+	this->prepareController();
+	controller->loadCities();
+	ASSERT_FALSE(controller->isNewNameAvailableForUpdate("   ", 1));
 }
 
+TEST_F(CityControllerTest, insertCity_WithCityThatWillSuccess_ReturnTrue) 
+{
+	this->prepareController();
+	ASSERT_TRUE(controller->insertCity(City { "Chicago" }));
+
+}
+
+TEST_F(CityControllerTest, insertCity_WithCityThatWillFailed_ReturnFailed) 
+{
+	auto fakeCityStorage = dynamic_cast<FakeCityStorage*>(this->fakeStorage.get());
+	fakeCityStorage->insertResult = false;
+	fakeCityStorage->lastError = "An insert error occurred";
+
+	this->prepareController();
+	ASSERT_FALSE(controller->insertCity(City { "Chicago" }));
+	ASSERT_EQ("An insert error occurred", controller->getLastError());
+}
+
+TEST_F(CityControllerTest, updateCity_WithCityThatWillSuccess_ReturnTrue) 
+{
+	this->prepareController();
+	ASSERT_TRUE(controller->updateCity(City { "New York" }));
+}
+
+TEST_F(CityControllerTest, updateCity_WithCityThatWillFailed_ReturnFailed) 
+{
+	auto fakeCityStorage = dynamic_cast<FakeCityStorage*>(this->fakeStorage.get());
+	fakeCityStorage->updateResult = false;
+	fakeCityStorage->lastError = "An update error occurred";
+
+	this->prepareController();
+	ASSERT_FALSE(controller->updateCity(City { "Chicago" }));
+	ASSERT_EQ("An update error occurred", controller->getLastError());
+}
+
+TEST_F(CityControllerTest, deleteCity_WithCityThatWillSuccess_ReturnTrue) 
+{
+	this->prepareController();
+	ASSERT_TRUE(controller->deleteCity(1));
+}
+
+TEST_F(CityControllerTest, deleteCity_WithCityThatWillFailedWithConstraintError_ReturnFailed) 
+{
+	auto fakeCityStorage = dynamic_cast<FakeCityStorage*>(this->fakeStorage.get());
+	fakeCityStorage->deleteResult = QueryResult::CONSTRAINTERROR;
+
+	this->prepareController();
+	ASSERT_FALSE(controller->deleteCity(1));
+	ASSERT_EQ("Unable to delete the city because it is used by another item. (Probably a school)", controller->getLastError());
+}
+
+TEST_F(CityControllerTest, deleteCity_WithCityThatWillFailedWithGenericError_ReturnFailed) 
+{
+	auto fakeCityStorage = dynamic_cast<FakeCityStorage*>(this->fakeStorage.get());
+	fakeCityStorage->deleteResult = QueryResult::ERROR;
+	fakeCityStorage->lastError = "An generic error occurred";
+
+	this->prepareController();
+	ASSERT_FALSE(controller->deleteCity(1));
+	ASSERT_EQ("An generic error occurred", controller->getLastError());
+}
