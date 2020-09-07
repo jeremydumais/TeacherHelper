@@ -15,4 +15,5 @@ public:
     virtual bool getRow() = 0;
     virtual int getIntValue(int columnNumber) const = 0;
     virtual std::string getStringValue(int columnNumber) const = 0;
+    virtual bool getBoolValue(int columnNumber) const = 0;
 };

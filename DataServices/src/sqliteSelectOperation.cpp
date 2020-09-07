@@ -70,5 +70,9 @@ std::string SQLiteSelectOperation::getStringValue(int columnNumber) const
     return reinterpret_cast<const char *>(sqlite3_column_text(stmt, columnNumber));
 }
 
+bool SQLiteSelectOperation::getBoolValue(int columnNumber) const
+{
+    return static_cast<bool>(sqlite3_column_int(stmt, columnNumber));
+}
 
 

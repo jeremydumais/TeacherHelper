@@ -45,6 +45,11 @@ public:
         return ss.str();
     }
 
+    bool getBoolValue(int columnNumber) const override
+    {
+        return false;
+    }
+
     bool executeResult = true;
     size_t nbOfReturnItems = 0;
     size_t currentItemIndex = 0;

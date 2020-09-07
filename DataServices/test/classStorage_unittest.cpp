@@ -221,23 +221,63 @@ TEST(ClassStorage_updateItem, FailedUpdateAtAddingMember_ReturnFalse)
     ASSERT_FALSE(storage.updateItem(myClass));
     ASSERT_EQ("Error at adding member", storage.getLastError());
 }
-/*
-TEST(ClassStorage_deleteItem, ValidDelete_ReturnTrue)
+
+TEST(ClassStorage_deleteItem, ValidDeleteOfClassWithNoMembers_ReturnTrue)
 {
-    ClassStorage storage(DatabaseConnection("fake"), make_unique<FakeOperationFactory>(vector<FakeOperationResult> { FakeOperationResult() }));
-
-    ASSERT_EQ(QueryResult::OK, storage.deleteItem(1));
-}*/
-
-/*TEST(ClassStorage_deleteItem, FailedDelete_ReturnFalse)
-{
-    auto factory { make_unique<FakeOperationFactory>() };
-    factory->executeResult = false;
-    factory->extendedResultInfo = QueryResult::CONSTRAINTERROR;
-    factory->lastError = "Constraint error during the delete operation";
-
+    auto factory { make_unique<FakeOperationFactory>( vector<FakeOperationResult> { 
+        FakeOperationResultFactory::createNewSelectResult(true),
+        FakeOperationResultFactory::createNewDeleteResult(true),
+        FakeOperationResultFactory::createNewDeleteResult(true)
+    }) };
     ClassStorage storage(DatabaseConnection("fake"), move(factory));
 
-    ASSERT_EQ(QueryResult::CONSTRAINTERROR, storage.deleteItem(1));
-    ASSERT_EQ("Constraint error during the delete operation", storage.getLastError());
-}*/
+    ASSERT_EQ(QueryResult::OK, storage.deleteItem(1));
+}
+
+TEST(ClassStorage_deleteItem, ValidDeleteOfClassWith2Members_ReturnTrue)
+{
+    auto factory { make_unique<FakeOperationFactory>( vector<FakeOperationResult> { 
+        FakeOperationResultFactory::createNewSelectResult(true, "", 2),
+        FakeOperationResultFactory::createNewDeleteResult(true),
+        FakeOperationResultFactory::createNewDeleteResult(true)
+    }) };
+    ClassStorage storage(DatabaseConnection("fake"), move(factory));
+
+    ASSERT_EQ(QueryResult::OK, storage.deleteItem(1));
+}
+
+TEST(ClassStorage_deleteItem, FailedDeleteAtLoadingMembers_ReturnFalse)
+{
+    auto factory { make_unique<FakeOperationFactory>( vector<FakeOperationResult> { 
+        FakeOperationResultFactory::createNewSelectResult(false, "Error at loading members", 0)
+    }) };
+    ClassStorage storage(DatabaseConnection("fake"), move(factory));
+
+    ASSERT_EQ(QueryResult::ERROR, storage.deleteItem(1));
+    ASSERT_EQ("Error at loading members", storage.getLastError());
+}
+
+TEST(ClassStorage_deleteItem, FailedDeleteAtRemovingMembers_ReturnFalse)
+{
+    auto factory { make_unique<FakeOperationFactory>( vector<FakeOperationResult> { 
+        FakeOperationResultFactory::createNewSelectResult(true, "", 2),
+        FakeOperationResultFactory::createNewDeleteResult(false, "Error at removing members", QueryResult::ERROR)
+    }) };
+    ClassStorage storage(DatabaseConnection("fake"), move(factory));
+
+    ASSERT_EQ(QueryResult::ERROR, storage.deleteItem(1));
+    ASSERT_EQ("Error at removing members", storage.getLastError());
+}
+
+TEST(ClassStorage_deleteItem, FailedDeleteAtRemovingClass_ReturnFalse)
+{
+    auto factory { make_unique<FakeOperationFactory>( vector<FakeOperationResult> { 
+        FakeOperationResultFactory::createNewSelectResult(true, "", 2),
+        FakeOperationResultFactory::createNewDeleteResult(true),
+        FakeOperationResultFactory::createNewDeleteResult(false, "Error at removing members", QueryResult::ERROR)
+    }) };
+    ClassStorage storage(DatabaseConnection("fake"), move(factory));
+
+    ASSERT_EQ(QueryResult::ERROR, storage.deleteItem(1));
+    ASSERT_EQ("Error at removing members", storage.getLastError());
+}

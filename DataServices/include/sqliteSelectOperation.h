@@ -16,6 +16,7 @@ public:
     bool getRow() override;
     int getIntValue(int columnNumber) const override;
     std::string getStringValue(int columnNumber) const override;
+    bool getBoolValue(int columnNumber) const override;
 private:
     sqlite3_stmt *stmt;
 };

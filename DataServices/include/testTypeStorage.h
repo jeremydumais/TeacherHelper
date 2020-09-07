@@ -3,6 +3,7 @@
 #include "testType.h"
 #include "databaseConnection.h"
 #include "IManagementItemStorage.h"
+#include "IStorageOperationFactory.h"
 #include <list>
 
 #ifdef _WIN32
@@ -18,7 +19,8 @@
 class TESTTYPESTORAGE_API TestTypeStorage : public IManagementItemStorage<TestType>
 {
 public:
-    explicit TestTypeStorage(const DatabaseConnection &connection);
+    explicit TestTypeStorage(const DatabaseConnection &connection, 
+                         const std::unique_ptr<IStorageOperationFactory> operationFactory = nullptr);
     std::list<TestType> getAllItems() override;
     const std::string &getLastError() const override;
     bool insertItem(const TestType &testType) override;
@@ -27,4 +29,5 @@ public:
 private:
     const DatabaseConnection * const connection;
     std::string lastError;
+    std::unique_ptr<IStorageOperationFactory> operationFactory;
 };

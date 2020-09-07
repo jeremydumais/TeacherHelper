@@ -270,3 +270,9 @@ TEST(SQLiteDateTime_OperatorCompareGreaterEqualThanWithPTimeLValue, OneSecondDif
     auto date2 = SQLiteDateTimeFactory::NewDateTimeFromPTime(ptime(date(2019,12,31), time_duration(23,59,58)));
     ASSERT_GE(date1, date2);
 }
+
+TEST(SQLiteDateTime_toSQLiteString, ValidDate_ReturnValidISOExtendedString)
+{
+    auto date1 = SQLiteDateTimeFactory::NewDateTimeFromPTime(ptime(date(2019,12,31), time_duration(23,59,59)));
+    ASSERT_EQ("2019-12-31T23:59:59", date1.toSQLiteString());
+}
