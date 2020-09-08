@@ -224,7 +224,6 @@ TEST_F(CityControllerTest, insertCity_WithCityThatWillSuccess_ReturnTrue)
 {
 	this->prepareController();
 	ASSERT_TRUE(controller->insertCity(City { "Chicago" }));
-
 }
 
 TEST_F(CityControllerTest, insertCity_WithCityThatWillFailed_ReturnFailed) 
