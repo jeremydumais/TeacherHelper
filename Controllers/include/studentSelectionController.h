@@ -4,6 +4,7 @@
 #include "studentController.h"
 #include "databaseConnection.h"
 #include <list>
+#include <memory>
 
 #ifdef _WIN32
     #ifdef CONTROLLERS_EXPORTS  
@@ -18,11 +19,12 @@
 class STUDENTSELECTIONCONTROLLER_API StudentSelectionController
 {
 public:
-    explicit StudentSelectionController(const DatabaseConnection &dbConnection);
+    explicit StudentSelectionController(const DatabaseConnection &dbConnection,
+        std::unique_ptr<IStudentController> studentController = nullptr);
 	bool isStudentInFilter(const std::string &filter, const Student &student) const;
     const std::list<Student> &getStudents() const;
     const Student* findStudent(size_t id) const;
     void loadStudents();
 private:
-    StudentController studentController;
+        std::unique_ptr<IStudentController> studentController;
 };
