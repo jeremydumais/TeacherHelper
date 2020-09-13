@@ -45,6 +45,8 @@ public:
     void setClass(const Class &itemClass);
     void setDate(const boost::posix_time::ptime &itemDate);
     void addResult(const AssessmentResult &assessmentResult);
+    void removeResult(const AssessmentResult &result);
+    void clearResults();
 private:
     size_t id;
     std::string name;

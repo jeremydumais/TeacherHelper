@@ -1,6 +1,7 @@
 #pragma once
 
 #include "operationBase.h" 
+#include "sqliteDateTime.h"
 
 class IStorageSelectOperation : public OperationBase
 {
@@ -11,9 +12,10 @@ public:
         : OperationBase(connection, query, args) {}
     virtual ~IStorageSelectOperation() {};
     virtual void close() = 0;
-    sqlite3_stmt *getStatement() const;
     virtual bool getRow() = 0;
     virtual int getIntValue(int columnNumber) const = 0;
     virtual std::string getStringValue(int columnNumber) const = 0;
     virtual bool getBoolValue(int columnNumber) const = 0;
+    virtual SQLiteDateTime getDateTime(int columnNumber) const = 0;
+    virtual double getDoubleValue(int columnNumber) const = 0;
 };

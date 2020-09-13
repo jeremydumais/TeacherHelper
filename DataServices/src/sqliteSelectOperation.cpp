@@ -1,3 +1,4 @@
+#include "sqliteDateTimeFactory.h"
 #include "sqliteSelectOperation.h"
 #include <sqlite3.h>
 
@@ -50,11 +51,6 @@ void SQLiteSelectOperation::close()
     sqlite3_finalize(stmt);
 }
 
-sqlite3_stmt *SQLiteSelectOperation::getStatement() const
-{
-    return stmt;
-}
-
 bool SQLiteSelectOperation::getRow()
 {
     return sqlite3_step(stmt) == SQLITE_ROW;
@@ -73,6 +69,16 @@ std::string SQLiteSelectOperation::getStringValue(int columnNumber) const
 bool SQLiteSelectOperation::getBoolValue(int columnNumber) const
 {
     return static_cast<bool>(sqlite3_column_int(stmt, columnNumber));
+}
+
+SQLiteDateTime SQLiteSelectOperation::getDateTime(int columnNumber) const 
+{
+    return SQLiteDateTimeFactory::NewDateTimeFromISOExtended(reinterpret_cast<const char *>(sqlite3_column_text(stmt, columnNumber)));
+}
+
+double SQLiteSelectOperation::getDoubleValue(int columnNumber) const
+{
+    return sqlite3_column_double(stmt, columnNumber);
 }
 
 

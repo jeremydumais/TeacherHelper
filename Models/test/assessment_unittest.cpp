@@ -5,6 +5,38 @@ using namespace std;
 using namespace boost::posix_time;
 using namespace boost::gregorian;
 
+class AssessmentSampleWithoutResults : public ::testing::Test
+{
+public:
+	AssessmentSampleWithoutResults()
+	  : assessment(1, "Intra Exam", 
+			  TestType("Exam"),
+			  Subject("History"),
+			  Class("MyClass", School("Test", City("CityTest"))),
+				  ptime(date(2020, Aug, 23), time_duration(13, 21, 33))) {}
+	Assessment assessment;
+};
+
+class AssessmentSampleWithTwoResults : public ::testing::Test
+{
+public:
+	AssessmentSampleWithTwoResults()
+	  : assessment(1, "Intra Exam", 
+			  TestType("Exam"),
+			  Subject("History"),
+			  Class("MyClass", School("Test", City("CityTest"))),
+				  ptime(date(2020, Aug, 23), time_duration(13, 21, 33))),
+		result1 { Student(1, "Joe", "Blow"), 90.5f },
+		result2 { Student(2, "Jane", "Doe"), 87.2f }
+	{
+		assessment.addResult(result1);
+		assessment.addResult(result2);
+	}
+	Assessment assessment;
+	AssessmentResult result1;
+	AssessmentResult result2;
+};
+
 TEST(Assessment_Constructor, EmptyName_ThrowInvalidArgument)
 {
 	try {
@@ -131,86 +163,44 @@ TEST(Assessment_ConstructorWithId, ValidEntry_ReturnSuccess)
 	ASSERT_EQ(dateExpected, assessment.getDateTime());
 }
 
-TEST(Assessment_getId, WithId1_Return1)
+TEST_F(AssessmentSampleWithoutResults, getId_WithId1_Return1)
 {
-	Assessment assessment(1, "Intra Exam", 
-			  TestType("Exam"),
-			  Subject("History"),
-			  Class("MyClass", School("Test", City("CityTest"))),
-				  ptime(date(2020, Aug, 23), time_duration(13, 21, 33)));
 	ASSERT_EQ(1, assessment.getId());
 }
 
-TEST(Assessment_getName, WithNameIntraExam_ReturnMyTest)
+TEST_F(AssessmentSampleWithoutResults, getName_WithNameIntraExam_ReturnMyTest)
 {
-	Assessment assessment(1, "Intra Exam", 
-			  TestType("Exam"),
-			  Subject("History"),
-			  Class("MyClass", School("Test", City("CityTest"))),
-				  ptime(date(2020, Aug, 23), time_duration(13, 21, 33)));
 	ASSERT_EQ("Intra Exam", assessment.getName());
 }
 
-TEST(Assessment_getTestType, WithTestTypeExam_ReturnExam)
+TEST_F(AssessmentSampleWithoutResults, getTestType_WithTestTypeExam_ReturnExam)
 {
-	Assessment assessment(1, "Intra Exam", 
-			  TestType("Exam"),
-			  Subject("History"),
-			  Class("MyClass", School("Test", City("CityTest"))),
-				  ptime(date(2020, Aug, 23), time_duration(13, 21, 33)));
 	ASSERT_EQ("Exam", assessment.getTestType().getName());
 }
 
-TEST(Assessment_getSubject, WithSubjectHistory_ReturnHistory)
+TEST_F(AssessmentSampleWithoutResults, getSubject_WithSubjectHistory_ReturnHistory)
 {
-	Assessment assessment(1, "Intra Exam", 
-			  TestType("Exam"),
-			  Subject("History"),
-			  Class("MyClass", School("Test", City("CityTest"))),
-				  ptime(date(2020, Aug, 23), time_duration(13, 21, 33)));
 	ASSERT_EQ("History", assessment.getSubject().getName());
 }
 
-TEST(Assessment_getClass, WithClassMyClass_ReturnMyClass)
+TEST_F(AssessmentSampleWithoutResults, getClass_WithClassMyClass_ReturnMyClass)
 {
-	Assessment assessment(1, "Intra Exam", 
-			  TestType("Exam"),
-			  Subject("History"),
-			  Class("MyClass", School("Test", City("CityTest"))),
-				  ptime(date(2020, Aug, 23), time_duration(13, 21, 33)));
 	ASSERT_EQ("MyClass", assessment.getClass().getName());
 }
 
-TEST(Assessment_getDate, With2020Aug24190405_ReturnSameDate)
+TEST_F(AssessmentSampleWithoutResults, getDate_With2020Aug24190405_ReturnSameDate)
 {
-	auto dateExpected { ptime(date(2020, Aug, 24), time_duration(19, 04, 05)) };
-	Assessment assessment(1, "Intra Exam", 
-			  TestType("Exam"),
-			  Subject("History"),
-			  Class("MyClass", School("Test", City("CityTest"))),
-			  dateExpected);
+	auto dateExpected { ptime(date(2020, Aug, 23), time_duration(13, 21, 33)) };
 	ASSERT_EQ(dateExpected, assessment.getDateTime());
 }
 
-/*TEST(Assessment_getResults, WithNoResults_ReturnEmptyVector)
+TEST_F(AssessmentSampleWithoutResults, getResults_WithNoResults_ReturnEmptyVector)
 {
-	Assessment assessment(1, "Intra Exam", 
-			  TestType("Exam"),
-			  Subject("History"),
-			  Class("MyClass", School("Test", City("CityTest"))),
-				  ptime(date(2020, Aug, 23), time_duration(13, 21, 33)));
 	ASSERT_EQ(0, assessment.getResults().size());
 }
 
-TEST(Assessment_getResults, WithTwoResults_ReturnVectorWith2Results)
+TEST_F(AssessmentSampleWithTwoResults, getResults_WithTwoResults_ReturnVectorWith2Results)
 {
-	Assessment assessment(1, "Intra Exam", 
-			  TestType("Exam"),
-			  Subject("History"),
-			  Class("MyClass", School("Test", City("CityTest"))),
-				  ptime(date(2020, Aug, 23), time_duration(13, 21, 33)));
-	assessment.addResult(AssessmentResult(Student(1, "Joe", "Blow"), 90.5f));
-	assessment.addResult(AssessmentResult(Student(2, "Jane", "Doe"), 81.2f));
 	auto results = assessment.getResults();
 	ASSERT_EQ(2, results.size());
 	ASSERT_EQ("Joe", results[0].getStudent().getFirstName());
@@ -218,16 +208,11 @@ TEST(Assessment_getResults, WithTwoResults_ReturnVectorWith2Results)
 	ASSERT_EQ(90.5f, results[0].getResult());
 	ASSERT_EQ("Jane", results[1].getStudent().getFirstName());
 	ASSERT_EQ("Doe", results[1].getStudent().getLastName());
-	ASSERT_EQ(81.2f, results[1].getResult());
-}*/
+	ASSERT_EQ(87.2f, results[1].getResult());
+}
 
-TEST(Assessment_setName, WithNameTestUpdated_ReturnSuccess)
+TEST_F(AssessmentSampleWithoutResults, setName_WithNameTestUpdated_ReturnSuccess)
 {
-	Assessment assessment(1, "Intra Exam", 
-			  TestType("Exam"),
-			  Subject("History"),
-			  Class("MyClass", School("Test", City("CityTest"))),
-				  ptime(date(2020, Aug, 23), time_duration(13, 21, 33)));
 	assessment.setName("Another Exam");
 	ASSERT_EQ("Another Exam", assessment.getName());
 }
@@ -286,125 +271,117 @@ TEST(Assessment_setName, NameGreaterThenLimit_ThrowInvalidArgument)
 	}
 }
 
-TEST(Assessment_setTestType, WithTestTypeExercice_ReturnSuccess)
+TEST_F(AssessmentSampleWithoutResults, setTestType_WithTestTypeExercice_ReturnSuccess)
 {
-	Assessment assessment(1, "Intra Exam", 
-			  TestType("Exam"),
-			  Subject("History"),
-			  Class("MyClass", School("Test", City("CityTest"))),
-				  ptime(date(2020, Aug, 23), time_duration(13, 21, 33)));
 	assessment.setTestType(TestType("Exercice"));
 	ASSERT_EQ("Exercice", assessment.getTestType().getName());
 }
 
-TEST(Assessment_setSubject, WithSubjectMath_ReturnSuccess)
+TEST_F(AssessmentSampleWithoutResults, setSubject_WithSubjectMath_ReturnSuccess)
 {
-	Assessment assessment(1, "Intra Exam", 
-			  TestType("Exam"),
-			  Subject("History"),
-			  Class("MyClass", School("Test", City("CityTest"))),
-				  ptime(date(2020, Aug, 23), time_duration(13, 21, 33)));
 	assessment.setSubject(Subject("Math"));
 	ASSERT_EQ("Math", assessment.getSubject().getName());
 }
 
-TEST(Assessment_setClass, WithClassAnotherClass_ReturnSuccess)
+TEST_F(AssessmentSampleWithoutResults, setClass_WithClassAnotherClass_ReturnSuccess)
 {
-	Assessment assessment(1, "Intra Exam", 
-			  TestType("Exam"),
-			  Subject("History"),
-			  Class("MyClass", School("Test", City("CityTest"))),
-				  ptime(date(2020, Aug, 23), time_duration(13, 21, 33)));
 	assessment.setClass(Class("AnotherClass", School("Test", City("CityTest"))));
 	ASSERT_EQ("AnotherClass", assessment.getClass().getName());
 }
 
-TEST(Assessment_setDate, WithClassAnotherClass_ReturnSuccess)
+TEST_F(AssessmentSampleWithoutResults, setDate_WithClassAnotherClass_ReturnSuccess)
 {
 	auto expected { ptime(date(2019, Jan, 13), time_duration(3, 1, 3)) };
-	Assessment assessment(1, "Intra Exam", 
-			  TestType("Exam"),
-			  Subject("History"),
-			  Class("MyClass", School("Test", City("CityTest"))),
-			  ptime(date(2020, Aug, 23), time_duration(13, 21, 33)));
 	assessment.setDate(expected);
 	ASSERT_EQ(expected, assessment.getDateTime());
 }
 
-/*
-TEST(Test_addMember, WithValidMember_ReturnSuccess)
+
+TEST_F(AssessmentSampleWithoutResults, addResult_WithUniqueResult_ReturnSuccess)
 {
-	Test myTest(1, "MyTest", School("Test", City("New York")));
-	Student expected { "Joe", "Blow" };
-	myTest.addMember(expected);
-	ASSERT_EQ(1, myTest.getMembers().size());
-	const auto &actual { myTest.getMembers().begin() };
-	ASSERT_EQ(expected.getFirstName(), actual->getFirstName());
-	ASSERT_EQ(expected.getLastName(), actual->getLastName());
+	assessment.addResult(AssessmentResult(Student(1, "Joe", "Blow"), 90.5f));
+	auto results = assessment.getResults();
+	ASSERT_EQ(1, results.size());
+	ASSERT_EQ("Joe", results[0].getStudent().getFirstName());
+	ASSERT_EQ("Blow", results[0].getStudent().getLastName());
+	ASSERT_EQ(90.5f, results[0].getResult());
 }
 
-TEST(Test_addMember, WithTwiceTheSameMember_ThrowInvalidArgument)
+TEST_F(AssessmentSampleWithoutResults, addResult_WithTwiceTheSameResult_ThrowInvalidArgument)
 {
-	Test myTest(1, "MyTest", School("Test", City("New York")));
-	Student expected { 1, "Joe", "Blow" };
-	myTest.addMember(expected);
+	Student student { 1, "Joe", "Blow" };
 	try 
 	{
-		myTest.addMember(expected);
+		assessment.addResult(AssessmentResult(1, student, 90.0f));
+		assessment.addResult(AssessmentResult(1, student, 90.0f));
 		FAIL();
 	}
 	catch(invalid_argument &err) 
 	{
-        ASSERT_STREQ("Cannot add the same member twice.", err.what());
+        ASSERT_STREQ("Cannot add the same assessment result twice.", err.what());
 	}
 }
 
-TEST(Test_addMember, WithTwoDifferentMembers_ReturnSuccess)
+TEST_F(AssessmentSampleWithoutResults, addResult_WithTwiceTheSameStudent_ThrowInvalidArgument)
 {
-	Test myTest(1, "MyTest", School("Test", City("New York")));
-	Student member1 { 1, "Joe", "Blow" };
-	Student member2 { 2, "Joe", "Blow" };
-	myTest.addMember(member1);
-	myTest.addMember(member2);
-	ASSERT_EQ(2, myTest.getMembers().size());
-	size_t index {0};
-	for(const auto &student : myTest.getMembers()) {
-		if (index == 0) {
-			ASSERT_EQ("Joe", student.getFirstName());
-			ASSERT_EQ("Blow", student.getLastName());
-		}
-		else if (index == 1) {
-			ASSERT_EQ("Joe", student.getFirstName());
-			ASSERT_EQ("Blow", student.getLastName());
-			}
-		index++;
-	}
-
-
-}
-
-TEST(Test_removeMember, WithValidMember_ReturnSuccess)
-{
-	Test myTest(1, "MyTest", School("Test", City("New York")));
-	Student expected { "Joe", "Blow" };
-	myTest.addMember(expected);
-	ASSERT_EQ(1, myTest.getMembers().size());
-	myTest.removeMember(expected);
-	ASSERT_EQ(0, myTest.getMembers().size());
-}
-
-TEST(Test_removeMember, WithStudentNotPartOfTheList_ThrowInvalidArgument)
-{
-	Test myTest(1, "MyTest", School("Test", City("New York")));
-	Student expected { 1, "Joe", "Blow" };
-	myTest.addMember(expected);
+	Student student { 1, "Joe", "Blow" };
 	try 
 	{
-		myTest.removeMember(Student(2, "Jane", "Doe"));
+		assessment.addResult(AssessmentResult(1, student, 90.0f));
+		assessment.addResult(AssessmentResult(student, 90.0f));
 		FAIL();
 	}
 	catch(invalid_argument &err) 
 	{
-        ASSERT_STREQ("That student is not part of the list.", err.what());
+        ASSERT_STREQ("Cannot add the same assessment result twice.", err.what());
 	}
-}*/
+}
+
+TEST_F(AssessmentSampleWithTwoResults, addResult_WithTwoDifferentStudents_ReturnSuccess)
+{
+	auto results = assessment.getResults();
+	ASSERT_EQ(2, results.size());
+	ASSERT_EQ("Joe", results[0].getStudent().getFirstName());
+	ASSERT_EQ("Blow", results[0].getStudent().getLastName());
+	ASSERT_EQ(90.5f, results[0].getResult());
+	ASSERT_EQ("Jane", results[1].getStudent().getFirstName());
+	ASSERT_EQ("Doe", results[1].getStudent().getLastName());
+	ASSERT_EQ(87.2f, results[1].getResult());
+}
+
+TEST_F(AssessmentSampleWithTwoResults, removeMember_WithRemovingOneExistingResult_ReturnSuccess)
+{
+	auto results = assessment.getResults();
+	ASSERT_EQ(2, assessment.getResults().size());
+
+	assessment.removeResult(result1);
+
+	results = assessment.getResults();
+	ASSERT_EQ(1, assessment.getResults().size());
+	ASSERT_EQ("Jane", results[0].getStudent().getFirstName());
+	ASSERT_EQ("Doe", results[0].getStudent().getLastName());
+	ASSERT_EQ(87.2f, results[0].getResult());
+}
+
+TEST_F(AssessmentSampleWithTwoResults, removeMember_WithRemovingOneNonExistingResult_ThrowInvalidArgument)
+{
+	ASSERT_EQ(2, assessment.getResults().size());
+
+	try 
+	{
+		assessment.removeResult(AssessmentResult(3, Student(3, "Santa", "Claus"), 55.0f, ""));
+		FAIL();
+	}
+	catch(invalid_argument &err) 
+	{
+        ASSERT_STREQ("That result is not part of the list.", err.what());
+		ASSERT_EQ(2, assessment.getResults().size());
+	}
+}
+
+TEST_F(AssessmentSampleWithTwoResults, clearResult_ReturnSuccess)
+{
+	ASSERT_EQ(2, assessment.getResults().size());
+	assessment.clearResults();
+	ASSERT_EQ(0, assessment.getResults().size());
+}

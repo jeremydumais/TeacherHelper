@@ -148,7 +148,6 @@ TEST(AssessmentResult_getComments, SampleJoeBlow_ReturnTheComments)
 	ASSERT_EQ("A comment", assessmentResult.getComments());
 }
 
-
 TEST(AssessmentResult_setStudent, WithJaneDow_ReturnSuccess)
 {
 	AssessmentResult assessmentResult(1, Student(3, "Joe", "Blow"), 90, "A comment");
@@ -165,6 +164,20 @@ TEST(AssessmentResult_setResult, With80_ReturnSuccess)
 	ASSERT_EQ(80, assessmentResult.getResult());
 }
 
+TEST(AssessmentResult_setResult, NegativeResult_ThrowInvalidArgument)
+{
+	AssessmentResult assessmentResult(1, Student(3, "Joe", "Blow"), 90, "A comment");
+	try
+	{
+		assessmentResult.setResult(-10);
+		FAIL();
+	}
+	catch(invalid_argument &err) 
+	{
+        ASSERT_STREQ("result must be a positive number.", err.what());
+	}
+}
+
 TEST(AssessmentResult_setComments, WithNewComment_ReturnSuccess)
 {
 	AssessmentResult assessmentResult(1, Student(3, "Joe", "Blow"), 90, "A comment");
@@ -177,4 +190,18 @@ TEST(AssessmentResult_setComments, WithEmptyComment_ReturnSuccess)
 	AssessmentResult assessmentResult(1, Student(3, "Joe", "Blow"), 90, "A comment");
 	assessmentResult.setComments("");
 	ASSERT_TRUE(assessmentResult.getComments().empty());
+}
+
+TEST(AssessmentResult_setComments, CommentsGreaterThenLimit_ThrowInvalidArgument)
+{
+	AssessmentResult assessmentResult(1, Student(3, "Joe", "Blow"), 90, "A comment");
+	try
+	{
+		assessmentResult.setComments("12fdhsjdkhf sdkjh fjkdshfdkjfdshf sdkjf hdkjdshf dkjfh kfjdshf dskjfh dsjkf hdkjdjk dshfjkds hfdjskf hdsjkf hjksd hjkdsh djk sdkjfh kjfh fjkdslf dskjfksld; jfsdlkfj sdklfj dsklfj dsklfsdj fkldsj fdsklfj sdklfj sdklfjs dklfjs klfsdj fklsdj fsdffjdklfdjsffffj");
+		FAIL();
+	}
+	catch(invalid_argument &err) 
+	{
+        ASSERT_STREQ("comments must not be larger then 256 chars.", err.what());
+	}
 }

@@ -1,9 +1,10 @@
 #include "assessmentStorage.h"
 #include "sqliteDateTimeFactory.h"
+#include "sqliteDeleteOperation.h"
 #include "sqliteInsertOperation.h"
+#include "sqliteOperationFactory.h"
 #include "sqliteSelectOperation.h"
 #include "sqliteUpdateOperation.h"
-#include "sqliteDeleteOperation.h"
 #include <boost/algorithm/string.hpp>
 #include <fmt/format.h>
 #include <iostream>
@@ -13,9 +14,13 @@
 
 using namespace std;
 
-AssessmentStorage::AssessmentStorage(const DatabaseConnection &connection)
+AssessmentStorage::AssessmentStorage(const DatabaseConnection &connection, 
+                                     unique_ptr<IStorageOperationFactory> operationFactory)
     : connection(&connection),
-      lastError("")
+      lastError(""),
+      operationFactory { operationFactory ? 
+                         move(operationFactory) : 
+                         make_unique<SQLiteOperationFactory>()}
 {
 }
 
@@ -32,7 +37,7 @@ list<Assessment> AssessmentStorage::getItemsByClassId(const size_t classId)
 list<Assessment> AssessmentStorage::loadItemsFromDB(const string &whereClause) 
 {
     list<Assessment> retVal;
-    SQLiteSelectOperation operation(*connection, 
+    auto operation = operationFactory->createSelectOperation(*connection, 
         "SELECT assessment.id, assessment.name, testType.id, testType.name, subject.id, subject.name, " 
         "  class.id, class.name, school.id, school.name, city.id, city.name, date "
         "FROM assessment "
@@ -43,54 +48,52 @@ list<Assessment> AssessmentStorage::loadItemsFromDB(const string &whereClause)
         "INNER JOIN city ON city.id = school.city_id " +
         whereClause +
         " ORDER BY datetime(date), assessment.name");
-    if (operation.execute()) {
-        sqlite3_stmt *stmt = operation.getStatement();
-        int result = sqlite3_step(stmt);
-        while (result == SQLITE_ROW) {
-            Assessment tempAssessment(sqlite3_column_int(stmt, 0),
-                reinterpret_cast<const char *>((sqlite3_column_text(stmt, 1))),
+    if (operation->execute()) {
+        while (operation->getRow()) {
+            Assessment tempAssessment(operation->getIntValue(0),
+                operation->getStringValue(1),
                 TestType(
-                    sqlite3_column_int(stmt, 2),
-                    reinterpret_cast<const char *>((sqlite3_column_text(stmt, 3)))),
+                    operation->getIntValue(2),
+                    operation->getStringValue(3)),
                 Subject(
-                    sqlite3_column_int(stmt, 4),
-                    reinterpret_cast<const char *>((sqlite3_column_text(stmt, 5)))),
+                    operation->getIntValue(4),
+                    operation->getStringValue(5)),
                 Class(
-                    sqlite3_column_int(stmt, 6),
-                    reinterpret_cast<const char *>((sqlite3_column_text(stmt, 7))),
+                    operation->getIntValue(6),
+                    operation->getStringValue(7),
                     School(
-                    sqlite3_column_int(stmt, 8),
-                    reinterpret_cast<const char *>((sqlite3_column_text(stmt, 9))),
+                    operation->getIntValue(8),
+                    operation->getStringValue(9),
                     City(
-                        sqlite3_column_int(stmt, 10),
-                        reinterpret_cast<const char *>((sqlite3_column_text(stmt, 11)))))),
-                SQLiteDateTimeFactory::NewDateTimeFromISOExtended(reinterpret_cast<const char *>((sqlite3_column_text(stmt, 12)))).getBoostPTime());
+                        operation->getIntValue(10),
+                        operation->getStringValue(11)))),
+                operation->getDateTime(12).getBoostPTime());
             retVal.push_back(tempAssessment);
-            result = sqlite3_step(stmt);
         }
-        sqlite3_finalize(stmt);
+        operation->close();
     }
     else {
-        lastError = operation.getLastError();
+        lastError = operation->getLastError();
         return list<Assessment>();
     }
-    //Load all members
-   /* multimap<size_t, Student> classStudents;
+    //Load all results
+    map<size_t, vector<AssessmentResult>> assessmentResults;
     try {
-        classStudents = loadAllMembers();
+        assessmentResults = loadAllResults();
     }
     catch(runtime_error &err) {
         lastError = err.what();
-        return list<Class>();
+        return list<Assessment>();
     }
     //Associate all members to classes
-    for(auto &aClass : retVal) {
-        auto it = classStudents.find(aClass.getId());
-        while(it != classStudents.end() && it->first == aClass.getId()) {
-            aClass.addMember(it->second);
-            it++;
+    for(auto &assessment : retVal) {
+        auto it = assessmentResults.find(assessment.getId());
+        if (it != assessmentResults.end()) {
+            for(const auto &result : it->second) {
+                assessment.addResult(result);
+            }
         }
-    }*/
+    }
     return retVal;
 }
 
@@ -121,20 +124,19 @@ bool AssessmentStorage::insertItem(const Assessment &assessment)
 size_t AssessmentStorage::retreiveAssignedAssessmentId()
 {
     size_t assessmentId {0};
-    SQLiteSelectOperation operationSelectAssignedId(*connection, "SELECT last_insert_rowid()");
-    if (operationSelectAssignedId.execute()) {
-        sqlite3_stmt *stmt = operationSelectAssignedId.getStatement();
-        int result = sqlite3_step(stmt);
-        if (result == SQLITE_ROW ) {
-            assessmentId = sqlite3_column_int(stmt, 0);
+    auto operationSelectAssignedId = operationFactory->createSelectOperation(*connection, 
+        "SELECT last_insert_rowid()");
+    if (operationSelectAssignedId->execute()) {
+        if (operationSelectAssignedId->getRow()) {
+            assessmentId = operationSelectAssignedId->getIntValue(0);
         }
         else {
             lastError = "Unable to retreive the assigned id for the new assessment record.";
         }
-        sqlite3_finalize(stmt);
+        operationSelectAssignedId->close();
     }
     else {
-        lastError = operationSelectAssignedId.getLastError();
+        lastError = operationSelectAssignedId->getLastError();
     }
     return assessmentId;
 }
@@ -164,4 +166,30 @@ QueryResult AssessmentStorage::deleteItem(size_t id)
     }
     return operation.getExtendedResultInfo();*/
     return QueryResult::ERROR;
+}
+
+map<size_t, vector<AssessmentResult>> AssessmentStorage::loadAllResults() 
+{
+    map<size_t, vector<AssessmentResult>> assessmentResults;
+    auto operationLoadResults = operationFactory->createSelectOperation(*connection, 
+        "SELECT assessment_id, assessmentResult.id, result, assessmentResult.comments, student_id, student.firstname, student.lastname, student.comments "
+        "FROM assessmentResult "
+        "INNER JOIN Student ON assessmentResult.student_id = student.id");
+    if (operationLoadResults->execute()) {
+        while (operationLoadResults->getRow()) {
+            auto results = assessmentResults[operationLoadResults->getIntValue(0)];
+            results.emplace_back(operationLoadResults->getIntValue(1),
+                                 Student(operationLoadResults->getIntValue(4),
+                                    operationLoadResults->getStringValue(5),
+                                    operationLoadResults->getStringValue(6),
+                                    operationLoadResults->getStringValue(7)),
+                                 static_cast<float>(operationLoadResults->getDoubleValue(2)),
+                                 operationLoadResults->getStringValue(3));
+        }
+        operationLoadResults->close();
+    }
+    else {
+        throw runtime_error(operationLoadResults->getLastError());
+    }
+    return assessmentResults;
 }

@@ -12,11 +12,12 @@ public:
                           const std::vector<std::string> &args = std::vector<std::string>());
     bool execute() override;
     void close() override;
-    sqlite3_stmt *getStatement() const;
     bool getRow() override;
     int getIntValue(int columnNumber) const override;
     std::string getStringValue(int columnNumber) const override;
     bool getBoolValue(int columnNumber) const override;
+    SQLiteDateTime getDateTime(int columnNumber) const override;
+    double getDoubleValue(int columnNumber) const override;
 private:
     sqlite3_stmt *stmt;
 };

@@ -65,6 +65,17 @@ TEST(SubjectStorage_insertItem, ValidInsertWithANewDefaultSubject_ReturnTrue)
     ASSERT_TRUE(storage.insertItem(Subject("History", true)));
 }
 
+TEST(SubjectStorage_insertItem, FailedInsertAtUpdateAllRowsToRemoveDefaultSelect_ReturnFalse)
+{
+    auto factory { make_unique<FakeOperationFactory>( vector<FakeOperationResult> { 
+        FakeOperationResultFactory::createNewSelectResult(false, "Error during selecting the default subject", 0),
+    }) };
+    SubjectStorage storage(DatabaseConnection("fake"), move(factory));
+
+    ASSERT_FALSE(storage.insertItem(Subject("History", true)));
+    ASSERT_EQ("Error during selecting the default subject", storage.getLastError());
+}
+
 TEST(SubjectStorage_insertItem, FailedInsertAtUpdateAllRowsToRemoveDefault_ReturnFalse)
 {
     auto factory { make_unique<FakeOperationFactory>( vector<FakeOperationResult> { 
@@ -75,6 +86,19 @@ TEST(SubjectStorage_insertItem, FailedInsertAtUpdateAllRowsToRemoveDefault_Retur
 
     ASSERT_FALSE(storage.insertItem(Subject("History", true)));
     ASSERT_EQ("Error during the update of all rows to remove default", storage.getLastError());
+}
+
+TEST(SubjectStorage_insertItem, FailedInsertAtInsertSubject_ReturnFalse)
+{
+    auto factory { make_unique<FakeOperationFactory>( vector<FakeOperationResult> { 
+        FakeOperationResultFactory::createNewSelectResult(true, "", 1),
+        FakeOperationResultFactory::createNewUpdateResult(true, ""),
+        FakeOperationResultFactory::createNewInsertResult(false, "Error during the insert subject")
+    }) };
+    SubjectStorage storage(DatabaseConnection("fake"), move(factory));
+
+    ASSERT_FALSE(storage.insertItem(Subject("History", true)));
+    ASSERT_EQ("Error during the insert subject", storage.getLastError());
 }
 
 TEST(SubjectStorage_updateItem, ValidUpdateWithOneExistingSubject_ReturnTrue)

@@ -1,6 +1,7 @@
 #pragma once
 
 #include "IStorageSelectOperation.h"
+#include "sqliteDateTimeFactory.h"
 #include <sstream>
 
 class FakeSelectOperation : public IStorageSelectOperation
@@ -48,6 +49,17 @@ public:
     bool getBoolValue(int columnNumber) const override
     {
         return false;
+    }
+
+    SQLiteDateTime getDateTime(int columnNumber) const 
+    {
+        return SQLiteDateTimeFactory::NewDateTimeFromISOExtended("2020-08-08T10:11:12");
+
+    }
+
+    double getDoubleValue(int columnNumber) const
+    {
+        return 80.2;
     }
 
     bool executeResult = true;

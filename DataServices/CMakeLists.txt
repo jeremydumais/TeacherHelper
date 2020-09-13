@@ -32,7 +32,12 @@ set_target_properties(
 )
 
 if (NOT DEFINED BUILD_TESTING OR BUILD_TESTING)
-  add_subdirectory("test")
+  add_subdirectory("test/unit tests")
+endif()
+
+if (BUILD_INTEGRATION_TESTING)
+  add_subdirectory("test/integration tests")
+  message("-- Integration tests will be built")
 endif()
 
 install(TARGETS ${PROJECT_NAME} DESTINATION lib)

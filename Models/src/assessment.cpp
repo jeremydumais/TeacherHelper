@@ -107,32 +107,32 @@ void Assessment::setDate(const ptime &itemDate)
 void Assessment::addResult(const AssessmentResult &assessmentResult) 
 {
     //Ensure the assessment result is not already in the vector
-    /*auto resultIterator = find(results.cbegin(),
-                                results.cend(),
-                                assessmentResult);
+    auto resultIterator = find_if(results.cbegin(),
+                               results.cend(),
+                               [assessmentResult](const AssessmentResult &result) {
+                                   return assessmentResult.getStudent() ==  result.getStudent();
+                               });
     if (resultIterator!=results.cend())
         throw invalid_argument("Cannot add the same assessment result twice.");
-    results.emplace_back(assessmentResult);*/
+    results.emplace_back(assessmentResult);
 }
 
-/*
-void Test::removeMember(const Student &student) 
+
+void Assessment::removeResult(const AssessmentResult &result) 
 {
     //Ensure the student is in the list
-    auto resultIterator = find(members.cbegin(),
-                               members.cend(),
-                               student);
-    if (resultIterator!=members.cend()) {
-        members.remove(student);
+    auto resultIterator = find(results.cbegin(),
+                               results.cend(),
+                               result);
+    if (resultIterator!=results.cend()) {
+        results.erase(resultIterator);
     }
     else {
-        throw invalid_argument("That student is not part of the list.");
+        throw invalid_argument("That result is not part of the list.");
     }
 }
 
-void Test::clearMembers() 
+void Assessment::clearResults() 
 {
-    members.clear();
+    results.clear();
 }
-
-*/

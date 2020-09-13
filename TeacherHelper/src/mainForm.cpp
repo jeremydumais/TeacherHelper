@@ -318,12 +318,13 @@ void MainForm::toolButtonCollapseAll_Click()
 
 void MainForm::treeWidgetSchoolClassNav_currentItemChanged(QTreeWidgetItem *current) 
 {
+	ui.tableWidgetAssessments->model()->removeRows(0, ui.tableWidgetAssessments->rowCount());
+
 	if (current != nullptr && current->parent() != nullptr) {
 		//Retreive selected class id
 		size_t classId = current->data(1, 0).toUInt();
 		//Load the class assessments
 		assessmentController->loadAssessmentsByClass(classId);
-		ui.tableWidgetAssessments->model()->removeRows(0, ui.tableWidgetAssessments->rowCount());
 		size_t row {0};
 		for(const auto &assessment : assessmentController->getAssessments()) {
 			ui.tableWidgetAssessments->insertRow(row);

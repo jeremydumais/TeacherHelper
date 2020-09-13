@@ -3,8 +3,10 @@
 #include "assessment.h"
 #include "databaseConnection.h"
 #include "IManagementItemStorage.h"
-#include "sqliteDeleteOperation.h"
+#include "IStorageOperationFactory.h"
 #include <list>
+#include <map>
+#include <vector>
 
 #ifdef _WIN32
     #ifdef DATASERVICES_EXPORTS  
@@ -19,7 +21,8 @@
 class ASSESSMENTSTORAGE_API AssessmentStorage : public IManagementItemStorage<Assessment>
 {
 public:
-    explicit AssessmentStorage(const DatabaseConnection &connection);
+    explicit AssessmentStorage(const DatabaseConnection &connection, 
+                               const std::unique_ptr<IStorageOperationFactory> operationFactory = nullptr);
     std::list<Assessment> getAllItems() override;
     std::list<Assessment> getItemsByClassId(const size_t classId);
     std::list<Assessment> loadItemsFromDB(const std::string &whereClause = "");
@@ -28,8 +31,10 @@ public:
     size_t retreiveAssignedAssessmentId();
     bool updateItem(const Assessment &assessment) override;
     QueryResult deleteItem(size_t id) override;
+    std::map<size_t, std::vector<AssessmentResult>> loadAllResults();
 private:
     const DatabaseConnection * const connection;
     std::string lastError;
+    std::unique_ptr<IStorageOperationFactory> operationFactory;
 };
 
