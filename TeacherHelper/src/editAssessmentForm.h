@@ -22,7 +22,8 @@ Q_OBJECT
 public:
 	EditAssessmentForm(QWidget *parent, 
 				 const DatabaseConnection &connection, 
-				 const EditAssessmentActionMode editMode);
+				 const EditAssessmentActionMode editMode,
+				 const Assessment * const assessmentToEdit = nullptr);
 	~EditAssessmentForm() = default;
 	void showEvent(QShowEvent *event) override;
 private:
@@ -33,19 +34,24 @@ private:
 	SubjectController subjectController;
 	SchoolController schoolController;
 	ClassController classController;
+	const Assessment * const assessmentToEdit;
 	void saveNewItem();
 	void updateExistingItem();
 	bool validateEntry() const;
+	Assessment getAssessmentFromFields() const;
+	std::string getStudentNameFromTableLine(QAbstractItemModel * const model, int rowIndex) const;
 	boost::posix_time::ptime getSelectedDateTime() const;
 	void refreshTestTypeComboBox();
 	void refreshSubjectComboBox();
 	void refreshSchoolComboBox();
 	void refreshClassComboBox(const School &school);
+	void refreshStudentList(const Class &aClass);
 	void showError(const std::string &message) const;
 private slots:
 	void pushButtonOK_Click();
 	void pushButtonCancel_Click();
 	void comboBoxSchool_CurrentIndexChanged();
+	void comboBoxClass_CurrentIndexChanged();
 };
 
 #endif // EDITASSESSMENTFORM_H

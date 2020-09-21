@@ -92,6 +92,7 @@ list<Assessment> AssessmentStorage::loadItemsFromDB(const string &whereClause)
             for(const auto &result : it->second) {
                 assessment.addResult(result);
             }
+            it++;
         }
     }
     return retVal;
@@ -105,7 +106,7 @@ const string &AssessmentStorage::getLastError() const
 bool AssessmentStorage::insertItem(const Assessment &assessment)
 {
     auto assessmentDateTime = SQLiteDateTimeFactory::NewDateTimeFromPTime(assessment.getDateTime());
-    SQLiteInsertOperation operation(*connection, 
+    auto operation = operationFactory->createInsertOperation(*connection, 
         "INSERT INTO assessment (name, testType_id, subject_id, class_id, date) "
         "VALUES(?, ?, ?, ?, ?)",
         vector<string> { boost::trim_copy(assessment.getName()),
@@ -114,11 +115,18 @@ bool AssessmentStorage::insertItem(const Assessment &assessment)
                          to_string(assessment.getClass().getId()), 
                          assessmentDateTime.toSQLiteString()
                        });
-    if (!operation.execute()) {
-        lastError = operation.getLastError();
+    if (!operation->execute()) {
+        lastError = operation->getLastError();
         return false;
     }
-    return true;
+
+    //Retreive the assigned primary key (id)
+    size_t assessmentId = retreiveAssignedAssessmentId();
+    if (assessmentId == 0) {
+        return false;
+    }
+
+    return insertResults(assessmentId, assessment.getResults());
 }
 
 size_t AssessmentStorage::retreiveAssignedAssessmentId()
@@ -141,50 +149,85 @@ size_t AssessmentStorage::retreiveAssignedAssessmentId()
     return assessmentId;
 }
 
+bool AssessmentStorage::insertResults(size_t assessmentId, const vector<AssessmentResult> &resultsToAdd)
+{
+    if (resultsToAdd.size() > 0) {
+        //Insert all results
+        string sqlQueryInsertResults {"INSERT INTO assessmentResult (assessment_id, student_id, result, comments) VALUES" };
+        vector<string> resultValues;
+        size_t i {0};
+        for (const auto &result : resultsToAdd) {
+            sqlQueryInsertResults += " (?, ?, ?, ?)";
+            resultValues.emplace_back(to_string(assessmentId));
+            resultValues.emplace_back(to_string(result.getStudent().getId()));
+            resultValues.emplace_back(to_string(result.getResult()));
+            resultValues.emplace_back(result.getComments());
+            i++;
+            if (i < resultsToAdd.size()) {
+                sqlQueryInsertResults += ",";
+            }
+        }
+        auto operationInsertResults = operationFactory->createInsertOperation(*connection, sqlQueryInsertResults, resultValues);
+        if (!operationInsertResults->execute()) {
+            lastError = operationInsertResults->getLastError();
+            return false;
+        }
+    }
+    return true;
+}
+
 bool AssessmentStorage::updateItem(const Assessment &assessment)
 {
-    /*SQLiteUpdateOperation operation(*connection, 
-        "UPDATE assessment SET name = ? WHERE id = ?",
-        vector<string> { boost::trim_copy(city.getName()),
-            to_string(city.getId()) });
-    if (!operation.execute()) {
-        lastError = operation.getLastError();
+    auto assessmentDateTime = SQLiteDateTimeFactory::NewDateTimeFromPTime(assessment.getDateTime());
+    auto operation = operationFactory->createUpdateOperation(*connection, 
+        "UPDATE assessment SET name = ?, testType_id = ?, subject_id = ?, "
+        "class_id = ?, date = ? WHERE id = ?",
+        vector<string> { boost::trim_copy(assessment.getName()),
+            to_string(assessment.getTestType().getId()),
+            to_string(assessment.getSubject().getId()),
+            to_string(assessment.getClass().getId()),
+            assessmentDateTime.toSQLiteString(),
+            to_string(assessment.getId()) });
+    if (!operation->execute()) {
+        lastError = operation->getLastError();
         return false;
-    }*/
+    }
     return true;
 }
 
 QueryResult AssessmentStorage::deleteItem(size_t id)
 {
-    //Ensure the the record is not user as a foreign key in another table
+    //Ensure that the record is not user as a foreign key in another table
 
-    /*SQLiteDeleteOperation operation(*connection, 
-        "DELETE FROM city WHERE id = ?", 
+    auto operation = operationFactory->createDeleteOperation(*connection, 
+        "DELETE FROM assessment WHERE id = ?", 
         vector<string> { to_string(id) });
-    if (!operation.execute()) {
-        lastError = operation.getLastError();
+    if (!operation->execute()) {
+        lastError = operation->getLastError();
     }
-    return operation.getExtendedResultInfo();*/
-    return QueryResult::ERROR;
+    return operation->getExtendedResultInfo();
 }
 
-map<size_t, vector<AssessmentResult>> AssessmentStorage::loadAllResults() 
+map<size_t, vector<AssessmentResult>> AssessmentStorage::loadAllResults(const string &whereClause) 
 {
     map<size_t, vector<AssessmentResult>> assessmentResults;
     auto operationLoadResults = operationFactory->createSelectOperation(*connection, 
         "SELECT assessment_id, assessmentResult.id, result, assessmentResult.comments, student_id, student.firstname, student.lastname, student.comments "
         "FROM assessmentResult "
-        "INNER JOIN Student ON assessmentResult.student_id = student.id");
+        "INNER JOIN Student ON assessmentResult.student_id = student.id "
+        "INNER JOIN assessment ON assessmentResult.assessment_id = assessment.id "
+        "INNER JOIN class on assessment.class_id = class.id " +
+        whereClause);
     if (operationLoadResults->execute()) {
         while (operationLoadResults->getRow()) {
-            auto results = assessmentResults[operationLoadResults->getIntValue(0)];
-            results.emplace_back(operationLoadResults->getIntValue(1),
-                                 Student(operationLoadResults->getIntValue(4),
-                                    operationLoadResults->getStringValue(5),
-                                    operationLoadResults->getStringValue(6),
-                                    operationLoadResults->getStringValue(7)),
-                                 static_cast<float>(operationLoadResults->getDoubleValue(2)),
-                                 operationLoadResults->getStringValue(3));
+            assessmentResults[operationLoadResults->getIntValue(0)].emplace_back(
+                operationLoadResults->getIntValue(1),
+                    Student(operationLoadResults->getIntValue(4),
+                        operationLoadResults->getStringValue(5),
+                        operationLoadResults->getStringValue(6),
+                        operationLoadResults->getStringValue(7)),
+                    static_cast<float>(operationLoadResults->getDoubleValue(2)),
+                    operationLoadResults->getStringValue(3));
         }
         operationLoadResults->close();
     }

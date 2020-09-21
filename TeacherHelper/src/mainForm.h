@@ -32,6 +32,7 @@ private:
 	void refreshTreeViewTestNavigation();
 private slots:
 	void action_AddAssessment_Click();
+	void action_EditAssessment_Click();
 	void action_StudentsManagement_Click();
 	void action_SchoolsManagement_Click();
 	void action_ClassesManagement_Click();

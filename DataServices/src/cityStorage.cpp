@@ -74,7 +74,7 @@ bool CityStorage::updateItem(const City &city)
 
 QueryResult CityStorage::deleteItem(size_t id)
 {
-    //Ensure the the record is not user as a foreign key in another table
+    //Ensure that the record is not user as a foreign key in another table
     
     auto operation = operationFactory->createDeleteOperation(*connection, 
         "DELETE FROM city WHERE id = ?", 

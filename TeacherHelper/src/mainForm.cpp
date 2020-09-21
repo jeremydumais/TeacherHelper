@@ -33,6 +33,7 @@ MainForm::MainForm(QWidget *parent)
 	this->showMaximized();
 	connect(ui.action_Quit, &QAction::triggered, this, &MainForm::close);
 	connect(ui.action_AddAssessment, &QAction::triggered, this, &MainForm::action_AddAssessment_Click);
+	connect(ui.action_EditAssessment, &QAction::triggered, this, &MainForm::action_EditAssessment_Click);
 	connect(ui.action_Students, &QAction::triggered, this, &MainForm::action_StudentsManagement_Click);
 	connect(ui.action_Schools, &QAction::triggered, this, &MainForm::action_SchoolsManagement_Click);
 	connect(ui.action_Classes, &QAction::triggered, this, &MainForm::action_ClassesManagement_Click);
@@ -130,6 +131,25 @@ void MainForm::action_AddAssessment_Click()
 	if (formEditAssessment.exec() == QDialog::DialogCode::Accepted) {
 		//Refresh the navigation and test list
 		refreshTreeViewTestNavigation();
+	}
+}
+
+void MainForm::action_EditAssessment_Click() 
+{
+	//Get the selected assessment
+	auto selectedAssessmentRow = ui.tableWidgetAssessments->selectionModel()->selectedIndexes();
+	if (!selectedAssessmentRow.empty()) {
+		//Find selected assessment
+		auto assessmentPtr = assessmentController->findAssessment(selectedAssessmentRow[0].data().toUInt());
+		if (assessmentPtr != nullptr) {
+			EditAssessmentForm formEditAssessment(this, *dbConnection, 
+												EditAssessmentActionMode::Modify, 
+												assessmentPtr);
+			if (formEditAssessment.exec() == QDialog::DialogCode::Accepted) {
+				//Refresh the navigation and test list
+				refreshTreeViewTestNavigation();
+			}
+		}
 	}
 }
 	
@@ -333,6 +353,7 @@ void MainForm::treeWidgetSchoolClassNav_currentItemChanged(QTreeWidgetItem *curr
 			ui.tableWidgetAssessments->setItem(row, 2, new QTableWidgetItem(assessment.getName().c_str()));
 			ui.tableWidgetAssessments->setItem(row, 3, new QTableWidgetItem(assessment.getTestType().getName().c_str()));
 			ui.tableWidgetAssessments->setItem(row, 4, new QTableWidgetItem(assessment.getSubject().getName().c_str()));
+			//ui.tableWidgetAssessments->setItem(row, 4, new QTableWidgetItem(to_string(assessment.getResults().size()).c_str()));
 			row++;
 		}
 	}

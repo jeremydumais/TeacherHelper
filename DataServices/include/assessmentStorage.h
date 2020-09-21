@@ -29,9 +29,11 @@ public:
     const std::string &getLastError() const override;
     bool insertItem(const Assessment &assessment) override;
     size_t retreiveAssignedAssessmentId();
+    bool insertResults(size_t assessmentId, const std::vector<AssessmentResult> &resultsToAdd);
     bool updateItem(const Assessment &assessment) override;
     QueryResult deleteItem(size_t id) override;
-    std::map<size_t, std::vector<AssessmentResult>> loadAllResults();
+    std::map<size_t, std::vector<AssessmentResult>> loadAllResults(const std::string &whereClause = "");
+
 private:
     const DatabaseConnection * const connection;
     std::string lastError;

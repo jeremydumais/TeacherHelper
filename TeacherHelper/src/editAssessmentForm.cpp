@@ -1,6 +1,8 @@
 #include "editAssessmentForm.h"
-#include <QtWidgets/qmessagebox.h>
+#include <boost/algorithm/string.hpp>
+#include <boost/lexical_cast.hpp>
 #include <fmt/format.h>
+#include <QtWidgets/qmessagebox.h>
 
 using namespace std;
 using namespace boost::posix_time;
@@ -8,7 +10,8 @@ using namespace boost::gregorian;
 
 EditAssessmentForm::EditAssessmentForm(QWidget *parent, 
 						   const DatabaseConnection &connection,
-						   const EditAssessmentActionMode editMode)
+						   const EditAssessmentActionMode editMode,
+						   const Assessment * const  assessmentToEdit)
 	: QDialog(parent),
 	  ui(Ui::editAssessmentFormClass()),
 	  editMode(editMode),
@@ -16,13 +19,15 @@ EditAssessmentForm::EditAssessmentForm(QWidget *parent,
 	  testTypeController(connection),
 	  subjectController(connection),
 	  schoolController(connection),
-	  classController(connection)
+	  classController(connection),
+	  assessmentToEdit(assessmentToEdit)
 {
 	this->setResult(QDialog::DialogCode::Rejected);
 	ui.setupUi(this);
 	connect(ui.pushButtonOK, SIGNAL(clicked()), this, SLOT(pushButtonOK_Click()));
 	connect(ui.pushButtonCancel, SIGNAL(clicked()), this, SLOT(pushButtonCancel_Click()));
 	connect(ui.comboBoxSchool, SIGNAL(currentIndexChanged(int)), this, SLOT(comboBoxSchool_CurrentIndexChanged()));
+	connect(ui.comboBoxClass, SIGNAL(currentIndexChanged(int)), this, SLOT(comboBoxClass_CurrentIndexChanged()));
 
 	if (this->editMode == EditAssessmentActionMode::Add) {
 		this->setWindowTitle("Create an assessment");
@@ -32,6 +37,13 @@ EditAssessmentForm::EditAssessmentForm(QWidget *parent,
 	else {
 		this->setWindowTitle("Edit assessment");
 	}
+
+	ui.tableWidgetResults->setHorizontalHeaderItem(0, new QTableWidgetItem("Id"));
+	ui.tableWidgetResults->setHorizontalHeaderItem(1, new QTableWidgetItem("First Name"));
+	ui.tableWidgetResults->setHorizontalHeaderItem(2, new QTableWidgetItem("Last Name"));
+	ui.tableWidgetResults->setHorizontalHeaderItem(3, new QTableWidgetItem("Result"));
+	ui.tableWidgetResults->setHorizontalHeaderItem(4, new QTableWidgetItem("Comments"));
+	ui.tableWidgetResults->setColumnHidden(0, true);
 }
 
 void EditAssessmentForm::showEvent(QShowEvent *event) 
@@ -44,6 +56,12 @@ void EditAssessmentForm::showEvent(QShowEvent *event)
 	refreshTestTypeComboBox();
 	refreshSubjectComboBox();
 	refreshSchoolComboBox();
+
+	//Edit mode (display assessment value)
+	if (editMode == EditAssessmentActionMode::Modify) {
+		ui.lineEditName->setText(assessmentToEdit->getName().c_str());
+		//ui.comboBoxTestType->setSele
+	}
 } 
 
 void EditAssessmentForm::pushButtonOK_Click()
@@ -60,11 +78,8 @@ void EditAssessmentForm::pushButtonOK_Click()
 
 void EditAssessmentForm::saveNewItem() 
 {
-	if (controller.insertAssessment(Assessment(ui.lineEditName->text().trimmed().toStdString(),
-											*testTypeController.findTestType(ui.comboBoxTestType->currentData().toInt()),
-											*subjectController.findSubject(ui.comboBoxSubject->currentData().toInt()),
-											*classController.findClass(ui.comboBoxClass->currentData().toInt()),
-											getSelectedDateTime()))) {
+	
+	if (controller.insertAssessment(getAssessmentFromFields())) {
 		done(QDialog::DialogCode::Accepted);
 	}
 	else {
@@ -94,11 +109,6 @@ void EditAssessmentForm::updateExistingItem()
 	else {
 		showError("Unable to find the selected student.");
 	}*/
-}
-
-void EditAssessmentForm::pushButtonCancel_Click()
-{
-	done(QDialog::DialogCode::Rejected);
 }
 
 bool EditAssessmentForm::validateEntry() const
@@ -131,7 +141,68 @@ bool EditAssessmentForm::validateEntry() const
 		showError("The class is required!");
 		return false;
 	}
+	//Check each results
+	const auto resultModel = ui.tableWidgetResults->model();
+	for(int i=0; i<resultModel->rowCount() ;i++) {
+		//Check the validity of the result
+		float result { 0.0f };
+		if (boost::trim_copy(resultModel->index(i, 3).data().toString().toStdString()) != "") {
+			try {
+				result = boost::lexical_cast<float>(resultModel->index(i, 3).data().toString().toStdString());
+			}
+			catch(boost::bad_lexical_cast &) {
+				showError(fmt::format("The result of {0} is invalid!", 
+					getStudentNameFromTableLine(resultModel, i)));
+				return false;
+			}
+			if (result < 0 || result > 100.0f) {
+				showError(fmt::format("The result of {0} must be between 0 and 100.", 
+					getStudentNameFromTableLine(resultModel, i)));
+				return false;
+			}
+		}
+		//Check the comment length
+		if (resultModel->index(i, 4).data().toString().toStdString().length() > 256) {
+        	showError(fmt::format("The comment of {0} exceed the 256 chars limit!", 
+				getStudentNameFromTableLine(resultModel, i)));
+			return false;
+		}
+	}
 	return true;
+}
+
+Assessment EditAssessmentForm::getAssessmentFromFields() const
+{
+	Assessment assessment(editMode == EditAssessmentActionMode::Modify && assessmentToEdit != nullptr ? assessmentToEdit->getId() : 0,
+							ui.lineEditName->text().trimmed().toStdString(),
+							*testTypeController.findTestType(ui.comboBoxTestType->currentData().toInt()),
+							*subjectController.findSubject(ui.comboBoxSubject->currentData().toInt()),
+							*classController.findClass(ui.comboBoxClass->currentData().toInt()),
+							getSelectedDateTime());
+	const auto resultModel = ui.tableWidgetResults->model();
+	for(int i=0; i<resultModel->rowCount() ;i++) {
+		string result = boost::trim_copy(resultModel->index(i, 3).data().toString().toStdString());
+		if (result != "") {
+			assessment.addResult(AssessmentResult(Student(resultModel->index(i, 0).data().toInt(),
+													resultModel->index(i, 1).data().toString().toStdString(),
+													resultModel->index(i, 2).data().toString().toStdString()),
+												boost::lexical_cast<float>(result),
+												resultModel->index(i, 4).data().toString().toStdString()));
+		}
+	}
+	return assessment;
+}
+
+std::string EditAssessmentForm::getStudentNameFromTableLine(QAbstractItemModel * const model, int rowIndex) const
+{
+	return fmt::format("{0} {1}", 
+		model->index(rowIndex, 1).data().toString().toStdString(),
+		model->index(rowIndex, 2).data().toString().toStdString());
+}
+
+void EditAssessmentForm::pushButtonCancel_Click()
+{
+	done(QDialog::DialogCode::Rejected);
 }
 
 ptime EditAssessmentForm::getSelectedDateTime() const
@@ -192,6 +263,33 @@ void EditAssessmentForm::comboBoxSchool_CurrentIndexChanged()
 		if (selectedSchool) {
 			refreshClassComboBox(*selectedSchool);
 		}
+	}
+}
+
+void EditAssessmentForm::comboBoxClass_CurrentIndexChanged() 
+{
+	if (ui.comboBoxClass->currentData().toInt() >= 1) {
+		const Class* const selectedClass = classController.findClass(ui.comboBoxClass->currentData().toUInt());
+		if (selectedClass) {
+			refreshStudentList(*selectedClass);
+		}
+	}
+}
+
+void EditAssessmentForm::refreshStudentList(const Class &aClass) 
+{
+	ui.tableWidgetResults->model()->removeRows(0, ui.tableWidgetResults->rowCount());
+	size_t row {0};
+	for(const auto &student : aClass.getMembers()) {
+		ui.tableWidgetResults->insertRow(row);
+		ui.tableWidgetResults->setItem(row, 0, new QTableWidgetItem(to_string(student.getId()).c_str()));
+		auto nonEditableFirstName = new QTableWidgetItem(student.getFirstName().c_str());
+		nonEditableFirstName->setFlags(nonEditableFirstName->flags() & ~Qt::ItemIsEditable); 
+		ui.tableWidgetResults->setItem(row, 1, nonEditableFirstName);
+		auto nonEditableLastName = new QTableWidgetItem(student.getLastName().c_str());
+		nonEditableLastName->setFlags(nonEditableLastName->flags() & ~Qt::ItemIsEditable); 
+		ui.tableWidgetResults->setItem(row, 2, nonEditableLastName);
+		row++;
 	}
 }
 
