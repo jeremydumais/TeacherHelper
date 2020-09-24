@@ -144,6 +144,21 @@ TEST(ClassStorage_insertItem, ValidInsertButFailedAtRetreivingRecordId_ReturnFal
     ASSERT_EQ("Error while retreiving the id", storage.getLastError());
 }
 
+TEST(ClassStorage_insertItem, ValidInsertButFailedAtRetreivingRecordIdNoRowReturned_ReturnFalse)
+{
+    auto factory { make_unique<FakeOperationFactory>( vector<FakeOperationResult> { 
+        FakeOperationResultFactory::createNewInsertResult(true),
+        FakeOperationResultFactory::createNewSelectResult(true, "", { vector<boost::any> { 1 } }),
+        FakeOperationResultFactory::createNewSelectResult(true, "", {})
+    }) };
+    ClassStorage storage(DatabaseConnection("fake"), move(factory));
+    Class myClass(1, "MyClass", School("Test", City("New York")));
+
+    ASSERT_TRUE(storage.insertItem(myClass));
+    ASSERT_EQ(0, storage.retreiveAssignedClassId());
+    ASSERT_EQ("Unable to retreive the assigned id for the new class record.", storage.getLastError());
+}
+
 TEST(ClassStorage_insertItem, ValidInsertAndAddingOneMember_ReturnTrue)
 {
     auto factory { make_unique<FakeOperationFactory>( vector<FakeOperationResult> { 

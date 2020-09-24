@@ -239,6 +239,21 @@ TEST_F(AssessmentStorageWithSampleTwoResult, retreiveAssignedAssessmentId_ErrorA
     ASSERT_EQ("An error occurred while selecting", storage.getLastError());
 }
 
+TEST_F(AssessmentStorageWithSampleTwoResult, retreiveAssignedAssessmentId_ErrorAtSelectNoRowReturned_Return0)
+{
+    auto factory { make_unique<FakeOperationFactory>( vector<FakeOperationResult> { 
+        FakeOperationResultFactory::createNewInsertResult(true, ""),
+        FakeOperationResultFactory::createNewSelectResult(true, "", { vector<boost::any> { 3 } }),
+        FakeOperationResultFactory::createNewInsertResult(true, ""),
+        FakeOperationResultFactory::createNewSelectResult(true, "", {})
+    }) };
+    AssessmentStorage storage(DatabaseConnection("fake"), move(factory));
+
+    ASSERT_TRUE(storage.insertItem(assessmentSample));
+    ASSERT_EQ(0, storage.retreiveAssignedAssessmentId());
+    ASSERT_EQ("Unable to retreive the assigned id for the new assessment record.", storage.getLastError());
+}
+
 TEST_F(AssessmentStorageWithSampleTwoResult, insertResults_ValidInsert_ReturnTrue)
 {
     auto factory { make_unique<FakeOperationFactory>( vector<FakeOperationResult> { 
@@ -300,12 +315,26 @@ TEST_F(AssessmentStorageWithSampleTwoResult, updateItem_ValidUpdateWithUpdatingT
         FakeOperationResultFactory::createNewSelectResult(true, "", { assessmentResultSample1, assessmentResultSample2 }),
         FakeOperationResultFactory::createNewUpdateResult(true), //Update assessment
         //Updating the two results
-        FakeOperationResultFactory::createNewUpdateResult(true), //Update result1
-        FakeOperationResultFactory::createNewUpdateResult(true) //Update result2
+        FakeOperationResultFactory::createNewUpdateResult(true),
+        FakeOperationResultFactory::createNewUpdateResult(true)
     }) };
     AssessmentStorage storage(DatabaseConnection("fake"), move(factory));
 
     ASSERT_TRUE(storage.updateItem(assessmentSample));
+}
+
+TEST_F(AssessmentStorageWithSampleTwoResult, updateItem_ValidUpdateButErrorAtUpdatingTwoResults_ReturnFalse)
+{
+    auto factory { make_unique<FakeOperationFactory>( vector<FakeOperationResult> { 
+        FakeOperationResultFactory::createNewSelectResult(true, "", { assessmentResultSample1, assessmentResultSample2 }),
+        FakeOperationResultFactory::createNewUpdateResult(true), //Update assessment
+        //Updating the two results
+        FakeOperationResultFactory::createNewUpdateResult(false, "An error occurred while updating the results")
+    }) };
+    AssessmentStorage storage(DatabaseConnection("fake"), move(factory));
+
+    ASSERT_FALSE(storage.updateItem(assessmentSample));
+    ASSERT_EQ("An error occurred while updating the results", storage.getLastError());
 }
 /*
 
