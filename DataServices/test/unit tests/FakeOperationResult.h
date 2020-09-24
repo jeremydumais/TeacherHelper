@@ -1,6 +1,8 @@
 #pragma once
 
 #include "queryResult.h"
+#include <boost/any.hpp>
+#include <vector>
 
 class FakeOperationResult {
 public:
@@ -10,13 +12,13 @@ private:
     FakeOperationResult(bool executeResult,
                         QueryResult extendedResultInfo,
                         const std::string &lastError,
-                        size_t nbOfReturnedItems) 
+                        const std::vector<std::vector<boost::any>> &returnedItems = std::vector<std::vector<boost::any>>()) 
         : executeResult(executeResult),
           extendedResultInfo(extendedResultInfo),
           lastError(lastError),
-          nbOfReturnedItems(nbOfReturnedItems) {}
+          returnedItems(returnedItems) {}
     bool executeResult;
     QueryResult extendedResultInfo;
     std::string lastError;
-    size_t nbOfReturnedItems;
+    std::vector<std::vector<boost::any>> returnedItems;
 };

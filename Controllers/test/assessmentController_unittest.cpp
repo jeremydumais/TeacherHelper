@@ -21,25 +21,39 @@ public:
 				  Subject("Math"),
 				  Class("MyClass", School("Test", City("CityTest"))),
 				  ptime(date(2020, Aug, 21), time_duration(10, 14, 22)))
-		}) {}
+		}) 
+	{
+		assessments.begin()->addResult(AssessmentResult(Student(1, "Joe", "Blow"), 78.5f));
+		assessments.begin()->addResult(AssessmentResult(Student(2, "Jane", "Doe"), 65.2f));
+	}
     std::list<Assessment> getAllItems() override { return assessments;	}
     const std::string &getLastError() const override { return lastError; }
-    bool insertItem(const Assessment &assessment) override { return true; }
-    bool updateItem(const Assessment &assessment) override { return true; }
-    QueryResult deleteItem(size_t id) override { return QueryResult::OK; }
+    bool insertItem(const Assessment &assessment) override { return insertResult; }
+    bool updateItem(const Assessment &assessment) override { return updateResult; }
+    QueryResult deleteItem(size_t id) override { return deleteResult; }
+	bool insertResult = true;
+	bool updateResult = true;
+	QueryResult deleteResult = QueryResult::OK;
+    std::string lastError;
 private:
 	std::list<Assessment> assessments;
-    std::string lastError;
 };
 
 class AssessmentControllerTest : public ::testing::Test
 {
 public:
-	AssessmentControllerTest()
-	  : controller(DatabaseConnection("nulldb"), 
-				   unique_ptr<IManagementItemStorage<Assessment>>(make_unique<FakeAssessmentStorage>()))
+	AssessmentControllerTest() 
+		: fakeStorage { make_unique<FakeAssessmentStorage>()}
 	{}
-	AssessmentController controller;
+
+	void prepareController()
+	{
+		controller = make_unique<AssessmentController>(DatabaseConnection("nulldb"), 
+												 std::move(fakeStorage));
+	}
+
+	unique_ptr<IManagementItemStorage<Assessment>> fakeStorage;								 
+	unique_ptr<AssessmentController> controller;
 };
 
 TEST(AssessmentController_Constructor, ValidArguments_ReturnSuccess)
@@ -49,10 +63,11 @@ TEST(AssessmentController_Constructor, ValidArguments_ReturnSuccess)
 
 TEST_F(AssessmentControllerTest, getAssessments_Return2Assessments)
 {
-	controller.loadAssessments();
-	ASSERT_EQ(2, controller.getAssessments().size());
+	this->prepareController();
+	controller->loadAssessments();
+	ASSERT_EQ(2, controller->getAssessments().size());
 	size_t index {0};
-	for(const auto &assessment : controller.getAssessments()) {
+	for(const auto &assessment : controller->getAssessments()) {
 		if (index == 0) {
 			ASSERT_EQ("Exam of Aug 23 2020", assessment.getName());
 		}
@@ -65,20 +80,77 @@ TEST_F(AssessmentControllerTest, getAssessments_Return2Assessments)
 
 TEST_F(AssessmentControllerTest, findAssessment_WithIdZero_ReturnNullPtr) 
 {
-	controller.loadAssessments();
-	ASSERT_EQ(nullptr, controller.findAssessment(0));
+	this->prepareController();
+	controller->loadAssessments();
+	ASSERT_EQ(nullptr, controller->findAssessment(0));
 }
 
 TEST_F(AssessmentControllerTest, findAssessment_WithIdOne_ReturnExam) 
 {
-	controller.loadAssessments();
-	ASSERT_NE(nullptr, controller.findAssessment(1));
-	ASSERT_EQ("Exam of Aug 23 2020", controller.findAssessment(1)->getName());
+	this->prepareController();
+	controller->loadAssessments();
+	auto actual = controller->findAssessment(1);
+	ASSERT_NE(nullptr, actual);
+	ASSERT_EQ("Exam of Aug 23 2020", actual->getName());
 }
 
 TEST_F(AssessmentControllerTest, findAssessment_WithIdTwo_ReturnExercice) 
 {
-	controller.loadAssessments();
-	ASSERT_NE(nullptr, controller.findAssessment(2));
-	ASSERT_EQ("Exercice One 2020", controller.findAssessment(2)->getName());
+	this->prepareController();
+	controller->loadAssessments();
+	auto actual = controller->findAssessment(2);
+	ASSERT_NE(nullptr, actual);
+	ASSERT_EQ("Exercice One 2020", actual->getName());
+}
+
+TEST_F(AssessmentControllerTest, insertAssessment_WithAssessmentThatWillSucceed_ReturnTrue) 
+{
+	this->prepareController();
+	auto fakeAssessmentStorage = dynamic_cast<FakeAssessmentStorage*>(this->fakeStorage.get());
+	ASSERT_TRUE(controller->insertAssessment(Assessment(1, "Exam of Aug 31 2020", 
+									TestType("Exam"),
+									Subject("French"),
+									Class("MyClass", School("Test", City("CityTest"))),
+									ptime(date(2020, Aug, 31), time_duration(8, 41, 32)))));
+}
+
+TEST_F(AssessmentControllerTest, insertAssessment_WithAssessmentThatWillFail_ReturnFailed) 
+{
+	auto fakeAssessmentStorage = dynamic_cast<FakeAssessmentStorage*>(this->fakeStorage.get());
+	fakeAssessmentStorage->insertResult = false;
+	fakeAssessmentStorage->lastError = "An insert error occurred";
+
+	this->prepareController();
+	ASSERT_FALSE(controller->insertAssessment(Assessment(1, "Exam of Aug 31 2020", 
+									TestType("Exam"),
+									Subject("French"),
+									Class("MyClass", School("Test", City("CityTest"))),
+									ptime(date(2020, Aug, 31), time_duration(8, 41, 32)))));
+	ASSERT_EQ("An insert error occurred", controller->getLastError());
+}
+
+TEST_F(AssessmentControllerTest, updateAssessment_WithAssessmentThatWillSucceed_ReturnTrue) 
+{
+	this->prepareController();
+	auto fakeAssessmentStorage = dynamic_cast<FakeAssessmentStorage*>(this->fakeStorage.get());
+	ASSERT_TRUE(controller->updateAssessment(Assessment(1, "Exam of Aug 31 2020", 
+									TestType("Exam"),
+									Subject("French"),
+									Class("MyClass", School("Test", City("CityTest"))),
+									ptime(date(2020, Aug, 31), time_duration(8, 41, 32)))));
+}
+
+TEST_F(AssessmentControllerTest, updateAssessment_WithAssessmentThatWillFail_ReturnFailed) 
+{
+	auto fakeAssessmentStorage = dynamic_cast<FakeAssessmentStorage*>(this->fakeStorage.get());
+	fakeAssessmentStorage->updateResult = false;
+	fakeAssessmentStorage->lastError = "An update error occurred";
+
+	this->prepareController();
+	ASSERT_FALSE(controller->updateAssessment(Assessment(1, "Exam of Aug 31 2020", 
+									TestType("Exam"),
+									Subject("French"),
+									Class("MyClass", School("Test", City("CityTest"))),
+									ptime(date(2020, Aug, 31), time_duration(8, 41, 32)))));
+	ASSERT_EQ("An update error occurred", controller->getLastError());
 }

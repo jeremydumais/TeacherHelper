@@ -1,4 +1,5 @@
 #include "editAssessmentForm.h"
+#include "qDateConverter.h"
 #include <boost/algorithm/string.hpp>
 #include <boost/lexical_cast.hpp>
 #include <fmt/format.h>
@@ -39,11 +40,13 @@ EditAssessmentForm::EditAssessmentForm(QWidget *parent,
 	}
 
 	ui.tableWidgetResults->setHorizontalHeaderItem(0, new QTableWidgetItem("Id"));
-	ui.tableWidgetResults->setHorizontalHeaderItem(1, new QTableWidgetItem("First Name"));
-	ui.tableWidgetResults->setHorizontalHeaderItem(2, new QTableWidgetItem("Last Name"));
-	ui.tableWidgetResults->setHorizontalHeaderItem(3, new QTableWidgetItem("Result"));
-	ui.tableWidgetResults->setHorizontalHeaderItem(4, new QTableWidgetItem("Comments"));
+	ui.tableWidgetResults->setHorizontalHeaderItem(1, new QTableWidgetItem("StudentId"));
+	ui.tableWidgetResults->setHorizontalHeaderItem(2, new QTableWidgetItem("First Name"));
+	ui.tableWidgetResults->setHorizontalHeaderItem(3, new QTableWidgetItem("Last Name"));
+	ui.tableWidgetResults->setHorizontalHeaderItem(4, new QTableWidgetItem("Result"));
+	ui.tableWidgetResults->setHorizontalHeaderItem(5, new QTableWidgetItem("Comments"));
 	ui.tableWidgetResults->setColumnHidden(0, true);
+	ui.tableWidgetResults->setColumnHidden(1, true);
 }
 
 void EditAssessmentForm::showEvent(QShowEvent *event) 
@@ -57,12 +60,58 @@ void EditAssessmentForm::showEvent(QShowEvent *event)
 	refreshSubjectComboBox();
 	refreshSchoolComboBox();
 
-	//Edit mode (display assessment value)
 	if (editMode == EditAssessmentActionMode::Modify) {
-		ui.lineEditName->setText(assessmentToEdit->getName().c_str());
-		//ui.comboBoxTestType->setSele
+		prepareFormWithEditingValues();
 	}
-} 
+}
+
+void EditAssessmentForm::prepareFormWithEditingValues() 
+{
+	ui.lineEditName->setText(assessmentToEdit->getName().c_str());
+	if (!selectItemInComboBox(ui.comboBoxTestType, assessmentToEdit->getTestType().getId())) {
+		showError("Cannot select the test type.");
+	}
+	if (!selectItemInComboBox(ui.comboBoxSubject, assessmentToEdit->getSubject().getId())) {
+		showError("Cannot select the subject.");
+	}
+	if (!selectItemInComboBox(ui.comboBoxSchool, assessmentToEdit->getClass().getSchool().getId())) {
+		showError("Cannot select the school.");
+	}
+	if (!selectItemInComboBox(ui.comboBoxClass, assessmentToEdit->getClass().getId())) {
+		showError("Cannot select the class.");
+	}
+	ui.dateEditAssessmentDate->setDate(QDateConverter::PTimeToQDate(assessmentToEdit->getDateTime()));
+	ui.timeEditAssessmentTime->setTime(QDateConverter::PTimeToQTime(assessmentToEdit->getDateTime()));
+	//Load all students results
+	const auto resultModel = ui.tableWidgetResults->model();
+	for(const auto assessmentResult : assessmentToEdit->getResults()) {
+		bool studentFound { false };
+		for(int i=0; i<resultModel->rowCount() ;i++) {
+			if (assessmentResult.getStudent().getId() == resultModel->index(i, 1).data().toUInt()) {
+				studentFound = true;
+				resultModel->setData(resultModel->index(i, 0), to_string(assessmentResult.getId()).c_str());
+				resultModel->setData(resultModel->index(i, 4), to_string(assessmentResult.getResult()).c_str());
+				resultModel->setData(resultModel->index(i, 5), assessmentResult.getComments().c_str());
+				break;
+			}
+		}
+		if (!studentFound) {
+			showError(fmt::format("Unable to found the student {0} in the class members.", assessmentResult.getStudent().getFullName()));
+			break;
+		}
+	}
+}
+
+bool EditAssessmentForm::selectItemInComboBox(QComboBox *comboBox, size_t id)
+{
+	for (int i = 0; i < comboBox->count(); i++) {
+		if (comboBox->itemData(i).toInt() == static_cast<int>(id)) {
+			comboBox->setCurrentIndex(i);
+			return true;
+		}
+	}
+	return false;
+}
 
 void EditAssessmentForm::pushButtonOK_Click()
 {
@@ -78,7 +127,6 @@ void EditAssessmentForm::pushButtonOK_Click()
 
 void EditAssessmentForm::saveNewItem() 
 {
-	
 	if (controller.insertAssessment(getAssessmentFromFields())) {
 		done(QDialog::DialogCode::Accepted);
 	}
@@ -89,26 +137,12 @@ void EditAssessmentForm::saveNewItem()
 
 void EditAssessmentForm::updateExistingItem() 
 {
-	/*auto row = ui.tableWidgeItems->selectionModel()->selectedIndexes();
-	//Find the selected city
-	size_t currentlyEditedStudentId = row[0].data().toUInt();
-	auto editedStudent = controller.findStudent(currentlyEditedStudentId);
-	if (editedStudent != nullptr) {
-		Student editedStudentClone { *editedStudent };
-		editedStudentClone.setFirstName(ui.lineEditFirstname->text().trimmed().toStdString());
-		editedStudentClone.setLastName(ui.lineEditLastname->text().trimmed().toStdString());
-		editedStudentClone.setComments(ui.plainTextEditComments->toPlainText().trimmed().toStdString());
-		if (controller.updateStudent(editedStudentClone)) {
-			toggleEditMode(ActionMode::None);
-			refreshItemsTable();
-		}
-		else {
-			showError(controller.getLastError());
-		}
+	if (controller.updateAssessment(getAssessmentFromFields())) {
+		done(QDialog::DialogCode::Accepted);
 	}
 	else {
-		showError("Unable to find the selected student.");
-	}*/
+		showError(controller.getLastError());
+	}
 }
 
 bool EditAssessmentForm::validateEntry() const
@@ -146,9 +180,9 @@ bool EditAssessmentForm::validateEntry() const
 	for(int i=0; i<resultModel->rowCount() ;i++) {
 		//Check the validity of the result
 		float result { 0.0f };
-		if (boost::trim_copy(resultModel->index(i, 3).data().toString().toStdString()) != "") {
+		if (boost::trim_copy(resultModel->index(i, 4).data().toString().toStdString()) != "") {
 			try {
-				result = boost::lexical_cast<float>(resultModel->index(i, 3).data().toString().toStdString());
+				result = boost::lexical_cast<float>(resultModel->index(i, 4).data().toString().toStdString());
 			}
 			catch(boost::bad_lexical_cast &) {
 				showError(fmt::format("The result of {0} is invalid!", 
@@ -162,7 +196,7 @@ bool EditAssessmentForm::validateEntry() const
 			}
 		}
 		//Check the comment length
-		if (resultModel->index(i, 4).data().toString().toStdString().length() > 256) {
+		if (resultModel->index(i, 5).data().toString().toStdString().length() > 256) {
         	showError(fmt::format("The comment of {0} exceed the 256 chars limit!", 
 				getStudentNameFromTableLine(resultModel, i)));
 			return false;
@@ -178,16 +212,18 @@ Assessment EditAssessmentForm::getAssessmentFromFields() const
 							*testTypeController.findTestType(ui.comboBoxTestType->currentData().toInt()),
 							*subjectController.findSubject(ui.comboBoxSubject->currentData().toInt()),
 							*classController.findClass(ui.comboBoxClass->currentData().toInt()),
-							getSelectedDateTime());
+							QDateConverter::QDateAndQTimeToPTime(ui.dateEditAssessmentDate->date(),
+																 ui.timeEditAssessmentTime->time()));
 	const auto resultModel = ui.tableWidgetResults->model();
 	for(int i=0; i<resultModel->rowCount() ;i++) {
-		string result = boost::trim_copy(resultModel->index(i, 3).data().toString().toStdString());
+		string result = boost::trim_copy(resultModel->index(i, 4).data().toString().toStdString());
 		if (result != "") {
-			assessment.addResult(AssessmentResult(Student(resultModel->index(i, 0).data().toInt(),
-													resultModel->index(i, 1).data().toString().toStdString(),
-													resultModel->index(i, 2).data().toString().toStdString()),
+			assessment.addResult(AssessmentResult(resultModel->index(i, 0).data().toUInt(), 
+												Student(resultModel->index(i, 1).data().toUInt(),
+													resultModel->index(i, 2).data().toString().toStdString(),
+													resultModel->index(i, 3).data().toString().toStdString()),
 												boost::lexical_cast<float>(result),
-												resultModel->index(i, 4).data().toString().toStdString()));
+												resultModel->index(i, 5).data().toString().toStdString()));
 		}
 	}
 	return assessment;
@@ -203,14 +239,6 @@ std::string EditAssessmentForm::getStudentNameFromTableLine(QAbstractItemModel *
 void EditAssessmentForm::pushButtonCancel_Click()
 {
 	done(QDialog::DialogCode::Rejected);
-}
-
-ptime EditAssessmentForm::getSelectedDateTime() const
-{
-	auto selectedDate = ui.dateEditAssessmentDate->date();
-	auto selectedTime = ui.timeEditAssessmentTime->time();
-	return ptime(date(selectedDate.year(), selectedDate.month(), selectedDate.day()),
-				time_duration(selectedTime.hour(), selectedTime.minute(), selectedTime.second()));
 }
 
 void EditAssessmentForm::refreshTestTypeComboBox()
@@ -282,13 +310,13 @@ void EditAssessmentForm::refreshStudentList(const Class &aClass)
 	size_t row {0};
 	for(const auto &student : aClass.getMembers()) {
 		ui.tableWidgetResults->insertRow(row);
-		ui.tableWidgetResults->setItem(row, 0, new QTableWidgetItem(to_string(student.getId()).c_str()));
+		ui.tableWidgetResults->setItem(row, 1, new QTableWidgetItem(to_string(student.getId()).c_str()));
 		auto nonEditableFirstName = new QTableWidgetItem(student.getFirstName().c_str());
 		nonEditableFirstName->setFlags(nonEditableFirstName->flags() & ~Qt::ItemIsEditable); 
-		ui.tableWidgetResults->setItem(row, 1, nonEditableFirstName);
+		ui.tableWidgetResults->setItem(row, 2, nonEditableFirstName);
 		auto nonEditableLastName = new QTableWidgetItem(student.getLastName().c_str());
 		nonEditableLastName->setFlags(nonEditableLastName->flags() & ~Qt::ItemIsEditable); 
-		ui.tableWidgetResults->setItem(row, 2, nonEditableLastName);
+		ui.tableWidgetResults->setItem(row, 3, nonEditableLastName);
 		row++;
 	}
 }

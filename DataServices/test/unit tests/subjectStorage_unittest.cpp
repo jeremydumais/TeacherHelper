@@ -6,14 +6,30 @@
 #include "FakeUpdateOperation.h"
 #include "FakeOperationFactory.h"
 #include "FakeOperationResultFactory.h"
+#include <boost/any.hpp>
 #include <gtest/gtest.h>
 
 using namespace std;
 
+struct FakeSubjectRow
+{
+    int id;
+    string name;
+    bool isDefault;
+    operator vector<boost::any>() const 
+    { 
+        return vector<boost::any> { id, name, isDefault }; 
+    }
+};
+
+FakeSubjectRow subjectSample1 { 1, "English", true };
+FakeSubjectRow subjectSample2 { 2, "History", false };
+
+
 TEST(SubjectStorage_getAllItems, NoError_ReturnListSubjects)
 {
     auto factory { make_unique<FakeOperationFactory>( vector<FakeOperationResult> { 
-        FakeOperationResultFactory::createNewSelectResult(true, "", 2)
+        FakeOperationResultFactory::createNewSelectResult(true, "", { subjectSample1, subjectSample2 })
     }) };
     SubjectStorage storage(DatabaseConnection("fake"), move(factory));
     ASSERT_EQ(2, storage.getAllItems().size());
@@ -33,7 +49,7 @@ TEST(SubjectStorage_getAllItems, Error_ReturnEmptyList)
 TEST(SubjectStorage_insertItem, ValidInsertWithNoExistingSubject_ReturnTrue)
 {
     auto factory { make_unique<FakeOperationFactory>( vector<FakeOperationResult> { 
-        FakeOperationResultFactory::createNewSelectResult(true, "", 0),
+        FakeOperationResultFactory::createNewSelectResult(true),
         FakeOperationResultFactory::createNewInsertResult(true)
     }) };
     SubjectStorage storage(DatabaseConnection("fake"), move(factory));
@@ -44,7 +60,7 @@ TEST(SubjectStorage_insertItem, ValidInsertWithNoExistingSubject_ReturnTrue)
 TEST(SubjectStorage_insertItem, ValidInsertWithTwoExistingSubject_ReturnTrue)
 {
     auto factory { make_unique<FakeOperationFactory>( vector<FakeOperationResult> { 
-        FakeOperationResultFactory::createNewSelectResult(true, "", 2),
+        FakeOperationResultFactory::createNewSelectResult(true, "", { subjectSample1, subjectSample2 }),
         FakeOperationResultFactory::createNewUpdateResult(true),
         FakeOperationResultFactory::createNewInsertResult(true)
     }) };
@@ -56,7 +72,7 @@ TEST(SubjectStorage_insertItem, ValidInsertWithTwoExistingSubject_ReturnTrue)
 TEST(SubjectStorage_insertItem, ValidInsertWithANewDefaultSubject_ReturnTrue)
 {
     auto factory { make_unique<FakeOperationFactory>( vector<FakeOperationResult> { 
-        FakeOperationResultFactory::createNewSelectResult(true, "", 2),
+        FakeOperationResultFactory::createNewSelectResult(true, "", { subjectSample1, subjectSample2 }),
         FakeOperationResultFactory::createNewUpdateResult(true),
         FakeOperationResultFactory::createNewInsertResult(true)
     }) };
@@ -68,7 +84,7 @@ TEST(SubjectStorage_insertItem, ValidInsertWithANewDefaultSubject_ReturnTrue)
 TEST(SubjectStorage_insertItem, FailedInsertAtUpdateAllRowsToRemoveDefaultSelect_ReturnFalse)
 {
     auto factory { make_unique<FakeOperationFactory>( vector<FakeOperationResult> { 
-        FakeOperationResultFactory::createNewSelectResult(false, "Error during selecting the default subject", 0),
+        FakeOperationResultFactory::createNewSelectResult(false, "Error during selecting the default subject"),
     }) };
     SubjectStorage storage(DatabaseConnection("fake"), move(factory));
 
@@ -79,7 +95,7 @@ TEST(SubjectStorage_insertItem, FailedInsertAtUpdateAllRowsToRemoveDefaultSelect
 TEST(SubjectStorage_insertItem, FailedInsertAtUpdateAllRowsToRemoveDefault_ReturnFalse)
 {
     auto factory { make_unique<FakeOperationFactory>( vector<FakeOperationResult> { 
-        FakeOperationResultFactory::createNewSelectResult(true, "", 1),
+        FakeOperationResultFactory::createNewSelectResult(true, "",  { subjectSample1 }),
         FakeOperationResultFactory::createNewUpdateResult(false, "Error during the update of all rows to remove default")
     }) };
     SubjectStorage storage(DatabaseConnection("fake"), move(factory));
@@ -91,7 +107,7 @@ TEST(SubjectStorage_insertItem, FailedInsertAtUpdateAllRowsToRemoveDefault_Retur
 TEST(SubjectStorage_insertItem, FailedInsertAtInsertSubject_ReturnFalse)
 {
     auto factory { make_unique<FakeOperationFactory>( vector<FakeOperationResult> { 
-        FakeOperationResultFactory::createNewSelectResult(true, "", 1),
+        FakeOperationResultFactory::createNewSelectResult(true, "", { subjectSample1 }),
         FakeOperationResultFactory::createNewUpdateResult(true, ""),
         FakeOperationResultFactory::createNewInsertResult(false, "Error during the insert subject")
     }) };
@@ -104,7 +120,7 @@ TEST(SubjectStorage_insertItem, FailedInsertAtInsertSubject_ReturnFalse)
 TEST(SubjectStorage_updateItem, ValidUpdateWithOneExistingSubject_ReturnTrue)
 {
     auto factory { make_unique<FakeOperationFactory>( vector<FakeOperationResult> { 
-        FakeOperationResultFactory::createNewSelectResult(true, "", 1),
+        FakeOperationResultFactory::createNewSelectResult(true, "", { subjectSample1 }),
         FakeOperationResultFactory::createNewUpdateResult(true),
         FakeOperationResultFactory::createNewUpdateResult(true)
     }) };
@@ -116,7 +132,7 @@ TEST(SubjectStorage_updateItem, ValidUpdateWithOneExistingSubject_ReturnTrue)
 TEST(SubjectStorage_updateItem, ValidUpdateWithTwoExistingSubject_ReturnTrue)
 {
     auto factory { make_unique<FakeOperationFactory>( vector<FakeOperationResult> { 
-        FakeOperationResultFactory::createNewSelectResult(true, "", 2),
+        FakeOperationResultFactory::createNewSelectResult(true, "",  { subjectSample1, subjectSample2 }),
         FakeOperationResultFactory::createNewUpdateResult(true),
         FakeOperationResultFactory::createNewUpdateResult(true)
     }) };
@@ -128,7 +144,7 @@ TEST(SubjectStorage_updateItem, ValidUpdateWithTwoExistingSubject_ReturnTrue)
 TEST(SubjectStorage_updateItem, ValidUpdateWithANewDefaultSubject_ReturnTrue)
 {
     auto factory { make_unique<FakeOperationFactory>( vector<FakeOperationResult> { 
-        FakeOperationResultFactory::createNewSelectResult(true, "", 2),
+        FakeOperationResultFactory::createNewSelectResult(true, "",  { subjectSample1, subjectSample2 }),
         FakeOperationResultFactory::createNewUpdateResult(true),
         FakeOperationResultFactory::createNewUpdateResult(true)
     }) };
@@ -140,7 +156,7 @@ TEST(SubjectStorage_updateItem, ValidUpdateWithANewDefaultSubject_ReturnTrue)
 TEST(SubjectStorage_updateItem, FailedUpdateAtUpdateAllRowsToRemoveDefault_ReturnFalse)
 {
     auto factory { make_unique<FakeOperationFactory>( vector<FakeOperationResult> { 
-        FakeOperationResultFactory::createNewSelectResult(true, "", 1),
+        FakeOperationResultFactory::createNewSelectResult(true, "", { subjectSample1 }),
         FakeOperationResultFactory::createNewUpdateResult(false, "Error during the update of all rows to remove default")
     }) };
     SubjectStorage storage(DatabaseConnection("fake"), move(factory));
@@ -152,7 +168,7 @@ TEST(SubjectStorage_updateItem, FailedUpdateAtUpdateAllRowsToRemoveDefault_Retur
 TEST(SubjectStorage_updateItem, FailedUpdateAtUpdate_ReturnFalse)
 {
     auto factory { make_unique<FakeOperationFactory>( vector<FakeOperationResult> { 
-        FakeOperationResultFactory::createNewSelectResult(true, "", 1),
+        FakeOperationResultFactory::createNewSelectResult(true, "", { subjectSample1 }),
         FakeOperationResultFactory::createNewUpdateResult(true),
         FakeOperationResultFactory::createNewUpdateResult(false, "Error during the update of subject")
     }) };

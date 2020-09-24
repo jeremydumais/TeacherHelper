@@ -29,6 +29,7 @@ set(PROJECT_SOURCE_FILES ${CMAKE_CURRENT_SOURCE_DIR}/src/main.cpp
                          ${CMAKE_CURRENT_SOURCE_DIR}/src/specialFolders.cpp
                          ${CMAKE_CURRENT_SOURCE_DIR}/src/mainForm.cpp
                          ${CMAKE_CURRENT_SOURCE_DIR}/src/managementFormBase.cpp
+                         ${CMAKE_CURRENT_SOURCE_DIR}/src/qDateConverter.cpp
                          ${CMAKE_CURRENT_SOURCE_DIR}/src/studentManagementForm.cpp
                          ${CMAKE_CURRENT_SOURCE_DIR}/src/schoolManagementForm.cpp
                          ${CMAKE_CURRENT_SOURCE_DIR}/src/classManagementForm.cpp

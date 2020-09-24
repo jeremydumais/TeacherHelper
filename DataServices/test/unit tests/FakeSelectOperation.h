@@ -2,7 +2,10 @@
 
 #include "IStorageSelectOperation.h"
 #include "sqliteDateTimeFactory.h"
+#include <boost/any.hpp>
 #include <sstream>
+#include <string>
+#include <vector>
 
 class FakeSelectOperation : public IStorageSelectOperation
 {
@@ -12,16 +15,16 @@ public:
                           const std::vector<std::string> &args,
                           bool executeResult,
                           const std::string &lastError,
-                          size_t nbOfItems)
+                          const std::vector<std::vector<boost::any>> &returnedItems)
         : IStorageSelectOperation(connection, query, args),
           executeResult(executeResult),
-          nbOfReturnItems(nbOfItems)
+          returnedItems(returnedItems)
           { 
               this->lastError = lastError;
           }
 
     bool execute() override { 
-        currentItemIndex = 0;
+        currentItemIndex = -1;
         return executeResult; 
     }
 
@@ -29,40 +32,37 @@ public:
 
     bool getRow() override
     {
-        bool isARow = (currentItemIndex < nbOfReturnItems);
+        bool isARow = (currentItemIndex+1 < returnedItems.size());
         currentItemIndex++;
         return isARow;
     }
 
     int getIntValue(int columnNumber) const override
     {
-        return 1 + currentItemIndex;
+        return boost::any_cast<int>(returnedItems[currentItemIndex][columnNumber]);
     }
 
     std::string getStringValue(int columnNumber) const override
     {
-        std::stringstream ss;
-        ss << "SimpleString" << std::to_string(currentItemIndex);
-        return ss.str();
+        return boost::any_cast<std::string>(returnedItems[currentItemIndex][columnNumber]);
     }
 
     bool getBoolValue(int columnNumber) const override
     {
-        return false;
+        return boost::any_cast<bool>(returnedItems[currentItemIndex][columnNumber]);
     }
 
     SQLiteDateTime getDateTime(int columnNumber) const 
     {
-        return SQLiteDateTimeFactory::NewDateTimeFromISOExtended("2020-08-08T10:11:12");
-
+        return SQLiteDateTimeFactory::NewDateTimeFromISOExtended(boost::any_cast<std::string>(returnedItems[currentItemIndex][columnNumber]));
     }
 
     double getDoubleValue(int columnNumber) const
     {
-        return 80.2;
+        return boost::any_cast<double>(returnedItems[currentItemIndex][columnNumber]);
     }
 
     bool executeResult = true;
-    size_t nbOfReturnItems = 0;
-    size_t currentItemIndex = 0;
+    int currentItemIndex = -1;
+    std::vector<std::vector<boost::any>> returnedItems;
 };

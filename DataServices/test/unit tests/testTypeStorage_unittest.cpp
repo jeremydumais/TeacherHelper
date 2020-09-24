@@ -6,14 +6,28 @@
 #include "FakeUpdateOperation.h"
 #include "FakeOperationFactory.h"
 #include "FakeOperationResultFactory.h"
+#include <boost/any.hpp>
 #include <gtest/gtest.h>
 
 using namespace std;
 
+struct FakeTestTypeRow
+{
+    int id;
+    string name;
+    operator vector<boost::any>() const 
+    { 
+        return vector<boost::any> { id, name }; 
+    }
+};
+
 TEST(TestTypeStorage_getAllItems, NoError_ReturnListTestTypes)
 {
     auto factory { make_unique<FakeOperationFactory>( vector<FakeOperationResult> { 
-        FakeOperationResultFactory::createNewSelectResult(true, "", 2)
+        FakeOperationResultFactory::createNewSelectResult(true, "", { 
+            FakeTestTypeRow { 1, "Practice" }, 
+            FakeTestTypeRow { 2, "Exercice" } 
+        })
     }) };
     TestTypeStorage storage(DatabaseConnection("fake"), move(factory));
     ASSERT_EQ(2, storage.getAllItems().size());

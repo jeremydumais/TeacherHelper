@@ -25,7 +25,7 @@ public:
 
         const auto &result = operationResults[operationIndex];
         operationIndex++;
-        return std::make_unique<FakeSelectOperation>(connection, query, args, result.executeResult, result.lastError, result.nbOfReturnedItems);
+        return std::make_unique<FakeSelectOperation>(connection, query, args, result.executeResult, result.lastError, result.returnedItems);
     }
 
     std::unique_ptr<IStorageInsertOperation> createInsertOperation(const DatabaseConnection &connection, 

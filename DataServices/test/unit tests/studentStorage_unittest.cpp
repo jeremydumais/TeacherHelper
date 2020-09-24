@@ -10,10 +10,26 @@
 
 using namespace std;
 
+struct FakeStudentRow
+{
+    int id;
+    string firstname;
+    string lastname;
+    string comments;
+
+    operator vector<boost::any>() const 
+    { 
+        return vector<boost::any> { id, firstname, lastname, comments }; 
+    }
+};
+
 TEST(StudentStorage_getAllItems, NoError_ReturnListStudents)
 {
     auto factory { make_unique<FakeOperationFactory>( vector<FakeOperationResult> { 
-        FakeOperationResultFactory::createNewSelectResult(true, "", 2)
+        FakeOperationResultFactory::createNewSelectResult(true, "", {
+            FakeStudentRow {1, "Joe", "Blow", ""},
+            FakeStudentRow {2, "Jane", "Doe", "A comment"}
+        })
     }) };
     StudentStorage storage(DatabaseConnection("fake"), move(factory));
     ASSERT_EQ(2, storage.getAllItems().size());

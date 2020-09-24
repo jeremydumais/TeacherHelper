@@ -187,6 +187,12 @@ TEST(Student_getComments, WithCommentsTest_ReturnTest)
 	ASSERT_EQ("Test", student.getComments());
 }
 
+TEST(Student_getFullName, WithJoeBlow_ReturnFullName)
+{
+	Student student("Joe", "Blow", "Test");
+	ASSERT_EQ("Joe Blow", student.getFullName());
+}
+
 TEST(Student_setFirstName, WithFirstNameJoe_ReturnJoe)
 {
 	Student student("Joe", "Blow");

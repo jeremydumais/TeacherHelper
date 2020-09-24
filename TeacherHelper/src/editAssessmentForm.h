@@ -35,12 +35,13 @@ private:
 	SchoolController schoolController;
 	ClassController classController;
 	const Assessment * const assessmentToEdit;
+	void prepareFormWithEditingValues();
+	bool selectItemInComboBox(QComboBox *comboBox, size_t id);
 	void saveNewItem();
 	void updateExistingItem();
 	bool validateEntry() const;
 	Assessment getAssessmentFromFields() const;
 	std::string getStudentNameFromTableLine(QAbstractItemModel * const model, int rowIndex) const;
-	boost::posix_time::ptime getSelectedDateTime() const;
 	void refreshTestTypeComboBox();
 	void refreshSubjectComboBox();
 	void refreshSchoolComboBox();

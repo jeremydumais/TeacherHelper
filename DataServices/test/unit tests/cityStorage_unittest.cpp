@@ -6,17 +6,33 @@
 #include "FakeUpdateOperation.h"
 #include "FakeOperationFactory.h"
 #include "FakeOperationResultFactory.h"
+#include <boost/any.hpp>
 #include <gtest/gtest.h>
 
 using namespace std;
 
+struct FakeCityRow
+{
+    int id;
+    string name;
+    operator vector<boost::any>() const 
+    { 
+        return vector<boost::any> { id, name }; 
+    }
+};
+
 TEST(CityStorage_getAllItems, NoError_ReturnListCities)
 {
     auto factory { make_unique<FakeOperationFactory>( vector<FakeOperationResult> { 
-        FakeOperationResultFactory::createNewSelectResult(true, "", 2)
+        FakeOperationResultFactory::createNewSelectResult(true, "", { 
+            FakeCityRow { 1, "New York" }, 
+            FakeCityRow { 2, "Los Angeles" } 
+        })
     }) };
+
     CityStorage storage(DatabaseConnection("fake"), move(factory));
-    ASSERT_EQ(2, storage.getAllItems().size());
+    auto actual = storage.getAllItems();
+    ASSERT_EQ(2, actual.size());
 }
 
 TEST(CityStorage_getAllItems, Error_ReturnEmptyList)

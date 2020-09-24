@@ -5,6 +5,7 @@
 #include "sqliteOperationFactory.h"
 #include "sqliteSelectOperation.h"
 #include "sqliteUpdateOperation.h"
+#include <algorithm>
 #include <boost/algorithm/string.hpp>
 #include <fmt/format.h>
 #include <iostream>
@@ -178,6 +179,16 @@ bool AssessmentStorage::insertResults(size_t assessmentId, const vector<Assessme
 
 bool AssessmentStorage::updateItem(const Assessment &assessment)
 {
+    //Load old members
+    map<size_t, vector<AssessmentResult>> oldResults;
+    try {
+        oldResults = loadAllResults(fmt::format("WHERE class.id = {0} ", assessment.getClass().getId()));
+    }
+    catch(runtime_error &err) {
+        lastError = err.what();
+        return false;
+    }
+
     auto assessmentDateTime = SQLiteDateTimeFactory::NewDateTimeFromPTime(assessment.getDateTime());
     auto operation = operationFactory->createUpdateOperation(*connection, 
         "UPDATE assessment SET name = ?, testType_id = ?, subject_id = ?, "
@@ -188,6 +199,66 @@ bool AssessmentStorage::updateItem(const Assessment &assessment)
             to_string(assessment.getClass().getId()),
             assessmentDateTime.toSQLiteString(),
             to_string(assessment.getId()) });
+    if (!operation->execute()) {
+        lastError = operation->getLastError();
+        return false;
+    }
+    vector<size_t> assessmentResultIdsToRemove;
+    vector<size_t> assessmentResultIdsToUpdate;
+    for(const auto &oldResult : oldResults[assessment.getId()]) {
+        if (find(assessment.getResults().begin(), assessment.getResults().end(), oldResult) == assessment.getResults().end()) {
+            assessmentResultIdsToRemove.emplace_back(oldResult.getId());
+        } 
+        else {
+            assessmentResultIdsToUpdate.emplace_back(oldResult.getId());
+        }
+    }
+    //Update existing results
+    for(const auto &result : assessment.getResults()) {
+        if (find(assessmentResultIdsToUpdate.begin(), assessmentResultIdsToUpdate.end(), result.getId()) != assessmentResultIdsToUpdate.end()) {
+            auto operationUpdateResult = operationFactory->createUpdateOperation(*connection, 
+                "UPDATE assessmentResult SET result = ?, comments = ? WHERE id = ?", 
+                vector<string> { to_string(result.getResult()),
+                                 result.getComments(),
+                                 to_string(result.getId()) });
+            if (!operationUpdateResult->execute()) {
+                lastError = operationUpdateResult->getLastError();
+                return false;
+            }
+        }
+    }
+    //Remove old results
+    /*if (assessmentResultIdsToRemove.size() > 0 && !removeResults(assessmentResultIdsToRemove)) {
+        return false;
+    }*/
+    //Add new results
+    /*vector<size_t> studentIdsToAdd;
+    for(const auto &member : p_class.getMembers()) {
+        if (find(oldMembers.begin(), oldMembers.end(), member) == oldMembers.end()) {
+            studentIdsToAdd.emplace_back(member.getId());
+        }
+    }
+    return insertMembers(p_class.getId(), studentIdsToAdd);*/
+    return true;
+}
+
+bool AssessmentStorage::removeResults(const vector<size_t> &assessmentResultIdsToRemove)
+{
+    string sqlQueryRemoveResults {"DELETE FROM assessmentResult WHERE" };
+    for (size_t i = 0; i < assessmentResultIdsToRemove.size(); i++)
+    {
+        if (i > 0) {
+           sqlQueryRemoveResults += " OR";
+        }
+        sqlQueryRemoveResults += " id = ?";
+    }
+
+    vector<string> ids;
+    transform(assessmentResultIdsToRemove.begin(), assessmentResultIdsToRemove.end(), back_inserter(ids),
+              [](size_t id) {
+                  return to_string(id);
+              });
+    auto operation = operationFactory->createDeleteOperation(*connection, sqlQueryRemoveResults, ids);
     if (!operation->execute()) {
         lastError = operation->getLastError();
         return false;
