@@ -336,8 +336,53 @@ TEST_F(AssessmentStorageWithSampleTwoResult, updateItem_ValidUpdateButErrorAtUpd
     ASSERT_FALSE(storage.updateItem(assessmentSample));
     ASSERT_EQ("An error occurred while updating the results", storage.getLastError());
 }
-/*
 
+TEST_F(AssessmentStorageWithSampleTwoResult, updateItem_ValidUpdateWithUpdatingOneResultAndDeletingOneResult_ReturnTrue)
+{
+    auto factory { make_unique<FakeOperationFactory>( vector<FakeOperationResult> { 
+        FakeOperationResultFactory::createNewSelectResult(true, "", { assessmentResultSample1, assessmentResultSample2 }),
+        FakeOperationResultFactory::createNewUpdateResult(true), //Update assessment
+        FakeOperationResultFactory::createNewUpdateResult(true), //Updating one result
+        FakeOperationResultFactory::createNewDeleteResult(true)  //Deleting one result
+    }) };
+    AssessmentStorage storage(DatabaseConnection("fake"), move(factory));
+    assessmentSample.removeResult(result1);
+    ASSERT_TRUE(storage.updateItem(assessmentSample));
+}
+
+TEST_F(AssessmentStorageWithSampleTwoResult, updateItem_ValidUpdateWithUpdatingOneResultAndFailAtDeletingOneResult_ReturnFalse)
+{
+    auto factory { make_unique<FakeOperationFactory>( vector<FakeOperationResult> { 
+        FakeOperationResultFactory::createNewSelectResult(true, "", { assessmentResultSample1, assessmentResultSample2 }),
+        FakeOperationResultFactory::createNewUpdateResult(true), //Update assessment
+        FakeOperationResultFactory::createNewUpdateResult(true), //Updating one result
+        FakeOperationResultFactory::createNewDeleteResult(false, "An error occurred while deleting the results") //Deleting one result
+    }) };
+    AssessmentStorage storage(DatabaseConnection("fake"), move(factory));
+    assessmentSample.removeResult(result1);
+    ASSERT_FALSE(storage.updateItem(assessmentSample));
+    ASSERT_EQ("An error occurred while deleting the results", storage.getLastError());
+}
+
+TEST_F(AssessmentStorageWithSampleTwoResult, updateItem_ValidUpdateWithDeletingTwoResultsAndInsertingOneResult_ReturnTrue)
+{
+    auto factory { make_unique<FakeOperationFactory>( vector<FakeOperationResult> { 
+        FakeOperationResultFactory::createNewSelectResult(true, "", { assessmentResultSample1, assessmentResultSample2 }),
+        FakeOperationResultFactory::createNewUpdateResult(true), //Update assessment
+        //Deleting the two results
+        FakeOperationResultFactory::createNewDeleteResult(true),
+        FakeOperationResultFactory::createNewDeleteResult(true),
+        FakeOperationResultFactory::createNewInsertResult(true)
+
+    }) };
+    AssessmentStorage storage(DatabaseConnection("fake"), move(factory));
+    assessmentSample.removeResult(result1);
+    assessmentSample.removeResult(result2);
+    assessmentSample.addResult(AssessmentResult(Student(3, "Santa", "Claus"), 77.7f, ""));
+    ASSERT_TRUE(storage.updateItem(assessmentSample));
+}
+
+/*
 TEST_F(AssessmentStorageWithSampleTwoResult, deleteItem_ValidUpdate_ReturnTrue)
 {
     auto factory { make_unique<FakeOperationFactory>( vector<FakeOperationResult> { 

@@ -31,6 +31,7 @@ public:
     size_t retreiveAssignedAssessmentId();
     bool insertResults(size_t assessmentId, const std::vector<AssessmentResult> &resultsToAdd);
     bool updateItem(const Assessment &assessment) override;
+    bool updateResult(const AssessmentResult &resultToUpdate);
     bool removeResults(const std::vector<size_t> &assessmentResultIdsToRemove);
     QueryResult deleteItem(size_t id) override;
     std::map<size_t, std::vector<AssessmentResult>> loadAllResults(const std::string &whereClause = "");

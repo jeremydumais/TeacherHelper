@@ -30,6 +30,7 @@ private:
 	void setAppStylesheet(const std::string &style);
 	void loadControllers();
 	void refreshTreeViewTestNavigation();
+	void reselectTreeViewTestNavigationItem(size_t classId);
 private slots:
 	void action_AddAssessment_Click();
 	void action_EditAssessment_Click();

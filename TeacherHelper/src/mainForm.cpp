@@ -147,7 +147,10 @@ void MainForm::action_EditAssessment_Click()
 												assessmentPtr);
 			if (formEditAssessment.exec() == QDialog::DialogCode::Accepted) {
 				//Refresh the navigation and test list
+				size_t selectedClassId = ui.treeWidgetSchoolClassNav->selectionModel()->selectedRows(1)[0].data().toUInt();
 				refreshTreeViewTestNavigation();
+				//Reposition to previously selected class
+				reselectTreeViewTestNavigationItem(selectedClassId);
 			}
 		}
 	}
@@ -326,6 +329,20 @@ void MainForm::refreshTreeViewTestNavigation()
 	ui.tableWidgetAssessments->model()->removeRows(0, ui.tableWidgetAssessments->rowCount());
 }
 
+void MainForm::reselectTreeViewTestNavigationItem(size_t classId) 
+{
+	QTreeWidgetItemIterator iter(ui.treeWidgetSchoolClassNav);
+	while(*iter)
+	{
+		if ((*iter) && (*iter)->parent() != nullptr && (*iter)->data(1, 0).toUInt() == classId) {
+			(*iter)->setSelected(true);
+			(*iter)->parent()->setExpanded(true);
+			treeWidgetSchoolClassNav_currentItemChanged((*iter));
+		}
+		iter++;
+	}
+}
+
 void MainForm::toolButtonExpandAll_Click() 
 {
 	ui.treeWidgetSchoolClassNav->expandAll();
@@ -353,7 +370,6 @@ void MainForm::treeWidgetSchoolClassNav_currentItemChanged(QTreeWidgetItem *curr
 			ui.tableWidgetAssessments->setItem(row, 2, new QTableWidgetItem(assessment.getName().c_str()));
 			ui.tableWidgetAssessments->setItem(row, 3, new QTableWidgetItem(assessment.getTestType().getName().c_str()));
 			ui.tableWidgetAssessments->setItem(row, 4, new QTableWidgetItem(assessment.getSubject().getName().c_str()));
-			//ui.tableWidgetAssessments->setItem(row, 4, new QTableWidgetItem(to_string(assessment.getResults().size()).c_str()));
 			row++;
 		}
 	}

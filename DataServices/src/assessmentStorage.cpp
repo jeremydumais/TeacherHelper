@@ -216,29 +216,36 @@ bool AssessmentStorage::updateItem(const Assessment &assessment)
     //Update existing results
     for(const auto &result : assessment.getResults()) {
         if (find(assessmentResultIdsToUpdate.begin(), assessmentResultIdsToUpdate.end(), result.getId()) != assessmentResultIdsToUpdate.end()) {
-            auto operationUpdateResult = operationFactory->createUpdateOperation(*connection, 
-                "UPDATE assessmentResult SET result = ?, comments = ? WHERE id = ?", 
-                vector<string> { to_string(result.getResult()),
-                                 result.getComments(),
-                                 to_string(result.getId()) });
-            if (!operationUpdateResult->execute()) {
-                lastError = operationUpdateResult->getLastError();
+            if (!updateResult(result)) {
                 return false;
             }
         }
     }
     //Remove old results
-    /*if (assessmentResultIdsToRemove.size() > 0 && !removeResults(assessmentResultIdsToRemove)) {
+    if (assessmentResultIdsToRemove.size() > 0 && !removeResults(assessmentResultIdsToRemove)) {
         return false;
-    }*/
+    }
     //Add new results
-    /*vector<size_t> studentIdsToAdd;
-    for(const auto &member : p_class.getMembers()) {
-        if (find(oldMembers.begin(), oldMembers.end(), member) == oldMembers.end()) {
-            studentIdsToAdd.emplace_back(member.getId());
+    vector<AssessmentResult> assessmentResultsToAdd;
+    for(const auto &result : assessment.getResults()) {
+        if (result.getId() == 0) {
+            assessmentResultsToAdd.emplace_back(result);
         }
     }
-    return insertMembers(p_class.getId(), studentIdsToAdd);*/
+    return insertResults(assessment.getId(), assessmentResultsToAdd);
+}
+
+bool AssessmentStorage::updateResult(const AssessmentResult &resultToUpdate) 
+{
+    auto operationUpdateResult = operationFactory->createUpdateOperation(*connection, 
+        "UPDATE assessmentResult SET result = ?, comments = ? WHERE id = ?", 
+        vector<string> { to_string(resultToUpdate.getResult()),
+                            resultToUpdate.getComments(),
+                            to_string(resultToUpdate.getId()) });
+    if (!operationUpdateResult->execute()) {
+        lastError = operationUpdateResult->getLastError();
+        return false;
+    }
     return true;
 }
 
