@@ -76,16 +76,15 @@ bool AssessmentController::updateAssessment(const Assessment &assessment)
 
 bool AssessmentController::deleteAssessment(size_t id)
 {
-    /*QueryResult retVal = storage->deleteItem(id);
+    QueryResult retVal = storage->deleteItem(id);
     if (retVal == QueryResult::OK) {
-        loadCities();
+        loadAssessments();
     }
     else if (retVal == QueryResult::CONSTRAINTERROR) {
-        lastError = "Unable to delete the assessment because it is used by another item. (Probably a school)";
+        lastError = "Unable to delete the assessment because it is used by another item.";
     }
     else {
         lastError = storage->getLastError();
     }
-    return retVal == QueryResult::OK;*/
-    return false;
+    return retVal == QueryResult::OK;
 }

@@ -20,15 +20,17 @@ CityManagementForm::CityManagementForm(QWidget *parent, const DatabaseConnection
 	connect(ui.pushButtonDelete, &QPushButton::clicked, this, &CityManagementForm::pushButtonDelete_Click);
 	connect(ui.pushButtonOK, &QPushButton::clicked, this, &CityManagementForm::pushButtonOK_Click);
 	connect(ui.pushButtonCancel, &QPushButton::clicked, this, &CityManagementForm::pushButtonCancel_Click);
+	tableWidgetItemsKeyWatcher.installOn(ui.tableWidgetItems);
+	connect(&tableWidgetItemsKeyWatcher, &QTableWidgetKeyPressWatcher::keyPressed, this, &CityManagementForm::tableWidgetItems_keyPressEvent);
 
-	ui.tableWidgeItems->setHorizontalHeaderItem(0, new QTableWidgetItem("Id"));
-	ui.tableWidgeItems->setHorizontalHeaderItem(1, new QTableWidgetItem("Name"));
-	ui.tableWidgeItems->setColumnHidden(0, true);
-	connect(ui.tableWidgeItems->selectionModel(), 
+	ui.tableWidgetItems->setHorizontalHeaderItem(0, new QTableWidgetItem("Id"));
+	ui.tableWidgetItems->setHorizontalHeaderItem(1, new QTableWidgetItem("Name"));
+	ui.tableWidgetItems->setColumnHidden(0, true);
+	connect(ui.tableWidgetItems->selectionModel(), 
 		&QItemSelectionModel::selectionChanged, 
 		this,
   		&CityManagementForm::itemsTableSelectionChanged);
-	connect(ui.tableWidgeItems, 
+	connect(ui.tableWidgetItems, 
 		&QTableWidget::itemDoubleClicked,
 		this,
 		&CityManagementForm::itemsTableSelectionDoubleClicked);
@@ -43,12 +45,12 @@ void CityManagementForm::showEvent(QShowEvent *event)
 
 void CityManagementForm::refreshItemsTable()
 {
-	ui.tableWidgeItems->model()->removeRows(0, ui.tableWidgeItems->rowCount());
+	ui.tableWidgetItems->model()->removeRows(0, ui.tableWidgetItems->rowCount());
 	size_t row {0};
     for (const auto &city : controller.getCities()) {
-		ui.tableWidgeItems->insertRow(row);
-		ui.tableWidgeItems->setItem(row, 0, new QTableWidgetItem(to_string(city.getId()).c_str()));
-		ui.tableWidgeItems->setItem(row, 1, new QTableWidgetItem(city.getName().c_str()));
+		ui.tableWidgetItems->insertRow(row);
+		ui.tableWidgetItems->setItem(row, 0, new QTableWidgetItem(to_string(city.getId()).c_str()));
+		ui.tableWidgetItems->setItem(row, 1, new QTableWidgetItem(city.getName().c_str()));
 		row++;
     }
 	toggleTableControls(false);
@@ -65,7 +67,7 @@ void CityManagementForm::toggleEditMode(ActionMode mode)
 	this->mode = mode;
 	bool editMode = (mode ==  ActionMode::Add || mode == ActionMode::Modify);
 	ui.frameDetails->setEnabled(editMode);
-	ui.tableWidgeItems->setEnabled(!editMode);
+	ui.tableWidgetItems->setEnabled(!editMode);
 	ui.frameActionButtons->setEnabled(!editMode);
 	if(!editMode) {
 		ui.lineEditName->clear();
@@ -96,7 +98,7 @@ void CityManagementForm::pushButtonAdd_Click()
 
 void CityManagementForm::pushButtonModify_Click()
 {
-	auto row = ui.tableWidgeItems->selectionModel()->selectedIndexes();
+	auto row = ui.tableWidgetItems->selectionModel()->selectedIndexes();
 	if (!row.empty()) {
 		//Find the selected city
 		auto editedCity = controller.findCity(row[0].data().toUInt());
@@ -113,7 +115,7 @@ void CityManagementForm::pushButtonModify_Click()
 void CityManagementForm::pushButtonDelete_Click()
 {
 	QMessageBox msgBox;
-	auto row = ui.tableWidgeItems->selectionModel()->selectedIndexes();
+	auto row = ui.tableWidgetItems->selectionModel()->selectedIndexes();
 	if (!row.empty()) {
 		//Find the selected city
 		auto editedCity = controller.findCity(row[0].data().toUInt());
@@ -169,7 +171,7 @@ void CityManagementForm::saveNewItem()
 
 void CityManagementForm::updateExistingItem()
 {
-	auto row = ui.tableWidgeItems->selectionModel()->selectedIndexes();
+	auto row = ui.tableWidgetItems->selectionModel()->selectedIndexes();
 	//Find the selected city
 	size_t currentlyEditedCityId = row[0].data().toUInt();
 	auto editedCity = controller.findCity(currentlyEditedCityId);
@@ -221,5 +223,12 @@ void CityManagementForm::keyPressEvent(QKeyEvent *e)
 	}
 	else {
 		QDialog::keyPressEvent(e);
+	}
+}
+
+void CityManagementForm::tableWidgetItems_keyPressEvent(int key, int, int) 
+{
+	if (key == Qt::Key_Delete) {
+		pushButtonDelete_Click();
 	}
 }

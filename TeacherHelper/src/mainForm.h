@@ -31,9 +31,11 @@ private:
 	void loadControllers();
 	void refreshTreeViewTestNavigation();
 	void reselectTreeViewTestNavigationItem(size_t classId);
+	void toggleAssessmentActionsButtons(bool isAssessmentSelected);
 private slots:
 	void action_AddAssessment_Click();
 	void action_EditAssessment_Click();
+	void action_RemoveAssessment_Click();
 	void action_StudentsManagement_Click();
 	void action_SchoolsManagement_Click();
 	void action_ClassesManagement_Click();
@@ -46,6 +48,9 @@ private slots:
 	void toolButtonExpandAll_Click();
 	void toolButtonCollapseAll_Click();
 	void treeWidgetSchoolClassNav_currentItemChanged(QTreeWidgetItem *current);
+	void tableWidgetAssessments_selectionChanged(const QItemSelection &selected);
+    void tableWidgetAssessments_itemDoubleClicked(QTableWidgetItem *item);
+
 };
 
 #endif // MAINFORM_H

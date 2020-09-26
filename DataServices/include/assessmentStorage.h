@@ -7,6 +7,7 @@
 #include <list>
 #include <map>
 #include <vector>
+#include <boost/optional.hpp>
 
 #ifdef _WIN32
     #ifdef DATASERVICES_EXPORTS  
@@ -25,6 +26,7 @@ public:
                                const std::unique_ptr<IStorageOperationFactory> operationFactory = nullptr);
     std::list<Assessment> getAllItems() override;
     std::list<Assessment> getItemsByClassId(const size_t classId);
+    boost::optional<Assessment> getItemById(const size_t id);
     std::list<Assessment> loadItemsFromDB(const std::string &whereClause = "");
     const std::string &getLastError() const override;
     bool insertItem(const Assessment &assessment) override;

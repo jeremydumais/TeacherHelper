@@ -8,6 +8,7 @@
 #include "schoolController.h"
 #include "subjectController.h"
 #include "testTypeController.h"
+#include "qTableWidgetKeyPressWatcher.h"
 #include "ui_editAssessmentForm.h"
 
 enum class EditAssessmentActionMode {
@@ -35,6 +36,7 @@ private:
 	SchoolController schoolController;
 	ClassController classController;
 	const Assessment * const assessmentToEdit;
+	QTableWidgetKeyPressWatcher tableWidgetResultsKeyWatcher;
 	void prepareFormWithEditingValues();
 	bool selectItemInComboBox(QComboBox *comboBox, size_t id);
 	void saveNewItem();
@@ -53,6 +55,7 @@ private slots:
 	void pushButtonCancel_Click();
 	void comboBoxSchool_CurrentIndexChanged();
 	void comboBoxClass_CurrentIndexChanged();
+	void tableWidgetResults_keyPressEvent(int key, int row, int column);
 };
 
 #endif // EDITASSESSMENTFORM_H

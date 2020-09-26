@@ -35,6 +35,22 @@ list<Assessment> AssessmentStorage::getItemsByClassId(const size_t classId)
     return loadItemsFromDB(fmt::format("WHERE class.id = {0} ", classId));
 }
 
+boost::optional<Assessment> AssessmentStorage::getItemById(const size_t id) 
+{
+    auto items = loadItemsFromDB(fmt::format("WHERE assessment.id = {0} ", id));
+    if (items.size() > 1) {
+        lastError = "More than one assessment was returned.";
+        return {};
+    } 
+    else if (items.size() < 1) {
+        lastError = "No assessment was returned.";
+        return {};
+    }
+    else {
+        return *(items.begin());
+    }
+}
+
 list<Assessment> AssessmentStorage::loadItemsFromDB(const string &whereClause) 
 {
     list<Assessment> retVal;
@@ -179,7 +195,7 @@ bool AssessmentStorage::insertResults(size_t assessmentId, const vector<Assessme
 
 bool AssessmentStorage::updateItem(const Assessment &assessment)
 {
-    //Load old members
+    //Load old results
     map<size_t, vector<AssessmentResult>> oldResults;
     try {
         oldResults = loadAllResults(fmt::format("WHERE class.id = {0} ", assessment.getClass().getId()));
@@ -275,8 +291,21 @@ bool AssessmentStorage::removeResults(const vector<size_t> &assessmentResultIdsT
 
 QueryResult AssessmentStorage::deleteItem(size_t id)
 {
+    //Load the assessment to delete
+    auto assessment = getItemById(id);
+    if (!assessment) {
+        return QueryResult::ERROR;
+    }
+
     //Ensure that the record is not user as a foreign key in another table
 
+    //Delete all the results of the assessment
+    vector<size_t> resultIdsToRemove;
+    transform(assessment->getResults().begin(), assessment->getResults().end(), std::back_inserter(resultIdsToRemove),
+               [](AssessmentResult const& x) { return x.getId(); });
+    if (resultIdsToRemove.size() > 0 && !removeResults(resultIdsToRemove)) {
+        return QueryResult::ERROR;
+    }
     auto operation = operationFactory->createDeleteOperation(*connection, 
         "DELETE FROM assessment WHERE id = ?", 
         vector<string> { to_string(id) });

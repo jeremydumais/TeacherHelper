@@ -2,9 +2,10 @@
 #ifndef CITYMANAGEMENTFORM_H
 #define CITYMANAGEMENTFORM_H
 
-#include "managementFormBase.h"
-#include "ui_cityManagementForm.h"
 #include "cityController.h"
+#include "managementFormBase.h"
+#include "qTableWidgetKeyPressWatcher.h"
+#include "ui_cityManagementForm.h"
 
 class CityManagementForm : public QDialog, public ManagementFormBase
 {
@@ -17,6 +18,7 @@ public:
 private:
 	Ui::cityManagementFormClass ui;
 	CityController controller;
+	QTableWidgetKeyPressWatcher tableWidgetItemsKeyWatcher;
 	void refreshItemsTable() override;
 	void toggleTableControls(bool itemSelected) override;
 	void toggleEditMode(ActionMode mode) override;
@@ -32,6 +34,7 @@ private slots:
 	void pushButtonOK_Click();
 	void pushButtonCancel_Click();
 	void keyPressEvent(QKeyEvent *e) override;
+	void tableWidgetItems_keyPressEvent(int key, int, int);
 };
 
 #endif // CITYMANAGEMENTFORM_H

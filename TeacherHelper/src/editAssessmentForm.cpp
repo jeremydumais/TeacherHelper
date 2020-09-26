@@ -25,10 +25,12 @@ EditAssessmentForm::EditAssessmentForm(QWidget *parent,
 {
 	this->setResult(QDialog::DialogCode::Rejected);
 	ui.setupUi(this);
-	connect(ui.pushButtonOK, SIGNAL(clicked()), this, SLOT(pushButtonOK_Click()));
-	connect(ui.pushButtonCancel, SIGNAL(clicked()), this, SLOT(pushButtonCancel_Click()));
-	connect(ui.comboBoxSchool, SIGNAL(currentIndexChanged(int)), this, SLOT(comboBoxSchool_CurrentIndexChanged()));
-	connect(ui.comboBoxClass, SIGNAL(currentIndexChanged(int)), this, SLOT(comboBoxClass_CurrentIndexChanged()));
+	connect(ui.pushButtonOK, &QPushButton::clicked, this, &EditAssessmentForm::pushButtonOK_Click);
+	connect(ui.pushButtonCancel, &QPushButton::clicked, this, &EditAssessmentForm::pushButtonCancel_Click);
+	connect(ui.comboBoxSchool, static_cast<void (QComboBox::*)(int index)>(&QComboBox::currentIndexChanged), this, &EditAssessmentForm::comboBoxSchool_CurrentIndexChanged);
+	connect(ui.comboBoxClass, static_cast<void (QComboBox::*)(int index)>(&QComboBox::currentIndexChanged), this, &EditAssessmentForm::comboBoxClass_CurrentIndexChanged);
+	tableWidgetResultsKeyWatcher.installOn(ui.tableWidgetResults);
+	connect(&tableWidgetResultsKeyWatcher, &QTableWidgetKeyPressWatcher::keyPressed, this, &EditAssessmentForm::tableWidgetResults_keyPressEvent);
 
 	if (this->editMode == EditAssessmentActionMode::Add) {
 		this->setWindowTitle("Create an assessment");
@@ -301,6 +303,14 @@ void EditAssessmentForm::comboBoxClass_CurrentIndexChanged()
 		if (selectedClass) {
 			refreshStudentList(*selectedClass);
 		}
+	}
+}
+
+void EditAssessmentForm::tableWidgetResults_keyPressEvent(int key, int row, int column) 
+{
+	auto tableModel = ui.tableWidgetResults->model();
+	if (key == Qt::Key_Delete && column > 3) {
+		tableModel->setData(tableModel->index(row, column), "");
 	}
 }
 

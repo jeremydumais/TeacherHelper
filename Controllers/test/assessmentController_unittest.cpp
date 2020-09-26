@@ -154,3 +154,31 @@ TEST_F(AssessmentControllerTest, updateAssessment_WithAssessmentThatWillFail_Ret
 									ptime(date(2020, Aug, 31), time_duration(8, 41, 32)))));
 	ASSERT_EQ("An update error occurred", controller->getLastError());
 }
+
+TEST_F(AssessmentControllerTest, deleteAssessment_WithAssessmentThatWillSucceed_ReturnTrue) 
+{
+	this->prepareController();
+	auto fakeAssessmentStorage = dynamic_cast<FakeAssessmentStorage*>(this->fakeStorage.get());
+	ASSERT_TRUE(controller->deleteAssessment(1));
+}
+
+TEST_F(AssessmentControllerTest, deleteAssessment_WithAssessmentThatWillFailFromConstraintError_ReturnFalse) 
+{
+	auto fakeAssessmentStorage = dynamic_cast<FakeAssessmentStorage*>(this->fakeStorage.get());
+	fakeAssessmentStorage->deleteResult = QueryResult::CONSTRAINTERROR;
+
+	this->prepareController();
+	ASSERT_FALSE(controller->deleteAssessment(1));
+	ASSERT_EQ("Unable to delete the assessment because it is used by another item.", controller->getLastError());
+}
+
+TEST_F(AssessmentControllerTest, deleteAssessment_WithAssessmentThatWillFailFromGenericError_ReturnFalse) 
+{
+	auto fakeAssessmentStorage = dynamic_cast<FakeAssessmentStorage*>(this->fakeStorage.get());
+	fakeAssessmentStorage->deleteResult = QueryResult::ERROR;
+	fakeAssessmentStorage->lastError = "An error occurred";
+
+	this->prepareController();
+	ASSERT_FALSE(controller->deleteAssessment(1));
+	ASSERT_EQ("An error occurred", controller->getLastError());
+}

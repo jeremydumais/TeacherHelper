@@ -27,6 +27,7 @@ endif()
 set(PROJECT_SOURCE_FILES ${CMAKE_CURRENT_SOURCE_DIR}/src/main.cpp
                          ${CMAKE_CURRENT_SOURCE_DIR}/src/configurationManager.cpp
                          ${CMAKE_CURRENT_SOURCE_DIR}/src/specialFolders.cpp
+                         ${CMAKE_CURRENT_SOURCE_DIR}/src/qTableWidgetKeyPressWatcher.cpp
                          ${CMAKE_CURRENT_SOURCE_DIR}/src/mainForm.cpp
                          ${CMAKE_CURRENT_SOURCE_DIR}/src/managementFormBase.cpp
                          ${CMAKE_CURRENT_SOURCE_DIR}/src/qDateConverter.cpp

@@ -34,6 +34,7 @@ MainForm::MainForm(QWidget *parent)
 	connect(ui.action_Quit, &QAction::triggered, this, &MainForm::close);
 	connect(ui.action_AddAssessment, &QAction::triggered, this, &MainForm::action_AddAssessment_Click);
 	connect(ui.action_EditAssessment, &QAction::triggered, this, &MainForm::action_EditAssessment_Click);
+	connect(ui.action_RemoveAssessment, &QAction::triggered, this, &MainForm::action_RemoveAssessment_Click);
 	connect(ui.action_Students, &QAction::triggered, this, &MainForm::action_StudentsManagement_Click);
 	connect(ui.action_Schools, &QAction::triggered, this, &MainForm::action_SchoolsManagement_Click);
 	connect(ui.action_Classes, &QAction::triggered, this, &MainForm::action_ClassesManagement_Click);
@@ -46,12 +47,20 @@ MainForm::MainForm(QWidget *parent)
 	connect(ui.toolButtonExpandAll, &QToolButton::clicked, this, &MainForm::toolButtonExpandAll_Click);
 	connect(ui.toolButtonCollapseAll, &QToolButton::clicked, this, &MainForm::toolButtonCollapseAll_Click);
 	connect(ui.treeWidgetSchoolClassNav, &QTreeWidget::currentItemChanged, this, &MainForm::treeWidgetSchoolClassNav_currentItemChanged);
-
+	connect(ui.tableWidgetAssessments->selectionModel(), 
+		&QItemSelectionModel::selectionChanged, 
+		this,
+  		&MainForm::tableWidgetAssessments_selectionChanged);
+	connect(ui.tableWidgetAssessments, 
+		&QTableWidget::itemDoubleClicked,
+		this,
+		&MainForm::tableWidgetAssessments_itemDoubleClicked);
 	ui.tableWidgetAssessments->setHorizontalHeaderItem(0, new QTableWidgetItem("Id"));
 	ui.tableWidgetAssessments->setHorizontalHeaderItem(1, new QTableWidgetItem("Date"));
 	ui.tableWidgetAssessments->setHorizontalHeaderItem(2, new QTableWidgetItem("Name"));
 	ui.tableWidgetAssessments->setHorizontalHeaderItem(3, new QTableWidgetItem("Test type"));
 	ui.tableWidgetAssessments->setHorizontalHeaderItem(4, new QTableWidgetItem("Subject"));
+	ui.tableWidgetAssessments->setHorizontalHeaderItem(5, new QTableWidgetItem("Nb of results"));
 	ui.tableWidgetAssessments->setColumnHidden(0, true);
 
 	//Check if the user configuration folder exist
@@ -101,6 +110,7 @@ MainForm::MainForm(QWidget *parent)
 
 	loadControllers();
 	refreshTreeViewTestNavigation();
+	toggleAssessmentActionsButtons(false);
 }
 
 MainForm::~MainForm()
@@ -147,7 +157,35 @@ void MainForm::action_EditAssessment_Click()
 												assessmentPtr);
 			if (formEditAssessment.exec() == QDialog::DialogCode::Accepted) {
 				//Refresh the navigation and test list
-				size_t selectedClassId = ui.treeWidgetSchoolClassNav->selectionModel()->selectedRows(1)[0].data().toUInt();
+				size_t selectedClassId = assessmentPtr->getClass().getId();
+				refreshTreeViewTestNavigation();
+				//Reposition to previously selected class
+				reselectTreeViewTestNavigationItem(selectedClassId);
+			}
+		}
+	}
+}
+
+void MainForm::action_RemoveAssessment_Click() 
+{
+	//Get the selected assessment
+	auto selectedAssessmentRow = ui.tableWidgetAssessments->selectionModel()->selectedIndexes();
+	if (!selectedAssessmentRow.empty()) {
+		//Find selected assessment
+		auto assessmentPtr = assessmentController->findAssessment(selectedAssessmentRow[0].data().toUInt());
+		if (assessmentPtr != nullptr) {
+			QMessageBox msgBox;
+			msgBox.setText(fmt::format("Are you sure you want to delete the assessment {0}?", assessmentPtr->getName()).c_str());
+			msgBox.setWindowTitle("Confirmation");
+			msgBox.setStandardButtons(QMessageBox::Yes | QMessageBox::No | QMessageBox::Cancel);
+			msgBox.setDefaultButton(QMessageBox::Cancel);
+			if (msgBox.exec() == QMessageBox::Yes) {
+				if (!assessmentController->deleteAssessment(assessmentPtr->getId())) {
+					showErrorMessage("Unable to remove the assessment. ", assessmentController->getLastError());
+					return;
+				}
+				//Refresh the navigation and test list
+				size_t selectedClassId = assessmentPtr->getClass().getId();
 				refreshTreeViewTestNavigation();
 				//Reposition to previously selected class
 				reselectTreeViewTestNavigationItem(selectedClassId);
@@ -356,6 +394,7 @@ void MainForm::toolButtonCollapseAll_Click()
 void MainForm::treeWidgetSchoolClassNav_currentItemChanged(QTreeWidgetItem *current) 
 {
 	ui.tableWidgetAssessments->model()->removeRows(0, ui.tableWidgetAssessments->rowCount());
+	toggleAssessmentActionsButtons(false);
 
 	if (current != nullptr && current->parent() != nullptr) {
 		//Retreive selected class id
@@ -370,7 +409,26 @@ void MainForm::treeWidgetSchoolClassNav_currentItemChanged(QTreeWidgetItem *curr
 			ui.tableWidgetAssessments->setItem(row, 2, new QTableWidgetItem(assessment.getName().c_str()));
 			ui.tableWidgetAssessments->setItem(row, 3, new QTableWidgetItem(assessment.getTestType().getName().c_str()));
 			ui.tableWidgetAssessments->setItem(row, 4, new QTableWidgetItem(assessment.getSubject().getName().c_str()));
+			ui.tableWidgetAssessments->setItem(row, 5, new QTableWidgetItem((to_string(assessment.getResults().size())).c_str()));
 			row++;
 		}
+	}
+}
+
+void MainForm::tableWidgetAssessments_selectionChanged(const QItemSelection &selected) 
+{
+	toggleAssessmentActionsButtons(selected.size() == 1);
+}
+
+void MainForm::toggleAssessmentActionsButtons(bool isAssessmentSelected) 
+{
+	ui.action_EditAssessment->setEnabled(isAssessmentSelected);
+	ui.action_RemoveAssessment->setEnabled(isAssessmentSelected);
+}
+
+void MainForm::tableWidgetAssessments_itemDoubleClicked(QTableWidgetItem *item) 
+{
+	if (item) {
+		action_EditAssessment_Click();
 	}
 }
