@@ -3,6 +3,7 @@
 #include "sqliteSelectOperation.h"
 #include "sqliteUpdateOperation.h"
 #include "sqliteDeleteOperation.h"
+#include "sqliteOperationFactory.h"
 #include <boost/algorithm/string.hpp>
 #include <iostream>
 #include <sqlite3.h>
@@ -11,9 +12,13 @@
 
 using namespace std;
 
-CityStorage::CityStorage(const DatabaseConnection &connection)
+CityStorage::CityStorage(const DatabaseConnection &connection, 
+                         unique_ptr<IStorageOperationFactory> operationFactory)
     : connection(&connection),
-      lastError("")
+      lastError(""),
+      operationFactory { operationFactory ? 
+                         move(operationFactory) : 
+                         make_unique<SQLiteOperationFactory>()}
 {
 }
 
@@ -21,21 +26,18 @@ list<City> CityStorage::getAllItems()
 {
     int i =1;
     list<City> retVal;
-    SQLiteSelectOperation operation(*connection, 
+    auto operation = operationFactory->createSelectOperation(*connection, 
         "SELECT id, name FROM city ORDER BY name;");
-    if (operation.execute()) {
-        sqlite3_stmt *stmt = operation.getStatement();
-        int result = sqlite3_step(stmt);
-        while (result == SQLITE_ROW) {
-            City tempCity(sqlite3_column_int(stmt, 0),
-                                reinterpret_cast<const char *>((sqlite3_column_text(stmt, 1))));
+    if (operation->execute()) {
+        while (operation->getRow()) {
+            City tempCity(operation->getIntValue(0),
+                          operation->getStringValue(1));
             retVal.push_back(tempCity);
-            result = sqlite3_step(stmt);
         }
-        sqlite3_finalize(stmt);
+        operation->close();
     }
     else {
-        lastError = operation.getLastError();
+        lastError = operation->getLastError();
     }
     return retVal;
 }
@@ -47,11 +49,11 @@ const std::string &CityStorage::getLastError() const
 
 bool CityStorage::insertItem(const City &city)
 {
-    SQLiteInsertOperation operation(*connection, 
+    auto operation = operationFactory->createInsertOperation(*connection, 
         "INSERT INTO city (name) VALUES(?)",
         vector<string> { boost::trim_copy(city.getName()) });
-    if (!operation.execute()) {
-        lastError = operation.getLastError();
+    if (!operation->execute()) {
+        lastError = operation->getLastError();
         return false;
     }
     return true;
@@ -59,12 +61,12 @@ bool CityStorage::insertItem(const City &city)
 
 bool CityStorage::updateItem(const City &city)
 {
-    SQLiteUpdateOperation operation(*connection, 
+    auto operation = operationFactory->createUpdateOperation(*connection, 
         "UPDATE city SET name = ? WHERE id = ?",
         vector<string> { boost::trim_copy(city.getName()),
             to_string(city.getId()) });
-    if (!operation.execute()) {
-        lastError = operation.getLastError();
+    if (!operation->execute()) {
+        lastError = operation->getLastError();
         return false;
     }
     return true;
@@ -72,13 +74,13 @@ bool CityStorage::updateItem(const City &city)
 
 QueryResult CityStorage::deleteItem(size_t id)
 {
-    //Ensure the the record is not user as a foreign key in another table
-
-    SQLiteDeleteOperation operation(*connection, 
+    //Ensure that the record is not user as a foreign key in another table
+    
+    auto operation = operationFactory->createDeleteOperation(*connection, 
         "DELETE FROM city WHERE id = ?", 
         vector<string> { to_string(id) });
-    if (!operation.execute()) {
-        lastError = operation.getLastError();
+    if (!operation->execute()) {
+        lastError = operation->getLastError();
     }
-    return operation.getExtendedResultInfo();
+    return operation->getExtendedResultInfo();
 }

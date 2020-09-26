@@ -3,6 +3,7 @@
 #include "sqliteSelectOperation.h"
 #include "sqliteUpdateOperation.h"
 #include "sqliteDeleteOperation.h"
+#include "sqliteOperationFactory.h"
 #include <algorithm>
 #include <iostream>
 #include <sqlite3.h>
@@ -10,9 +11,13 @@
 
 using namespace std;
 
-ClassStorage::ClassStorage(const DatabaseConnection &connection)
+ClassStorage::ClassStorage(const DatabaseConnection &connection, 
+                           unique_ptr<IStorageOperationFactory> operationFactory)
     : connection(&connection),
-      lastError("")
+      lastError(""),
+      operationFactory { operationFactory ? 
+                         move(operationFactory) : 
+                         make_unique<SQLiteOperationFactory>()}
 {
 }
 
@@ -20,31 +25,28 @@ list<Class> ClassStorage::getAllItems()
 {
     int i =1;
     list<Class> retVal;
-    SQLiteSelectOperation operation(*connection, 
+    auto operation = operationFactory->createSelectOperation(*connection, 
         "SELECT class.id, class.name, school.id, school.name, city.id, city.name " 
         "FROM class "
         "INNER JOIN school ON school.id = class.school_id " 
         "INNER JOIN city ON city.id = school.city_id " 
         "ORDER BY class.name, school.name");
-    if (operation.execute()) {
-        sqlite3_stmt *stmt = operation.getStatement();
-        int result = sqlite3_step(stmt);
-        while (result == SQLITE_ROW) {
-            Class tempClass(sqlite3_column_int(stmt, 0),
-                                reinterpret_cast<const char *>((sqlite3_column_text(stmt, 1))),
+    if (operation->execute()) {
+        while (operation->getRow()) {
+            Class tempClass(operation->getIntValue(0),
+                                operation->getStringValue(1),
                                 School(
-                                  sqlite3_column_int(stmt, 2),
-                                  reinterpret_cast<const char *>((sqlite3_column_text(stmt, 3))),
+                                  operation->getIntValue(2),
+                                  operation->getStringValue(3),
                                   City(
-                                    sqlite3_column_int(stmt, 4),
-                                    reinterpret_cast<const char *>((sqlite3_column_text(stmt, 5))))));
+                                    operation->getIntValue(4),
+                                    operation->getStringValue(5))));
             retVal.push_back(tempClass);
-            result = sqlite3_step(stmt);
         }
-        sqlite3_finalize(stmt);
+        operation->close();
     }
     else {
-        lastError = operation.getLastError();
+        lastError = operation->getLastError();
         return list<Class>();
     }
     //Load all members
@@ -74,11 +76,11 @@ const std::string &ClassStorage::getLastError() const
 
 bool ClassStorage::insertItem(const Class &p_class)
 {
-    SQLiteInsertOperation operation(*connection, 
+    auto operation = operationFactory->createInsertOperation(*connection, 
         "INSERT INTO class (name, school_id) VALUES(?, ?)",
         vector<string> { p_class.getName(), to_string(p_class.getSchool().getId()) });
-    if (!operation.execute()) {
-        lastError = operation.getLastError();
+    if (!operation->execute()) {
+        lastError = operation->getLastError();
         return false;
     }
     //Retreive the assigned primary key (id)
@@ -105,13 +107,13 @@ bool ClassStorage::updateItem(const Class &p_class)
         return false;
     }
     //Update current class
-    SQLiteUpdateOperation operation(*connection, 
+    auto operation = operationFactory->createUpdateOperation(*connection, 
         "UPDATE class SET name = ?, school_id = ? WHERE id = ?",
         vector<string> { p_class.getName(),
             to_string(p_class.getSchool().getId()),
             to_string(p_class.getId()) });
-    if (!operation.execute()) {
-        lastError = operation.getLastError();
+    if (!operation->execute()) {
+        lastError = operation->getLastError();
         return false;
     }
     //Remove old members
@@ -149,36 +151,35 @@ QueryResult ClassStorage::deleteItem(size_t id)
     vector<size_t> memberIdsToRemove;
     transform(oldMembers.begin(), oldMembers.end(), std::back_inserter(memberIdsToRemove),
                [](Student const& x) { return x.getId(); });
-    if (!removeMembers(id, memberIdsToRemove)) {
+    if (memberIdsToRemove.size() > 0 && !removeMembers(id, memberIdsToRemove)) {
         return QueryResult::ERROR;
     }
     //Delete the class
-    SQLiteDeleteOperation operation(*connection, 
+    auto operation = operationFactory->createDeleteOperation(*connection, 
         "DELETE FROM class WHERE id = ?", 
         vector<string> { to_string(id) });
-    if (!operation.execute()) {
-        lastError = operation.getLastError();
+    if (!operation->execute()) {
+        lastError = operation->getLastError();
     }
-    return operation.getExtendedResultInfo();
+    return operation->getExtendedResultInfo();
 }
 
 size_t ClassStorage::retreiveAssignedClassId()
 {
     size_t classId {0};
-    SQLiteSelectOperation operationSelectAssignedId(*connection, "SELECT last_insert_rowid()");
-    if (operationSelectAssignedId.execute()) {
-        sqlite3_stmt *stmt = operationSelectAssignedId.getStatement();
-        int result = sqlite3_step(stmt);
-        if (result == SQLITE_ROW ) {
-            classId = sqlite3_column_int(stmt, 0);
+    auto operationSelectAssignedId = operationFactory->createSelectOperation(*connection, 
+     "SELECT last_insert_rowid()");
+    if (operationSelectAssignedId->execute()) {
+        if (operationSelectAssignedId->getRow()) {
+            classId = operationSelectAssignedId->getIntValue(0);
         }
         else {
             lastError = "Unable to retreive the assigned id for the new class record.";
         }
-        sqlite3_finalize(stmt);
+        operationSelectAssignedId->close();
     }
     else {
-        lastError = operationSelectAssignedId.getLastError();
+        lastError = operationSelectAssignedId->getLastError();
     }
     return classId;
 }
@@ -199,9 +200,9 @@ bool ClassStorage::insertMembers(size_t classId, const std::vector<size_t> &stud
                 sqlQueryInsertMembers += ",";
             }
         }
-        SQLiteInsertOperation operationInsertMembers(*connection, sqlQueryInsertMembers, membersValues);
-        if (!operationInsertMembers.execute()) {
-            lastError = operationInsertMembers.getLastError();
+        auto operationInsertMembers = operationFactory->createInsertOperation(*connection, sqlQueryInsertMembers, membersValues);
+        if (!operationInsertMembers->execute()) {
+            lastError = operationInsertMembers->getLastError();
             return false;
         }
     }
@@ -221,9 +222,9 @@ bool ClassStorage::removeMembers(size_t classId, const vector<size_t> &studentId
         membersValues.emplace_back(to_string(classId));
         membersValues.emplace_back(to_string(studentIdToRemove[i]));
     }
-    SQLiteUpdateOperation operation(*connection, sqlQueryRemoveMembers, membersValues);
-    if (!operation.execute()) {
-        lastError = operation.getLastError();
+    auto operation = operationFactory->createDeleteOperation(*connection, sqlQueryRemoveMembers, membersValues);
+    if (!operation->execute()) {
+        lastError = operation->getLastError();
         return false;
     }
     return true;
@@ -233,25 +234,22 @@ bool ClassStorage::removeMembers(size_t classId, const vector<size_t> &studentId
 multimap<size_t, Student> ClassStorage::loadAllMembers() 
 {
     multimap<size_t, Student> classStudents;
-    SQLiteSelectOperation operationLoadMembers(*connection, 
+    auto operationLoadMembers = operationFactory->createSelectOperation(*connection, 
         "SELECT class_id, student_id, student.firstname, student.lastname, student.comments "
         "FROM class_student "
         "INNER JOIN Student ON class_student.student_id = student.id");
-    if (operationLoadMembers.execute()) {
-        sqlite3_stmt *stmt = operationLoadMembers.getStatement();
-        int result = sqlite3_step(stmt);
-        while (result == SQLITE_ROW) {
-            classStudents.insert(make_pair(sqlite3_column_int(stmt, 0), 
-                                            Student(sqlite3_column_int(stmt, 1),
-                                                    reinterpret_cast<const char *>((sqlite3_column_text(stmt, 2))),
-                                                    reinterpret_cast<const char *>((sqlite3_column_text(stmt, 3))),
-                                                    reinterpret_cast<const char *>((sqlite3_column_text(stmt, 4))))));
-            result = sqlite3_step(stmt);
+    if (operationLoadMembers->execute()) {
+        while (operationLoadMembers->getRow()) {
+            classStudents.insert(make_pair(operationLoadMembers->getIntValue(0), 
+                                            Student(operationLoadMembers->getIntValue(1),
+                                                    operationLoadMembers->getStringValue(2),
+                                                    operationLoadMembers->getStringValue(3),
+                                                    operationLoadMembers->getStringValue(4))));
         }
-        sqlite3_finalize(stmt);
+        operationLoadMembers->close();
     }
     else {
-        throw runtime_error(operationLoadMembers.getLastError());
+        throw runtime_error(operationLoadMembers->getLastError());
     }
     return classStudents;
 }
@@ -259,25 +257,22 @@ multimap<size_t, Student> ClassStorage::loadAllMembers()
 std::list<Student> ClassStorage::loadClassMembers(size_t classId)
 {
     list<Student> retVal;
-    SQLiteSelectOperation operationLoadMembers(*connection, 
+    auto operationLoadMembers = operationFactory->createSelectOperation(*connection, 
         "SELECT student.id, student.firstname, student.lastname, student.comments "
         "FROM class_student "
         "INNER JOIN Student ON class_student.student_id = student.id "
         "WHERE class_student.class_id = ?", vector<string> { to_string(classId) });
-    if (operationLoadMembers.execute()) {
-        sqlite3_stmt *stmt = operationLoadMembers.getStatement();
-        int result = sqlite3_step(stmt);
-        while (result == SQLITE_ROW) {
-            retVal.emplace_back(sqlite3_column_int(stmt, 0),
-                                        reinterpret_cast<const char *>((sqlite3_column_text(stmt, 1))),
-                                        reinterpret_cast<const char *>((sqlite3_column_text(stmt, 2))),
-                                        reinterpret_cast<const char *>((sqlite3_column_text(stmt, 3))));
-            result = sqlite3_step(stmt);
+    if (operationLoadMembers->execute()) {
+        while (operationLoadMembers->getRow()) {
+            retVal.emplace_back(operationLoadMembers->getIntValue(0),
+                                        operationLoadMembers->getStringValue(1),
+                                        operationLoadMembers->getStringValue(2),
+                                        operationLoadMembers->getStringValue(3));
         }
-        sqlite3_finalize(stmt);
+        operationLoadMembers->close();
     }
     else {
-        throw runtime_error(operationLoadMembers.getLastError());
+        throw runtime_error(operationLoadMembers->getLastError());
     }
     return retVal;
 }

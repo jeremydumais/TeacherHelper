@@ -187,6 +187,12 @@ TEST(Student_getComments, WithCommentsTest_ReturnTest)
 	ASSERT_EQ("Test", student.getComments());
 }
 
+TEST(Student_getFullName, WithJoeBlow_ReturnFullName)
+{
+	Student student("Joe", "Blow", "Test");
+	ASSERT_EQ("Joe Blow", student.getFullName());
+}
+
 TEST(Student_setFirstName, WithFirstNameJoe_ReturnJoe)
 {
 	Student student("Joe", "Blow");
@@ -260,7 +266,8 @@ TEST(Student_setLastName, LastNameGreaterThenLimit_ThrowInvalidArgument)
 TEST(Student_setComments, WithCommentsTest_ReturnTest)
 {
 	Student student("Joe", "Blow", "Test");
-	ASSERT_EQ("Test", student.getComments());
+	student.setComments("Another test");
+	ASSERT_EQ("Another test", student.getComments());
 }
 
 TEST(Student_setComments, CommentsGreaterThenLimit_ThrowInvalidArgument)

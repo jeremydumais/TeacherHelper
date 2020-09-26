@@ -14,25 +14,29 @@ SchoolManagementForm::SchoolManagementForm(QWidget *parent, const DatabaseConnec
 {
 	ui.setupUi(this);
 	ui.frameDetails->setEnabled(false);
-	connect(ui.pushButtonClose, SIGNAL(clicked()), this, SLOT(close()));
-	connect(ui.pushButtonAdd, SIGNAL(clicked()), this, SLOT(pushButtonAdd_Click()));
-	connect(ui.pushButtonModify, SIGNAL(clicked()), this, SLOT(pushButtonModify_Click()));
-	connect(ui.pushButtonDelete, SIGNAL(clicked()), this, SLOT(pushButtonDelete_Click()));
-	connect(ui.pushButtonOK, SIGNAL(clicked()), this, SLOT(pushButtonOK_Click()));
-	connect(ui.pushButtonCancel, SIGNAL(clicked()), this, SLOT(pushButtonCancel_Click()));
+	connect(ui.pushButtonClose, &QPushButton::clicked, this, &SchoolManagementForm::close);
+	connect(ui.pushButtonAdd, &QPushButton::clicked, this, &SchoolManagementForm::pushButtonAdd_Click);
+	connect(ui.pushButtonModify, &QPushButton::clicked, this, &SchoolManagementForm::pushButtonModify_Click);
+	connect(ui.pushButtonDelete, &QPushButton::clicked, this, &SchoolManagementForm::pushButtonDelete_Click);
+	connect(ui.pushButtonOK, &QPushButton::clicked, this, &SchoolManagementForm::pushButtonOK_Click);
+	connect(ui.pushButtonCancel, &QPushButton::clicked, this, &SchoolManagementForm::pushButtonCancel_Click);
+	tableWidgetItemsKeyWatcher.installOn(ui.tableWidgetItems);
+	connect(&tableWidgetItemsKeyWatcher, &QTableWidgetKeyPressWatcher::keyPressed, this, &SchoolManagementForm::tableWidgetItems_keyPressEvent);
 
-	ui.tableWidgeItems->setHorizontalHeaderItem(0, new QTableWidgetItem("Id"));
-	ui.tableWidgeItems->setHorizontalHeaderItem(1, new QTableWidgetItem("Name"));
-	ui.tableWidgeItems->setHorizontalHeaderItem(2, new QTableWidgetItem("City_Id"));
-	ui.tableWidgeItems->setHorizontalHeaderItem(3, new QTableWidgetItem("City"));
-	ui.tableWidgeItems->setColumnHidden(0, true);
-	ui.tableWidgeItems->setColumnHidden(2, true);
-	connect(ui.tableWidgeItems->selectionModel(), 
-		SIGNAL(selectionChanged(const QItemSelection &, const QItemSelection &)),
-  		SLOT(itemsTableSelectionChanged(const QItemSelection &)));
-	connect(ui.tableWidgeItems, 
-		SIGNAL(cellDoubleClicked(int, int)), 
-		SLOT(pushButtonModify_Click()));
+	ui.tableWidgetItems->setHorizontalHeaderItem(0, new QTableWidgetItem("Id"));
+	ui.tableWidgetItems->setHorizontalHeaderItem(1, new QTableWidgetItem("Name"));
+	ui.tableWidgetItems->setHorizontalHeaderItem(2, new QTableWidgetItem("City_Id"));
+	ui.tableWidgetItems->setHorizontalHeaderItem(3, new QTableWidgetItem("City"));
+	ui.tableWidgetItems->setColumnHidden(0, true);
+	ui.tableWidgetItems->setColumnHidden(2, true);
+	connect(ui.tableWidgetItems->selectionModel(), 
+		&QItemSelectionModel::selectionChanged, 
+		this,
+  		&SchoolManagementForm::itemsTableSelectionChanged);
+	connect(ui.tableWidgetItems,
+		&QTableWidget::itemDoubleClicked,
+		this,
+		&SchoolManagementForm::itemsTableSelectionDoubleClicked);
 }
 
 void SchoolManagementForm::showEvent(QShowEvent *event) 
@@ -42,18 +46,18 @@ void SchoolManagementForm::showEvent(QShowEvent *event)
 	cityController.loadCities();
 	refreshCityTable();
     refreshItemsTable();
-} 
+}
 
 void SchoolManagementForm::refreshItemsTable()
 {
-	ui.tableWidgeItems->model()->removeRows(0, ui.tableWidgeItems->rowCount());
+	ui.tableWidgetItems->model()->removeRows(0, ui.tableWidgetItems->rowCount());
 	size_t row {0};
     for (const auto &school : controller.getSchools()) {
-		ui.tableWidgeItems->insertRow(row);
-		ui.tableWidgeItems->setItem(row, 0, new QTableWidgetItem(to_string(school.getId()).c_str()));
-		ui.tableWidgeItems->setItem(row, 1, new QTableWidgetItem(school.getName().c_str()));
-		ui.tableWidgeItems->setItem(row, 2, new QTableWidgetItem(to_string(school.getCity().getId()).c_str()));
-		ui.tableWidgeItems->setItem(row, 3, new QTableWidgetItem(school.getCity().getName().c_str()));
+		ui.tableWidgetItems->insertRow(row);
+		ui.tableWidgetItems->setItem(row, 0, new QTableWidgetItem(to_string(school.getId()).c_str()));
+		ui.tableWidgetItems->setItem(row, 1, new QTableWidgetItem(school.getName().c_str()));
+		ui.tableWidgetItems->setItem(row, 2, new QTableWidgetItem(to_string(school.getCity().getId()).c_str()));
+		ui.tableWidgetItems->setItem(row, 3, new QTableWidgetItem(school.getCity().getName().c_str()));
 		row++;
     }
 	toggleTableControls(false);
@@ -80,7 +84,7 @@ void SchoolManagementForm::toggleEditMode(ActionMode mode)
 	this->mode = mode;
 	bool editMode = (mode ==  ActionMode::Add || mode == ActionMode::Modify);
 	ui.frameDetails->setEnabled(editMode);
-	ui.tableWidgeItems->setEnabled(!editMode);
+	ui.tableWidgetItems->setEnabled(!editMode);
 	ui.frameActionButtons->setEnabled(!editMode);
 	if(!editMode) {
 		ui.lineEditName->clear();
@@ -97,6 +101,13 @@ void SchoolManagementForm::itemsTableSelectionChanged(const QItemSelection &sele
 	toggleTableControls(selected.size() == 1);
 }
 
+void SchoolManagementForm::itemsTableSelectionDoubleClicked(QTableWidgetItem *item) 
+{
+	if (item) {
+		pushButtonModify_Click();
+	}
+}
+
 void SchoolManagementForm::pushButtonAdd_Click()
 {
 	ui.lineEditName->clear();
@@ -106,7 +117,7 @@ void SchoolManagementForm::pushButtonAdd_Click()
 
 void SchoolManagementForm::pushButtonModify_Click()
 {
-	auto row = ui.tableWidgeItems->selectionModel()->selectedIndexes();
+	auto row = ui.tableWidgetItems->selectionModel()->selectedIndexes();
 	if (!row.empty()) {
 		//Find the selected school
 		auto editedSchool = controller.findSchool(row[0].data().toUInt());
@@ -128,7 +139,7 @@ void SchoolManagementForm::pushButtonModify_Click()
 void SchoolManagementForm::pushButtonDelete_Click()
 {
 	QMessageBox msgBox;
-	auto row = ui.tableWidgeItems->selectionModel()->selectedIndexes();
+	auto row = ui.tableWidgetItems->selectionModel()->selectedIndexes();
 	if (!row.empty()) {
 		//Find the selected school
 		auto editedSchool = controller.findSchool(row[0].data().toUInt());
@@ -143,6 +154,7 @@ void SchoolManagementForm::pushButtonDelete_Click()
 			else {
 				showError(controller.getLastError());
 			}
+			dataHasChanged = true;
 		}
 	}
 }
@@ -179,6 +191,7 @@ void SchoolManagementForm::saveNewItem(const City* const selectedCity)
 		else {
 			showError(controller.getLastError());
 		}
+		dataHasChanged = true;
 	}
 	else {
 		showError("The new name is already taken.");
@@ -187,7 +200,7 @@ void SchoolManagementForm::saveNewItem(const City* const selectedCity)
 
 void SchoolManagementForm::updateExistingItem(const City* const selectedCity)
 {
-	auto row = ui.tableWidgeItems->selectionModel()->selectedIndexes();
+	auto row = ui.tableWidgetItems->selectionModel()->selectedIndexes();
 	//Find the selected school
 	size_t currentlyEditedSchoolId = row[0].data().toUInt();
 	auto editedSchool = controller.findSchool(currentlyEditedSchoolId);
@@ -205,6 +218,7 @@ void SchoolManagementForm::updateExistingItem(const City* const selectedCity)
 			else {
 				showError(controller.getLastError());
 			}
+			dataHasChanged = true;
 		}
 		else {
 			showError("The new name is already taken.");
@@ -256,4 +270,11 @@ bool SchoolManagementForm::selectCityInEditPanel(size_t id)
 		}
 	}
 	return false;
+}
+
+void SchoolManagementForm::tableWidgetItems_keyPressEvent(int key, int, int) 
+{
+	if (key == Qt::Key_Delete) {
+		pushButtonDelete_Click();
+	}
 }

@@ -2,6 +2,8 @@ cmake_minimum_required(VERSION 3.10)
 
 project(TeacherHelper C CXX)
 
+list(APPEND CMAKE_MODULE_PATH ${CMAKE_CURRENT_LIST_DIR}/cmake/modules)
+
 if (UNIX)
     set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR})
     set(EXECUTABLE_OUTPUT_PATH ${CMAKE_BINARY_DIR})
@@ -19,7 +21,13 @@ set(CMAKE_CXX_STANDARD 14)
 include(${CMAKE_BINARY_DIR}/conanbuildinfo.cmake)
 conan_basic_setup()
 
+if (${CODE_COVERAGE})
+    include(CodeCoverage)
+    append_coverage_compiler_flags()
+endif()
+
 enable_testing()
+include(GoogleTest)
 
 add_subdirectory("Models")
 add_subdirectory("DataServices")

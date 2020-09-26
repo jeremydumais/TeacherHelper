@@ -21,7 +21,7 @@ public:
     School(size_t id,
             const std::string &name, 
             const City &city);
-
+    SCHOOL_API friend bool operator==(const School& lhs, const School &rhs);
     size_t getId() const;
     const std::string &getName() const;
     const City &getCity() const;

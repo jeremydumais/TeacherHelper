@@ -4,8 +4,11 @@
 
 using namespace std;
 
-StudentSelectionController::StudentSelectionController(const DatabaseConnection &dbConnection)
-    : studentController(dbConnection)
+StudentSelectionController::StudentSelectionController(const DatabaseConnection &dbConnection,
+													   std::unique_ptr<IStudentController> studentController)
+    : studentController { studentController ? 
+                  		  move(studentController) : 
+                  		  unique_ptr<IStudentController>(make_unique<StudentController>(dbConnection))}
 {
 }
 
@@ -36,15 +39,15 @@ bool StudentSelectionController::isStudentInFilter(const string &filter, const S
 
 void StudentSelectionController::loadStudents()
 {
-    studentController.loadStudents();
+    studentController->loadStudents();
 }
 
 const std::list<Student> &StudentSelectionController::getStudents() const
 {
-    return studentController.getStudents();
+    return studentController->getStudents();
 }
 
 const Student* StudentSelectionController::findStudent(size_t id) const
 {
-    return studentController.findStudent(id);
+    return studentController->findStudent(id);
 }

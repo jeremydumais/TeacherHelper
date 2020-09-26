@@ -17,7 +17,144 @@
    <iconset resource="../res/global.qrc">
     <normaloff>:/global/TeacherHelperIcon.ico</normaloff>:/global/TeacherHelperIcon.ico</iconset>
   </property>
-  <widget class="QWidget" name="centralwidget"/>
+  <widget class="QWidget" name="centralwidget">
+   <layout class="QGridLayout" name="gridLayout">
+    <item row="0" column="0">
+     <widget class="QWidget" name="widget" native="true">
+      <layout class="QGridLayout" name="gridLayout_4">
+       <item row="0" column="1">
+        <widget class="QSplitter" name="splitter">
+         <property name="orientation">
+          <enum>Qt::Horizontal</enum>
+         </property>
+         <widget class="QWidget" name="verticalLayoutWidget">
+          <layout class="QVBoxLayout" name="verticalLayout">
+           <item>
+            <widget class="QFrame" name="frame">
+             <property name="frameShape">
+              <enum>QFrame::StyledPanel</enum>
+             </property>
+             <property name="frameShadow">
+              <enum>QFrame::Raised</enum>
+             </property>
+             <layout class="QHBoxLayout" name="horizontalLayout_2">
+              <item>
+               <widget class="QToolButton" name="toolButtonExpandAll">
+                <property name="toolTip">
+                 <string>Expand all</string>
+                </property>
+                <property name="text">
+                 <string>Expand all</string>
+                </property>
+                <property name="icon">
+                 <iconset resource="../res/global.qrc">
+                  <normaloff>:/global/expand64.png</normaloff>:/global/expand64.png</iconset>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <widget class="QToolButton" name="toolButtonCollapseAll">
+                <property name="toolTip">
+                 <string>Collapse all</string>
+                </property>
+                <property name="text">
+                 <string>Collapse all</string>
+                </property>
+                <property name="icon">
+                 <iconset resource="../res/global.qrc">
+                  <normaloff>:/global/collapse64.png</normaloff>:/global/collapse64.png</iconset>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <spacer name="horizontalSpacer">
+                <property name="orientation">
+                 <enum>Qt::Horizontal</enum>
+                </property>
+                <property name="sizeHint" stdset="0">
+                 <size>
+                  <width>40</width>
+                  <height>20</height>
+                 </size>
+                </property>
+               </spacer>
+              </item>
+             </layout>
+            </widget>
+           </item>
+           <item>
+            <widget class="QTreeWidget" name="treeWidgetSchoolClassNav">
+             <property name="columnCount">
+              <number>2</number>
+             </property>
+             <attribute name="headerVisible">
+              <bool>false</bool>
+             </attribute>
+             <column>
+              <property name="text">
+               <string notr="true">1</string>
+              </property>
+             </column>
+             <column>
+              <property name="text">
+               <string notr="true">2</string>
+              </property>
+             </column>
+            </widget>
+           </item>
+          </layout>
+         </widget>
+         <widget class="QWidget" name="verticalLayoutWidget_2">
+          <layout class="QVBoxLayout" name="verticalLayout_3">
+           <item>
+            <widget class="QTableWidget" name="tableWidgetAssessments">
+             <property name="editTriggers">
+              <set>QAbstractItemView::NoEditTriggers</set>
+             </property>
+             <property name="alternatingRowColors">
+              <bool>true</bool>
+             </property>
+             <property name="selectionMode">
+              <enum>QAbstractItemView::SingleSelection</enum>
+             </property>
+             <property name="selectionBehavior">
+              <enum>QAbstractItemView::SelectRows</enum>
+             </property>
+             <property name="columnCount">
+              <number>6</number>
+             </property>
+             <attribute name="horizontalHeaderDefaultSectionSize">
+              <number>200</number>
+             </attribute>
+             <attribute name="horizontalHeaderHighlightSections">
+              <bool>false</bool>
+             </attribute>
+             <attribute name="horizontalHeaderMinimumSectionSize">
+              <number>150</number>
+             </attribute>
+             <attribute name="horizontalHeaderStretchLastSection">
+              <bool>true</bool>
+             </attribute>
+             <attribute name="verticalHeaderVisible">
+              <bool>false</bool>
+             </attribute>
+             <column/>
+             <column/>
+             <column/>
+             <column/>
+             <column/>
+             <column/>
+            </widget>
+           </item>
+          </layout>
+         </widget>
+        </widget>
+       </item>
+      </layout>
+     </widget>
+    </item>
+   </layout>
+  </widget>
   <widget class="QMenuBar" name="menubar">
    <property name="geometry">
     <rect>
@@ -70,8 +207,17 @@
     </property>
     <addaction name="actionList_of_cities"/>
    </widget>
+   <widget class="QMenu" name="menu_Test">
+    <property name="title">
+     <string>&amp;Assessment</string>
+    </property>
+    <addaction name="action_AddAssessment"/>
+    <addaction name="action_EditAssessment"/>
+    <addaction name="action_RemoveAssessment"/>
+   </widget>
    <addaction name="menu_File"/>
    <addaction name="menu_View"/>
+   <addaction name="menu_Test"/>
    <addaction name="menuGestion"/>
    <addaction name="menu_Report"/>
    <addaction name="menuHelp"/>
@@ -93,6 +239,10 @@
    <attribute name="toolBarBreak">
     <bool>false</bool>
    </attribute>
+   <addaction name="action_AddAssessment"/>
+   <addaction name="action_EditAssessment"/>
+   <addaction name="action_RemoveAssessment"/>
+   <addaction name="separator"/>
    <addaction name="action_Cities"/>
    <addaction name="action_Schools"/>
    <addaction name="action_Classes"/>
@@ -184,6 +334,42 @@
   <action name="actionList_of_cities">
    <property name="text">
     <string>List of cities</string>
+   </property>
+   <property name="visible">
+    <bool>false</bool>
+   </property>
+  </action>
+  <action name="action_AddAssessment">
+   <property name="icon">
+    <iconset resource="../res/global.qrc">
+     <normaloff>:/global/addTest64.png</normaloff>:/global/addTest64.png</iconset>
+   </property>
+   <property name="text">
+    <string>&amp;Add an assessment...</string>
+   </property>
+  </action>
+  <action name="action_RemoveAssessment">
+   <property name="icon">
+    <iconset resource="../res/global.qrc">
+     <normaloff>:/global/deleteTest64.png</normaloff>:/global/deleteTest64.png</iconset>
+   </property>
+   <property name="text">
+    <string>&amp;Delete the assessment</string>
+   </property>
+   <property name="toolTip">
+    <string>Delete the assessment</string>
+   </property>
+  </action>
+  <action name="action_EditAssessment">
+   <property name="icon">
+    <iconset resource="../res/global.qrc">
+     <normaloff>:/global/editTest64.png</normaloff>:/global/editTest64.png</iconset>
+   </property>
+   <property name="text">
+    <string>&amp;Edit the assessment...</string>
+   </property>
+   <property name="toolTip">
+    <string>Edit the assessment</string>
    </property>
   </action>
  </widget>

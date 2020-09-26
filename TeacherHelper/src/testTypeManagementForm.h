@@ -3,8 +3,9 @@
 #define TESTYPEMANAGEMENTFORM_H
 
 #include "managementFormBase.h"
-#include "ui_testTypeManagementForm.h"
+#include "qTableWidgetKeyPressWatcher.h"
 #include "testTypeController.h"
+#include "ui_testTypeManagementForm.h"
 
 class TestTypeManagementForm : public QDialog, public ManagementFormBase
 {
@@ -17,6 +18,7 @@ public:
 private:
 	Ui::testTypeManagementFormClass ui;
 	TestTypeController controller;
+	QTableWidgetKeyPressWatcher tableWidgetItemsKeyWatcher;
 	void refreshItemsTable() override;
 	void toggleTableControls(bool itemSelected) override;
 	void toggleEditMode(ActionMode mode) override;
@@ -25,12 +27,14 @@ private:
 	void updateExistingItem();
 private slots: 
 	void itemsTableSelectionChanged(const QItemSelection &selected);
+	void itemsTableSelectionDoubleClicked(QTableWidgetItem *item);
 	void pushButtonAdd_Click();
 	void pushButtonModify_Click();
 	void pushButtonDelete_Click();
 	void pushButtonOK_Click();
 	void pushButtonCancel_Click();
 	void keyPressEvent(QKeyEvent *e) override;
+	void tableWidgetItems_keyPressEvent(int key, int, int);
 };
 
 #endif // TESTYPEMANAGEMENTFORM_H

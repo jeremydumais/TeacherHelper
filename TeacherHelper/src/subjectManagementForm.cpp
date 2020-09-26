@@ -14,23 +14,27 @@ SubjectManagementForm::SubjectManagementForm(QWidget *parent, const DatabaseConn
 {
 	ui.setupUi(this);
 	ui.frameDetails->setEnabled(false);
-	connect(ui.pushButtonClose, SIGNAL(clicked()), this, SLOT(close()));
-	connect(ui.pushButtonAdd, SIGNAL(clicked()), this, SLOT(pushButtonAdd_Click()));
-	connect(ui.pushButtonModify, SIGNAL(clicked()), this, SLOT(pushButtonModify_Click()));
-	connect(ui.pushButtonDelete, SIGNAL(clicked()), this, SLOT(pushButtonDelete_Click()));
-	connect(ui.pushButtonOK, SIGNAL(clicked()), this, SLOT(pushButtonOK_Click()));
-	connect(ui.pushButtonCancel, SIGNAL(clicked()), this, SLOT(pushButtonCancel_Click()));
+	connect(ui.pushButtonClose, &QPushButton::clicked, this, &SubjectManagementForm::close);
+	connect(ui.pushButtonAdd, &QPushButton::clicked, this, &SubjectManagementForm::pushButtonAdd_Click);
+	connect(ui.pushButtonModify, &QPushButton::clicked, this, &SubjectManagementForm::pushButtonModify_Click);
+	connect(ui.pushButtonDelete, &QPushButton::clicked, this, &SubjectManagementForm::pushButtonDelete_Click);
+	connect(ui.pushButtonOK, &QPushButton::clicked, this, &SubjectManagementForm::pushButtonOK_Click);
+	connect(ui.pushButtonCancel, &QPushButton::clicked, this, &SubjectManagementForm::pushButtonCancel_Click);
+	tableWidgetItemsKeyWatcher.installOn(ui.tableWidgetItems);
+	connect(&tableWidgetItemsKeyWatcher, &QTableWidgetKeyPressWatcher::keyPressed, this, &SubjectManagementForm::tableWidgetItems_keyPressEvent);
 
-	ui.tableWidgeItems->setHorizontalHeaderItem(0, new QTableWidgetItem("Id"));
-	ui.tableWidgeItems->setHorizontalHeaderItem(1, new QTableWidgetItem("Name"));
-	ui.tableWidgeItems->setHorizontalHeaderItem(2, new QTableWidgetItem("Default"));
-	ui.tableWidgeItems->setColumnHidden(0, true);
-	connect(ui.tableWidgeItems->selectionModel(), 
-		SIGNAL(selectionChanged(const QItemSelection &, const QItemSelection &)),
-  		SLOT(itemsTableSelectionChanged(const QItemSelection &)));
-	connect(ui.tableWidgeItems, 
-		SIGNAL(cellDoubleClicked(int, int)), 
-		SLOT(pushButtonModify_Click()));
+	ui.tableWidgetItems->setHorizontalHeaderItem(0, new QTableWidgetItem("Id"));
+	ui.tableWidgetItems->setHorizontalHeaderItem(1, new QTableWidgetItem("Name"));
+	ui.tableWidgetItems->setHorizontalHeaderItem(2, new QTableWidgetItem("Default"));
+	ui.tableWidgetItems->setColumnHidden(0, true);
+	connect(ui.tableWidgetItems->selectionModel(), 
+		&QItemSelectionModel::selectionChanged, 
+		this,
+  		&SubjectManagementForm::itemsTableSelectionChanged);
+	connect(ui.tableWidgetItems, 
+		&QTableWidget::itemDoubleClicked,
+		this,
+		&SubjectManagementForm::itemsTableSelectionDoubleClicked);
 }
 
 void SubjectManagementForm::showEvent(QShowEvent *event) 
@@ -42,14 +46,14 @@ void SubjectManagementForm::showEvent(QShowEvent *event)
 
 void SubjectManagementForm::refreshItemsTable()
 {
-	ui.tableWidgeItems->model()->removeRows(0, ui.tableWidgeItems->rowCount());
+	ui.tableWidgetItems->model()->removeRows(0, ui.tableWidgetItems->rowCount());
 	size_t row {0};
     for (const auto &subject : controller.getSubjects()) {
-		ui.tableWidgeItems->insertRow(row);
-		ui.tableWidgeItems->setItem(row, 0, new QTableWidgetItem(to_string(subject.getId()).c_str()));
-		ui.tableWidgeItems->setItem(row, 1, new QTableWidgetItem(subject.getName().c_str()));
-		ui.tableWidgeItems->setItem(row, 2, new QTableWidgetItem(subject.getIsDefault() ? "X" : ""));
-		ui.tableWidgeItems->item(row, 2)->setTextAlignment(Qt::AlignHCenter);
+		ui.tableWidgetItems->insertRow(row);
+		ui.tableWidgetItems->setItem(row, 0, new QTableWidgetItem(to_string(subject.getId()).c_str()));
+		ui.tableWidgetItems->setItem(row, 1, new QTableWidgetItem(subject.getName().c_str()));
+		ui.tableWidgetItems->setItem(row, 2, new QTableWidgetItem(subject.getIsDefault() ? "X" : ""));
+		ui.tableWidgetItems->item(row, 2)->setTextAlignment(Qt::AlignHCenter);
 		row++;
     }
 	toggleTableControls(false);
@@ -66,7 +70,7 @@ void SubjectManagementForm::toggleEditMode(ActionMode mode)
 	this->mode = mode;
 	bool editMode = (mode ==  ActionMode::Add || mode == ActionMode::Modify);
 	ui.frameDetails->setEnabled(editMode);
-	ui.tableWidgeItems->setEnabled(!editMode);
+	ui.tableWidgetItems->setEnabled(!editMode);
 	ui.frameActionButtons->setEnabled(!editMode);
 	if(!editMode) {
 		ui.lineEditName->clear();
@@ -83,6 +87,13 @@ void SubjectManagementForm::itemsTableSelectionChanged(const QItemSelection &sel
 	toggleTableControls(selected.size() == 1);
 }
 
+void SubjectManagementForm::itemsTableSelectionDoubleClicked(QTableWidgetItem *item) 
+{
+	if (item) {
+		pushButtonModify_Click();
+	}
+}
+
 void SubjectManagementForm::pushButtonAdd_Click()
 {
 	ui.lineEditName->clear();
@@ -91,7 +102,7 @@ void SubjectManagementForm::pushButtonAdd_Click()
 
 void SubjectManagementForm::pushButtonModify_Click()
 {
-	auto row = ui.tableWidgeItems->selectionModel()->selectedIndexes();
+	auto row = ui.tableWidgetItems->selectionModel()->selectedIndexes();
 	if (!row.empty()) {
 		//Find the selected subject
 		auto editedSubject = controller.findSubject(row[0].data().toUInt());
@@ -111,7 +122,7 @@ void SubjectManagementForm::pushButtonModify_Click()
 void SubjectManagementForm::pushButtonDelete_Click()
 {
 	QMessageBox msgBox;
-	auto row = ui.tableWidgeItems->selectionModel()->selectedIndexes();
+	auto row = ui.tableWidgetItems->selectionModel()->selectedIndexes();
 	if (!row.empty()) {
 		//Find the selected subject
 		auto editedSubject = controller.findSubject(row[0].data().toUInt());
@@ -168,7 +179,7 @@ void SubjectManagementForm::saveNewItem()
 
 void SubjectManagementForm::updateExistingItem()
 {
-	auto row = ui.tableWidgeItems->selectionModel()->selectedIndexes();
+	auto row = ui.tableWidgetItems->selectionModel()->selectedIndexes();
 	//Find the selected subject
 	size_t currentlyEditedSubjectId = row[0].data().toUInt();
 	auto editedSubject = controller.findSubject(currentlyEditedSubjectId);
@@ -221,5 +232,12 @@ void SubjectManagementForm::keyPressEvent(QKeyEvent *e)
 	}
 	else {
 		QDialog::keyPressEvent(e);
+	}
+}
+
+void SubjectManagementForm::tableWidgetItems_keyPressEvent(int key, int, int) 
+{
+	if (key == Qt::Key_Delete) {
+		pushButtonDelete_Click();
 	}
 }

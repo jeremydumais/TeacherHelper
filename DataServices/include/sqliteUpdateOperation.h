@@ -1,10 +1,10 @@
 #pragma once
 
-#include "operationBase.h"
+#include "IStorageUpdateOperation.h"
 #include <string>
 #include <vector>
 
-class SQLiteUpdateOperation : public OperationBase
+class SQLiteUpdateOperation : public IStorageUpdateOperation
 {
 public:
     SQLiteUpdateOperation(const DatabaseConnection &connection, 

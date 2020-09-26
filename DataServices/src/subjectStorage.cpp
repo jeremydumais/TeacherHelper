@@ -3,6 +3,7 @@
 #include "sqliteSelectOperation.h"
 #include "sqliteUpdateOperation.h"
 #include "sqliteDeleteOperation.h"
+#include "sqliteOperationFactory.h"
 #include <boost/algorithm/string.hpp>
 #include <iostream>
 #include <sqlite3.h>
@@ -11,9 +12,13 @@
 
 using namespace std;
 
-SubjectStorage::SubjectStorage(const DatabaseConnection &connection)
+SubjectStorage::SubjectStorage(const DatabaseConnection &connection, 
+                               unique_ptr<IStorageOperationFactory> operationFactory)
     : connection(&connection),
-      lastError("")
+      lastError(""),
+      operationFactory { operationFactory ? 
+                         move(operationFactory) : 
+                         make_unique<SQLiteOperationFactory>()}
 {
 }
 
@@ -21,22 +26,19 @@ list<Subject> SubjectStorage::getAllItems()
 {
     int i =1;
     list<Subject> retVal;
-    SQLiteSelectOperation operation(*connection, 
+    auto operation = operationFactory->createSelectOperation(*connection, 
         "SELECT id, name, isdefault FROM subject ORDER BY name;");
-    if (operation.execute()) {
-        sqlite3_stmt *stmt = operation.getStatement();
-        int result = sqlite3_step(stmt);
-        while (result == SQLITE_ROW) {
-            Subject tempSubject(sqlite3_column_int(stmt, 0),
-                                reinterpret_cast<const char *>((sqlite3_column_text(stmt, 1))),
-                                static_cast<bool>(sqlite3_column_int(stmt, 2)));
+    if (operation->execute()) {
+        while (operation->getRow()) {
+            Subject tempSubject(operation->getIntValue(0),
+                                operation->getStringValue(1),
+                                operation->getBoolValue(2));
             retVal.push_back(tempSubject);
-            result = sqlite3_step(stmt);
         }
-        sqlite3_finalize(stmt);
+        operation->close();
     }
     else {
-        lastError = operation.getLastError();
+        lastError = operation->getLastError();
     }
     return retVal;
 }
@@ -55,11 +57,11 @@ bool SubjectStorage::insertItem(const Subject &subject)
             return false;
         }
     }
-    SQLiteInsertOperation operation(*connection, 
+    auto operation = operationFactory->createInsertOperation(*connection, 
         "INSERT INTO subject (name, isdefault) VALUES(?, ?)",
         vector<string> { boost::trim_copy(subject.getName()), subject.getIsDefault() ? "1" : "0" });
-    if (!operation.execute()) {
-        lastError = operation.getLastError();
+    if (!operation->execute()) {
+        lastError = operation->getLastError();
         return false;
     }
     return true;
@@ -74,13 +76,13 @@ bool SubjectStorage::updateItem(const Subject &subject)
             return false;
         }
     }
-    SQLiteUpdateOperation operation(*connection, 
+    auto operation = operationFactory->createUpdateOperation(*connection, 
         "UPDATE subject SET name = ?, isdefault = ? WHERE id = ?",
         vector<string> { boost::trim_copy(subject.getName()),
                          subject.getIsDefault() ? "1" : "0",
                          to_string(subject.getId()) });
-    if (!operation.execute()) {
-        lastError = operation.getLastError();
+    if (!operation->execute()) {
+        lastError = operation->getLastError();
         return false;
     }
     return true;
@@ -88,35 +90,35 @@ bool SubjectStorage::updateItem(const Subject &subject)
 
 QueryResult SubjectStorage::deleteItem(size_t id)
 {
-    SQLiteDeleteOperation operation(*connection, 
+    auto operation = operationFactory->createDeleteOperation(*connection, 
         "DELETE FROM subject WHERE id = ?", 
         vector<string> { to_string(id) });
-    if (!operation.execute()) {
-        lastError = operation.getLastError();
+    if (!operation->execute()) {
+        lastError = operation->getLastError();
     }
-    return operation.getExtendedResultInfo();
+    return operation->getExtendedResultInfo();
 }
 
 bool SubjectStorage::updateAllRowsToRemoveDefault(size_t currentSubjectId)
 {
-    SQLiteSelectOperation operationCheckDefault(*connection, 
-    "SELECT COUNT() FROM subject WHERE isdefault=1 and id<>?",
+    auto operationCheckDefault = operationFactory->createSelectOperation(*connection, 
+        "SELECT COUNT() FROM subject WHERE isdefault=1 and id<>?",
     vector<string> { to_string(currentSubjectId) });
-    if (operationCheckDefault.execute()) {
-        sqlite3_stmt *stmt = operationCheckDefault.getStatement();
-        int result = sqlite3_step(stmt);
-        if (result == SQLITE_ROW && sqlite3_column_int(stmt, 0) > 0) {
-            SQLiteUpdateOperation operationUpdateDefault(*connection, 
+    if (operationCheckDefault->execute()) {
+        if (operationCheckDefault->getRow() && operationCheckDefault->getIntValue(0) > 0) {
+            auto operationUpdateDefault = operationFactory->createUpdateOperation(*connection, 
                 "UPDATE subject SET isdefault = 0",
                 vector<string>());
-            if (!operationUpdateDefault.execute()) {
-                lastError = operationUpdateDefault.getLastError();
+            if (!operationUpdateDefault->execute()) {
+                lastError = operationUpdateDefault->getLastError();
+                operationCheckDefault->close();
                 return false;
             }
         }
+        operationCheckDefault->close();
     }
     else {
-        lastError = operationCheckDefault.getLastError();
+        lastError = operationCheckDefault->getLastError();
         return false;
     }
     return true;

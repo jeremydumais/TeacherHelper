@@ -8,7 +8,7 @@ AboutBoxForm::AboutBoxForm(QWidget *parent)
 	  ui(Ui::aboutBoxFormClass())
 {
 	ui.setupUi(this);
-    connect(ui.pushButtonImageAttributions, SIGNAL(clicked()), this, SLOT(pushButtonImageAttributions_Click()));
+    connect(ui.pushButtonImageAttributions, &QPushButton::clicked, this, &AboutBoxForm::pushButtonImageAttributions_Click);
 }
 
 

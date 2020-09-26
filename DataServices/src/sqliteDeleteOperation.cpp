@@ -6,7 +6,7 @@ using namespace std;
 SQLiteDeleteOperation::SQLiteDeleteOperation(const DatabaseConnection &connection, 
                                              const string &query,
                                              const vector<string> &args)
-    : OperationBase(connection, query, args)
+    : IStorageDeleteOperation(connection, query, args)
 {
 }
 

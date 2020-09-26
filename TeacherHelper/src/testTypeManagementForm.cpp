@@ -14,22 +14,26 @@ TestTypeManagementForm::TestTypeManagementForm(QWidget *parent, const DatabaseCo
 {
 	ui.setupUi(this);
 	ui.frameDetails->setEnabled(false);
-	connect(ui.pushButtonClose, SIGNAL(clicked()), this, SLOT(close()));
-	connect(ui.pushButtonAdd, SIGNAL(clicked()), this, SLOT(pushButtonAdd_Click()));
-	connect(ui.pushButtonModify, SIGNAL(clicked()), this, SLOT(pushButtonModify_Click()));
-	connect(ui.pushButtonDelete, SIGNAL(clicked()), this, SLOT(pushButtonDelete_Click()));
-	connect(ui.pushButtonOK, SIGNAL(clicked()), this, SLOT(pushButtonOK_Click()));
-	connect(ui.pushButtonCancel, SIGNAL(clicked()), this, SLOT(pushButtonCancel_Click()));
+	connect(ui.pushButtonClose, &QPushButton::clicked, this, &TestTypeManagementForm::close);
+	connect(ui.pushButtonAdd, &QPushButton::clicked, this, &TestTypeManagementForm::pushButtonAdd_Click);
+	connect(ui.pushButtonModify, &QPushButton::clicked, this, &TestTypeManagementForm::pushButtonModify_Click);
+	connect(ui.pushButtonDelete, &QPushButton::clicked, this, &TestTypeManagementForm::pushButtonDelete_Click);
+	connect(ui.pushButtonOK, &QPushButton::clicked, this, &TestTypeManagementForm::pushButtonOK_Click);
+	connect(ui.pushButtonCancel, &QPushButton::clicked, this, &TestTypeManagementForm::pushButtonCancel_Click);
+	tableWidgetItemsKeyWatcher.installOn(ui.tableWidgetItems);
+	connect(&tableWidgetItemsKeyWatcher, &QTableWidgetKeyPressWatcher::keyPressed, this, &TestTypeManagementForm::tableWidgetItems_keyPressEvent);
 
-	ui.tableWidgeItems->setHorizontalHeaderItem(0, new QTableWidgetItem("Id"));
-	ui.tableWidgeItems->setHorizontalHeaderItem(1, new QTableWidgetItem("Name"));
-	ui.tableWidgeItems->setColumnHidden(0, true);
-	connect(ui.tableWidgeItems->selectionModel(), 
-		SIGNAL(selectionChanged(const QItemSelection &, const QItemSelection &)),
-  		SLOT(itemsTableSelectionChanged(const QItemSelection &)));
-	connect(ui.tableWidgeItems, 
-		SIGNAL(cellDoubleClicked(int, int)), 
-		SLOT(pushButtonModify_Click()));
+	ui.tableWidgetItems->setHorizontalHeaderItem(0, new QTableWidgetItem("Id"));
+	ui.tableWidgetItems->setHorizontalHeaderItem(1, new QTableWidgetItem("Name"));
+	ui.tableWidgetItems->setColumnHidden(0, true);
+	connect(ui.tableWidgetItems->selectionModel(), 
+		&QItemSelectionModel::selectionChanged, 
+		this,
+  		&TestTypeManagementForm::itemsTableSelectionChanged);
+	connect(ui.tableWidgetItems, 
+		&QTableWidget::itemDoubleClicked,
+		this,
+		&TestTypeManagementForm::itemsTableSelectionDoubleClicked);
 }
 
 void TestTypeManagementForm::showEvent(QShowEvent *event) 
@@ -41,12 +45,12 @@ void TestTypeManagementForm::showEvent(QShowEvent *event)
 
 void TestTypeManagementForm::refreshItemsTable()
 {
-	ui.tableWidgeItems->model()->removeRows(0, ui.tableWidgeItems->rowCount());
+	ui.tableWidgetItems->model()->removeRows(0, ui.tableWidgetItems->rowCount());
 	size_t row {0};
     for (const auto &testType : controller.getTestTypes()) {
-		ui.tableWidgeItems->insertRow(row);
-		ui.tableWidgeItems->setItem(row, 0, new QTableWidgetItem(to_string(testType.getId()).c_str()));
-		ui.tableWidgeItems->setItem(row, 1, new QTableWidgetItem(testType.getName().c_str()));
+		ui.tableWidgetItems->insertRow(row);
+		ui.tableWidgetItems->setItem(row, 0, new QTableWidgetItem(to_string(testType.getId()).c_str()));
+		ui.tableWidgetItems->setItem(row, 1, new QTableWidgetItem(testType.getName().c_str()));
 		row++;
     }
 	toggleTableControls(false);
@@ -63,7 +67,7 @@ void TestTypeManagementForm::toggleEditMode(ActionMode mode)
 	this->mode = mode;
 	bool editMode = (mode ==  ActionMode::Add || mode == ActionMode::Modify);
 	ui.frameDetails->setEnabled(editMode);
-	ui.tableWidgeItems->setEnabled(!editMode);
+	ui.tableWidgetItems->setEnabled(!editMode);
 	ui.frameActionButtons->setEnabled(!editMode);
 	if(!editMode) {
 		ui.lineEditName->clear();
@@ -79,6 +83,13 @@ void TestTypeManagementForm::itemsTableSelectionChanged(const QItemSelection &se
 	toggleTableControls(selected.size() == 1);
 }
 
+void TestTypeManagementForm::itemsTableSelectionDoubleClicked(QTableWidgetItem *item) 
+{
+	if (item) {
+		pushButtonModify_Click();
+	}
+}
+
 void TestTypeManagementForm::pushButtonAdd_Click()
 {
 	ui.lineEditName->clear();
@@ -87,7 +98,7 @@ void TestTypeManagementForm::pushButtonAdd_Click()
 
 void TestTypeManagementForm::pushButtonModify_Click()
 {
-	auto row = ui.tableWidgeItems->selectionModel()->selectedIndexes();
+	auto row = ui.tableWidgetItems->selectionModel()->selectedIndexes();
 	if (!row.empty()) {
 		//Find the selected testType
 		auto editedTestType = controller.findTestType(row[0].data().toUInt());
@@ -104,7 +115,7 @@ void TestTypeManagementForm::pushButtonModify_Click()
 void TestTypeManagementForm::pushButtonDelete_Click()
 {
 	QMessageBox msgBox;
-	auto row = ui.tableWidgeItems->selectionModel()->selectedIndexes();
+	auto row = ui.tableWidgetItems->selectionModel()->selectedIndexes();
 	if (!row.empty()) {
 		//Find the selected testType
 		auto editedTestType = controller.findTestType(row[0].data().toUInt());
@@ -160,7 +171,7 @@ void TestTypeManagementForm::saveNewItem()
 
 void TestTypeManagementForm::updateExistingItem()
 {
-	auto row = ui.tableWidgeItems->selectionModel()->selectedIndexes();
+	auto row = ui.tableWidgetItems->selectionModel()->selectedIndexes();
 	//Find the selected testType
 	size_t currentlyEditedTestTypeId = row[0].data().toUInt();
 	auto editedTestType = controller.findTestType(currentlyEditedTestTypeId);
@@ -212,5 +223,12 @@ void TestTypeManagementForm::keyPressEvent(QKeyEvent *e)
 	}
 	else {
 		QDialog::keyPressEvent(e);
+	}
+}
+
+void TestTypeManagementForm::tableWidgetItems_keyPressEvent(int key, int, int) 
+{
+	if (key == Qt::Key_Delete) {
+		pushButtonDelete_Click();
 	}
 }

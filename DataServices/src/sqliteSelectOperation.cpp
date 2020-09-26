@@ -1,3 +1,4 @@
+#include "sqliteDateTimeFactory.h"
 #include "sqliteSelectOperation.h"
 #include <sqlite3.h>
 
@@ -6,7 +7,7 @@ using namespace std;
 SQLiteSelectOperation::SQLiteSelectOperation(const DatabaseConnection &connection, 
                                              const std::string &query,
                                              const vector<string> &args)
-    : OperationBase(connection, query, args),
+    : IStorageSelectOperation(connection, query, args),
       stmt(nullptr)
 {
 }
@@ -23,8 +24,13 @@ bool SQLiteSelectOperation::execute()
                           &stmt, 
                           nullptr);
     if(result != SQLITE_OK) {
-      lastError = string(zErrMsg);
-      sqlite3_free(zErrMsg);
+        if (zErrMsg) {
+            lastError = string(zErrMsg);
+            sqlite3_free(zErrMsg);  
+        } else {
+            lastError = "Unknown error";
+        }
+        return false;
     }
 
     for(int i=1; i<=args.size(); i++) {
@@ -40,8 +46,39 @@ bool SQLiteSelectOperation::execute()
     return true;
 }
 
-sqlite3_stmt *SQLiteSelectOperation::getStatement() const
+void SQLiteSelectOperation::close() 
 {
-    return stmt;
+    sqlite3_finalize(stmt);
 }
+
+bool SQLiteSelectOperation::getRow()
+{
+    return sqlite3_step(stmt) == SQLITE_ROW;
+}
+
+int SQLiteSelectOperation::getIntValue(int columnNumber) const
+{
+    return sqlite3_column_int(stmt, columnNumber);
+}
+
+std::string SQLiteSelectOperation::getStringValue(int columnNumber) const
+{
+    return reinterpret_cast<const char *>(sqlite3_column_text(stmt, columnNumber));
+}
+
+bool SQLiteSelectOperation::getBoolValue(int columnNumber) const
+{
+    return static_cast<bool>(sqlite3_column_int(stmt, columnNumber));
+}
+
+SQLiteDateTime SQLiteSelectOperation::getDateTime(int columnNumber) const 
+{
+    return SQLiteDateTimeFactory::NewDateTimeFromISOExtended(reinterpret_cast<const char *>(sqlite3_column_text(stmt, columnNumber)));
+}
+
+double SQLiteSelectOperation::getDoubleValue(int columnNumber) const
+{
+    return sqlite3_column_double(stmt, columnNumber);
+}
+
 

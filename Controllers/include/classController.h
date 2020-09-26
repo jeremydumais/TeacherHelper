@@ -22,6 +22,7 @@ public:
     explicit ClassController(const DatabaseConnection &dbConnection,
                             std::unique_ptr<IManagementItemStorage<Class>> managementItemStorage = nullptr);
     const std::list<Class> &getClasses() const;
+    const std::list<Class> getClassesBySchool(const School &school) const;
     const Class* findClass(size_t id) const;
     bool isNewNameAvailableForAdd(const std::string &name, const size_t school_id) const;
 	bool isNewNameAvailableForUpdate(const std::string &name, 

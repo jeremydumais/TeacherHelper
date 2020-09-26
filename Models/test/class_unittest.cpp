@@ -267,3 +267,13 @@ TEST(Class_removeMember, WithStudentNotPartOfTheList_ThrowInvalidArgument)
         ASSERT_STREQ("That student is not part of the list.", err.what());
 	}
 }
+
+TEST(Class_clearMembers, With2Members_ReturnSuccess)
+{
+	Class myClass(1, "MyClass", School("Test", City("New York")));
+	myClass.addMember(Student { 1, "Joe", "Blow" });
+	myClass.addMember(Student { 1, "Jane", "Doe" });
+	ASSERT_EQ(2, myClass.getMembers().size());
+	myClass.clearMembers();
+	ASSERT_EQ(0, myClass.getMembers().size());
+}

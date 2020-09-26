@@ -27,8 +27,10 @@ endif()
 set(PROJECT_SOURCE_FILES ${CMAKE_CURRENT_SOURCE_DIR}/src/main.cpp
                          ${CMAKE_CURRENT_SOURCE_DIR}/src/configurationManager.cpp
                          ${CMAKE_CURRENT_SOURCE_DIR}/src/specialFolders.cpp
+                         ${CMAKE_CURRENT_SOURCE_DIR}/src/qTableWidgetKeyPressWatcher.cpp
                          ${CMAKE_CURRENT_SOURCE_DIR}/src/mainForm.cpp
                          ${CMAKE_CURRENT_SOURCE_DIR}/src/managementFormBase.cpp
+                         ${CMAKE_CURRENT_SOURCE_DIR}/src/qDateConverter.cpp
                          ${CMAKE_CURRENT_SOURCE_DIR}/src/studentManagementForm.cpp
                          ${CMAKE_CURRENT_SOURCE_DIR}/src/schoolManagementForm.cpp
                          ${CMAKE_CURRENT_SOURCE_DIR}/src/classManagementForm.cpp
@@ -36,6 +38,7 @@ set(PROJECT_SOURCE_FILES ${CMAKE_CURRENT_SOURCE_DIR}/src/main.cpp
                          ${CMAKE_CURRENT_SOURCE_DIR}/src/testTypeManagementForm.cpp
                          ${CMAKE_CURRENT_SOURCE_DIR}/src/subjectManagementForm.cpp
                          ${CMAKE_CURRENT_SOURCE_DIR}/src/studentSelectionForm.cpp
+                         ${CMAKE_CURRENT_SOURCE_DIR}/src/editAssessmentForm.cpp
                          ${CMAKE_CURRENT_SOURCE_DIR}/src/aboutBoxForm.cpp
                          ${CMAKE_CURRENT_SOURCE_DIR}/src/imageAttributionsForm.cpp
                          ${CMAKE_CURRENT_SOURCE_DIR}/res/darkstyle/darkstyle.qrc

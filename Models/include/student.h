@@ -27,6 +27,7 @@ public:
     const std::string &getFirstName() const;
     const std::string &getLastName() const;
     const std::string &getComments() const;
+    const std::string getFullName() const;
     void setFirstName(const std::string &firstName);
     void setLastName(const std::string &lastName);
     void setComments(const std::string &comments);

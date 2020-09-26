@@ -3,8 +3,9 @@
 #define SUBJECTMANAGEMENTFORM_H
 
 #include "managementFormBase.h"
-#include "ui_subjectManagementForm.h"
+#include "qTableWidgetKeyPressWatcher.h"
 #include "subjectController.h"
+#include "ui_subjectManagementForm.h"
 
 class SubjectManagementForm : public QDialog, public ManagementFormBase
 {
@@ -17,6 +18,7 @@ public:
 private:
 	Ui::subjectManagementFormClass ui;
 	SubjectController controller;
+	QTableWidgetKeyPressWatcher tableWidgetItemsKeyWatcher;
 	void refreshItemsTable() override;
 	void toggleTableControls(bool itemSelected) override;
 	void toggleEditMode(ActionMode mode) override;
@@ -25,12 +27,14 @@ private:
 	void updateExistingItem();
 private slots: 
 	void itemsTableSelectionChanged(const QItemSelection &selected);
+	void itemsTableSelectionDoubleClicked(QTableWidgetItem *item);
 	void pushButtonAdd_Click();
 	void pushButtonModify_Click();
 	void pushButtonDelete_Click();
 	void pushButtonOK_Click();
 	void pushButtonCancel_Click();
 	void keyPressEvent(QKeyEvent *e) override;
+	void tableWidgetItems_keyPressEvent(int key, int, int);
 };
 
 #endif // SUBJECTMANAGEMENTFORM_H

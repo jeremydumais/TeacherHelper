@@ -1,5 +1,6 @@
 #include "student.h"
 #include "boost/algorithm/string.hpp"
+#include <fmt/format.h>
 
 using namespace std;
 using namespace boost;
@@ -39,7 +40,9 @@ Student::Student(size_t id,
 
 bool operator==(const Student& lhs, const Student &rhs)
 {
-    return lhs.getId() == rhs.getId();
+    return lhs.id == rhs.id &&
+           lhs.firstName == rhs.firstName &&
+           lhs.lastName == rhs.lastName;
 }
 
 size_t Student::getId() const
@@ -60,6 +63,11 @@ const std::string &Student::getLastName() const
 const std::string& Student::getComments() const
 {
     return comments;
+}
+
+const std::string Student::getFullName() const
+{
+    return fmt::format("{0} {1}", firstName, lastName);
 }
 
 void Student::setFirstName(const std::string &firstName) 
