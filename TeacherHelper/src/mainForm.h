@@ -1,11 +1,12 @@
 #ifndef MAINFORM_H
 #define MAINFORM_H
 
-#include "databaseConnection.h"
-#include "ui_mainForm.h"
 #include "assessmentController.h"
-#include "schoolController.h"
 #include "classController.h"
+#include "databaseConnection.h"
+#include "qTableWidgetKeyPressWatcher.h"
+#include "schoolController.h"
+#include "ui_mainForm.h"
 #include <memory>
 
 class MainForm : public QMainWindow
@@ -25,6 +26,7 @@ private:
 	std::unique_ptr<ClassController> classController;
 	std::string userConfigFolder;
 	bool functionAfterShownCalled;
+	QTableWidgetKeyPressWatcher tableWidgetAssessmentsKeyWatcher;
 	void showErrorMessage(const std::string &message,
 						  const std::string &internalError) const;
 	void setAppStylesheet(const std::string &style);
@@ -50,7 +52,7 @@ private slots:
 	void treeWidgetSchoolClassNav_currentItemChanged(QTreeWidgetItem *current);
 	void tableWidgetAssessments_selectionChanged(const QItemSelection &selected);
     void tableWidgetAssessments_itemDoubleClicked(QTableWidgetItem *item);
-
+	void tableWidgetAssessments_keyPressEvent(int key, int, int);
 };
 
 #endif // MAINFORM_H

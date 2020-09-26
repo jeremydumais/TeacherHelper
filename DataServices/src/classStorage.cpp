@@ -151,7 +151,7 @@ QueryResult ClassStorage::deleteItem(size_t id)
     vector<size_t> memberIdsToRemove;
     transform(oldMembers.begin(), oldMembers.end(), std::back_inserter(memberIdsToRemove),
                [](Student const& x) { return x.getId(); });
-    if (!removeMembers(id, memberIdsToRemove)) {
+    if (memberIdsToRemove.size() > 0 && !removeMembers(id, memberIdsToRemove)) {
         return QueryResult::ERROR;
     }
     //Delete the class

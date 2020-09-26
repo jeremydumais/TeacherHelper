@@ -3,7 +3,7 @@
 # TeacherHelper
 ## A software that help teachers to manage their student's grades.
 
-Current version: 0.0.1
+Current version: 1.0.0
 
 **Still in development...**
 
@@ -21,7 +21,7 @@ You can also choose between two color themes :
 * Light
 * Dark
 
-_The development of the Test form and reports are coming..._
+_The development of reports are coming..._
 
 ### How to build source
 
@@ -30,6 +30,14 @@ _The development of the Test form and reports are coming..._
 - [macOS](https://github.com/jeremydumais/TeacherHelper/wiki/How-to-build-TeacherHelper-from-source-in-macOS)
  
 ### Some screenshots
+
+Main form
+
+![City management form](https://github.com/jeremydumais/TeacherHelper/raw/medias/MainForm.png)
+
+Edit assessment form
+
+![Edit assessment form](https://github.com/jeremydumais/TeacherHelper/raw/medias/EditAssessmentForm.png)
 
 City management form
 

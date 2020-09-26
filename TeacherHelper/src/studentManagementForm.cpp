@@ -13,23 +13,27 @@ StudentManagementForm::StudentManagementForm(QWidget *parent, const DatabaseConn
 {
 	ui.setupUi(this);
 	ui.frameDetails->setEnabled(false);
-	connect(ui.pushButtonClose, SIGNAL(clicked()), this, SLOT(close()));
-	connect(ui.pushButtonAdd, SIGNAL(clicked()), this, SLOT(pushButtonAdd_Click()));
-	connect(ui.pushButtonModify, SIGNAL(clicked()), this, SLOT(pushButtonModify_Click()));
-	connect(ui.pushButtonDelete, SIGNAL(clicked()), this, SLOT(pushButtonDelete_Click()));
-	connect(ui.pushButtonOK, SIGNAL(clicked()), this, SLOT(pushButtonOK_Click()));
-	connect(ui.pushButtonCancel, SIGNAL(clicked()), this, SLOT(pushButtonCancel_Click()));
+	connect(ui.pushButtonClose, &QPushButton::clicked, this, &StudentManagementForm::close);
+	connect(ui.pushButtonAdd, &QPushButton::clicked, this, &StudentManagementForm::pushButtonAdd_Click);
+	connect(ui.pushButtonModify, &QPushButton::clicked, this, &StudentManagementForm::pushButtonModify_Click);
+	connect(ui.pushButtonDelete, &QPushButton::clicked, this, &StudentManagementForm::pushButtonDelete_Click);
+	connect(ui.pushButtonOK, &QPushButton::clicked, this, &StudentManagementForm::pushButtonOK_Click);
+	connect(ui.pushButtonCancel, &QPushButton::clicked, this, &StudentManagementForm::pushButtonCancel_Click);
+	tableWidgetItemsKeyWatcher.installOn(ui.tableWidgetItems);
+	connect(&tableWidgetItemsKeyWatcher, &QTableWidgetKeyPressWatcher::keyPressed, this, &StudentManagementForm::tableWidgetItems_keyPressEvent);
 
-	ui.tableWidgeItems->setHorizontalHeaderItem(0, new QTableWidgetItem("Id"));
-	ui.tableWidgeItems->setHorizontalHeaderItem(1, new QTableWidgetItem("Firstname"));
-	ui.tableWidgeItems->setHorizontalHeaderItem(2, new QTableWidgetItem("Lastname"));
-	ui.tableWidgeItems->setColumnHidden(0, true);
-	connect(ui.tableWidgeItems->selectionModel(), 
-		SIGNAL(selectionChanged(const QItemSelection &, const QItemSelection &)),
-  		SLOT(itemsTableSelectionChanged(const QItemSelection &, const QItemSelection &)));
-	connect(ui.tableWidgeItems, 
-		SIGNAL(cellDoubleClicked(int, int)), 
-		SLOT(pushButtonModify_Click()));
+	ui.tableWidgetItems->setHorizontalHeaderItem(0, new QTableWidgetItem("Id"));
+	ui.tableWidgetItems->setHorizontalHeaderItem(1, new QTableWidgetItem("Firstname"));
+	ui.tableWidgetItems->setHorizontalHeaderItem(2, new QTableWidgetItem("Lastname"));
+	ui.tableWidgetItems->setColumnHidden(0, true);
+	connect(ui.tableWidgetItems->selectionModel(), 
+		&QItemSelectionModel::selectionChanged, 
+		this,
+  		&StudentManagementForm::itemsTableSelectionChanged);
+	connect(ui.tableWidgetItems, 
+		&QTableWidget::itemDoubleClicked,
+		this,
+		&StudentManagementForm::itemsTableSelectionDoubleClicked);
 }
 
 StudentManagementForm::~StudentManagementForm()
@@ -45,13 +49,13 @@ void StudentManagementForm::showEvent(QShowEvent *event)
 
 void StudentManagementForm::refreshItemsTable()
 {
-	ui.tableWidgeItems->model()->removeRows(0, ui.tableWidgeItems->rowCount());
+	ui.tableWidgetItems->model()->removeRows(0, ui.tableWidgetItems->rowCount());
 	size_t row {0};
     for (const auto &student : controller.getStudents()) {
-		ui.tableWidgeItems->insertRow(row);
-		ui.tableWidgeItems->setItem(row, 0, new QTableWidgetItem(to_string(student.getId()).c_str()));
-		ui.tableWidgeItems->setItem(row, 1, new QTableWidgetItem(student.getFirstName().c_str()));
-		ui.tableWidgeItems->setItem(row, 2, new QTableWidgetItem(student.getLastName().c_str()));
+		ui.tableWidgetItems->insertRow(row);
+		ui.tableWidgetItems->setItem(row, 0, new QTableWidgetItem(to_string(student.getId()).c_str()));
+		ui.tableWidgetItems->setItem(row, 1, new QTableWidgetItem(student.getFirstName().c_str()));
+		ui.tableWidgetItems->setItem(row, 2, new QTableWidgetItem(student.getLastName().c_str()));
 		row++;
     }
 	toggleTableControls(false);
@@ -68,7 +72,7 @@ void StudentManagementForm::toggleEditMode(ActionMode mode)
 	this->mode = mode;
 	bool editMode = (mode ==  ActionMode::Add || mode == ActionMode::Modify);
 	ui.frameDetails->setEnabled(editMode);
-	ui.tableWidgeItems->setEnabled(!editMode);
+	ui.tableWidgetItems->setEnabled(!editMode);
 	ui.frameActionButtons->setEnabled(!editMode);
 	if(!editMode) {
 		ui.lineEditFirstname->clear();
@@ -86,6 +90,13 @@ void StudentManagementForm::itemsTableSelectionChanged(const QItemSelection &sel
 	toggleTableControls(selected.size() == 1);
 }
 
+void StudentManagementForm::itemsTableSelectionDoubleClicked(QTableWidgetItem *item) 
+{
+	if (item) {
+		pushButtonModify_Click();
+	}
+}
+
 void StudentManagementForm::pushButtonAdd_Click()
 {
 	ui.lineEditFirstname->clear();
@@ -96,7 +107,7 @@ void StudentManagementForm::pushButtonAdd_Click()
 
 void StudentManagementForm::pushButtonModify_Click()
 {
-	auto row = ui.tableWidgeItems->selectionModel()->selectedIndexes();
+	auto row = ui.tableWidgetItems->selectionModel()->selectedIndexes();
 	if (!row.empty()) {
 		//Find the selected student
 		auto editedStudent = controller.findStudent(row[0].data().toUInt());
@@ -115,7 +126,7 @@ void StudentManagementForm::pushButtonModify_Click()
 void StudentManagementForm::pushButtonDelete_Click()
 {
 	QMessageBox msgBox;
-	auto row = ui.tableWidgeItems->selectionModel()->selectedIndexes();
+	auto row = ui.tableWidgetItems->selectionModel()->selectedIndexes();
 	if (!row.empty()) {
 		//Find the selected city
 		auto editedStudent = controller.findStudent(row[0].data().toUInt());
@@ -170,7 +181,7 @@ void StudentManagementForm::saveNewItem()
 
 void StudentManagementForm::updateExistingItem() 
 {
-	auto row = ui.tableWidgeItems->selectionModel()->selectedIndexes();
+	auto row = ui.tableWidgetItems->selectionModel()->selectedIndexes();
 	//Find the selected city
 	size_t currentlyEditedStudentId = row[0].data().toUInt();
 	auto editedStudent = controller.findStudent(currentlyEditedStudentId);
@@ -224,4 +235,11 @@ void StudentManagementForm::keyPressEvent(QKeyEvent *e)
 		pushButtonCancel_Click();
 	else
 		QDialog::keyPressEvent(e);
+}
+
+void StudentManagementForm::tableWidgetItems_keyPressEvent(int key, int, int) 
+{
+	if (key == Qt::Key_Delete) {
+		pushButtonDelete_Click();
+	}
 }

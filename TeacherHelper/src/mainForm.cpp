@@ -55,6 +55,9 @@ MainForm::MainForm(QWidget *parent)
 		&QTableWidget::itemDoubleClicked,
 		this,
 		&MainForm::tableWidgetAssessments_itemDoubleClicked);
+	tableWidgetAssessmentsKeyWatcher.installOn(ui.tableWidgetAssessments);
+	connect(&tableWidgetAssessmentsKeyWatcher, &QTableWidgetKeyPressWatcher::keyPressed, this, &MainForm::tableWidgetAssessments_keyPressEvent);
+
 	ui.tableWidgetAssessments->setHorizontalHeaderItem(0, new QTableWidgetItem("Id"));
 	ui.tableWidgetAssessments->setHorizontalHeaderItem(1, new QTableWidgetItem("Date"));
 	ui.tableWidgetAssessments->setHorizontalHeaderItem(2, new QTableWidgetItem("Name"));
@@ -430,5 +433,12 @@ void MainForm::tableWidgetAssessments_itemDoubleClicked(QTableWidgetItem *item)
 {
 	if (item) {
 		action_EditAssessment_Click();
+	}
+}
+
+void MainForm::tableWidgetAssessments_keyPressEvent(int key, int, int) 
+{
+	if (key == Qt::Key_Delete) {
+		action_RemoveAssessment_Click();
 	}
 }

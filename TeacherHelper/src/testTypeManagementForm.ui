@@ -23,7 +23,7 @@
      <item>
       <layout class="QVBoxLayout" name="verticalLayout_2">
        <item>
-        <widget class="QTableWidget" name="tableWidgeItems">
+        <widget class="QTableWidget" name="tableWidgetItems">
          <property name="editTriggers">
           <set>QAbstractItemView::NoEditTriggers</set>
          </property>
@@ -252,7 +252,7 @@
   </layout>
  </widget>
  <tabstops>
-  <tabstop>tableWidgeItems</tabstop>
+  <tabstop>tableWidgetItems</tabstop>
   <tabstop>pushButtonAdd</tabstop>
   <tabstop>pushButtonModify</tabstop>
   <tabstop>pushButtonDelete</tabstop>

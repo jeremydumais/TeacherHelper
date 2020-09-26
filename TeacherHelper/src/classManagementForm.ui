@@ -25,7 +25,7 @@
        <item>
         <layout class="QHBoxLayout" name="horizontalLayout_5">
          <item>
-          <widget class="QTableWidget" name="tableWidgeItems">
+          <widget class="QTableWidget" name="tableWidgetItems">
            <property name="editTriggers">
             <set>QAbstractItemView::NoEditTriggers</set>
            </property>

@@ -2,11 +2,12 @@
 #ifndef CLASSMANAGEMENTNFORM_H
 #define CLASSMANAGEMENTNFORM_H
 
-#include "managementFormBase.h"
-#include "ui_classManagementForm.h"
 #include "classController.h"
+#include "managementFormBase.h"
+#include "qTableWidgetKeyPressWatcher.h"
 #include "schoolController.h"
 #include "studentController.h"
+#include "ui_classManagementForm.h"
 
 class ClassManagementForm : public QDialog, public ManagementFormBase
 {
@@ -21,6 +22,7 @@ private:
 	ClassController controller;
 	SchoolController schoolController;
 	StudentController studentController;
+	QTableWidgetKeyPressWatcher tableWidgetItemsKeyWatcher;
 	void refreshItemsTable() override;
 	void refreshSchoolTable();
 	void toggleTableControls(bool itemSelected) override;
@@ -32,6 +34,7 @@ private:
 	bool selectSchoolInEditPanel(size_t id);
 private slots:
 	void itemsTableSelectionChanged(const QItemSelection &selected);
+	void itemsTableSelectionDoubleClicked(QTableWidgetItem *item);
 	void membersTableSelectionChanged(const QItemSelection &selected);
 	void pushButtonAdd_Click();
 	void pushButtonDuplicate_Click();
@@ -42,6 +45,7 @@ private slots:
 	void keyPressEvent(QKeyEvent *e) override;
 	void pushButtonAddMember_Click();
 	void pushButtonRemoveMember_Click();
+	void tableWidgetItems_keyPressEvent(int key, int, int);
 };
 
 #endif // CLASSMANAGEMENTNFORM_H
