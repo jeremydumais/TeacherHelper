@@ -41,7 +41,7 @@ jobs:
         
     - name: Install conan (MacOS)
       shell: bash
-      if: matrix.os == 'ubuntu-latest'
+      if: matrix.os == 'macos-latest'
       run: |
         python3 -m pip install --upgrade pip setuptools
         python3 -m pip install conan
