@@ -52,6 +52,7 @@ jobs:
       shell: bash
       if: matrix.os == 'windows-latest'
       run: |
+        refreshenv
         python3 -m pip install --upgrade pip setuptools
         python3 -m pip install conan
 
