@@ -31,7 +31,7 @@ bool operator!=(const SQLiteDateTime& lhs, const SQLiteDateTime &rhs)
 
 bool operator<(const SQLiteDateTime &lhs, const SQLiteDateTime &rhs) 
 {
-    return lhs.datetime < rhs.datetime;
+    return rhs.datetime > lhs.datetime;
 }
 
 bool operator>(const SQLiteDateTime &lhs, const SQLiteDateTime &rhs) 
@@ -71,12 +71,12 @@ bool operator!=(const boost::posix_time::ptime &lhs, const SQLiteDateTime &rhs)
 
 bool operator<(const SQLiteDateTime &lhs, const boost::posix_time::ptime &rhs) 
 {
-    return lhs.datetime < rhs;
+    return  rhs > lhs.datetime;
 }
 
 bool operator<(const boost::posix_time::ptime &lhs, const SQLiteDateTime &rhs) 
 {
-    return rhs.datetime >= lhs;
+    return rhs.datetime > lhs;
 }
 
 bool operator>(const SQLiteDateTime &lhs, const boost::posix_time::ptime &rhs) 
