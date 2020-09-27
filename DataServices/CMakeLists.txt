@@ -5,6 +5,10 @@ project(${PROJECT_NAME} LANGUAGES CXX)
 include_directories(PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include
                            ${CMAKE_SOURCE_DIR}/Models/include)
 
+if(APPLE)
+    set(CMAKE_MACOSX_RPATH OFF)
+endif()
+
 add_library(${PROJECT_NAME} SHARED src/databaseConnection.cpp
                                    src/sqliteInsertOperation.cpp
                                    src/sqliteUpdateOperation.cpp

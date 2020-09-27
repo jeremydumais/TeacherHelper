@@ -6,6 +6,10 @@ include_directories(PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include
                            ${CMAKE_SOURCE_DIR}/DataServices/include
                            ${CMAKE_SOURCE_DIR}/Models/include)
 
+if(APPLE)
+    set(CMAKE_MACOSX_RPATH OFF)
+endif()
+
 add_library(${PROJECT_NAME} SHARED ${CMAKE_CURRENT_SOURCE_DIR}/src/cityController.cpp
                                    ${CMAKE_CURRENT_SOURCE_DIR}/src/schoolController.cpp
                                    ${CMAKE_CURRENT_SOURCE_DIR}/src/studentController.cpp
