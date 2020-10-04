@@ -23,6 +23,10 @@ You can also choose between two color themes :
 
 _The development of reports are coming..._
 
+### Download latest binaries
+
+[Teacher Helper v1.0.0 for Windows](https://github.com/jeremydumais/TeacherHelper/releases/download/v1.0.0/TeacherHelper.Setup.1.0.0.exe)
+
 ### How to build source
 
 - [Linux](https://github.com/jeremydumais/TeacherHelper/wiki/How-to-build-TeacherHelper-from-source-in-Linux) 
