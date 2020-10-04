@@ -56,6 +56,7 @@ ClassManagementForm::ClassManagementForm(QWidget *parent, const DatabaseConnecti
 void ClassManagementForm::showEvent(QShowEvent *event) 
 {
     QDialog::showEvent(event);
+	setWindowIcon(QIcon(":/global/class64.png"));
 	controller.loadClasses();
 	schoolController.loadSchools();
 	studentController.loadStudents();

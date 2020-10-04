@@ -41,6 +41,7 @@ void CityManagementForm::showEvent(QShowEvent *event)
     QDialog::showEvent(event);
 	controller.loadCities();
     refreshItemsTable();
+	setWindowIcon(QIcon(":/global/cities64.png"));
 } 
 
 void CityManagementForm::refreshItemsTable()

@@ -42,6 +42,7 @@ SchoolManagementForm::SchoolManagementForm(QWidget *parent, const DatabaseConnec
 void SchoolManagementForm::showEvent(QShowEvent *event) 
 {
     QDialog::showEvent(event);
+	setWindowIcon(QIcon(":/global/schools64.png"));
 	controller.loadSchools();
 	cityController.loadCities();
 	refreshCityTable();

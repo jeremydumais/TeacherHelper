@@ -9,6 +9,7 @@ AboutBoxForm::AboutBoxForm(QWidget *parent)
 {
 	ui.setupUi(this);
     connect(ui.pushButtonImageAttributions, &QPushButton::clicked, this, &AboutBoxForm::pushButtonImageAttributions_Click);
+	setWindowIcon(QIcon(":/global/TeacherHelper Icon256.png"));
 }
 
 

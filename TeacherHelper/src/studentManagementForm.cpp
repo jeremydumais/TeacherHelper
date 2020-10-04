@@ -43,6 +43,7 @@ StudentManagementForm::~StudentManagementForm()
 void StudentManagementForm::showEvent(QShowEvent *event) 
 {
     QDialog::showEvent(event);
+	setWindowIcon(QIcon(":/global/student64.png"));
 	controller.loadStudents();
     refreshItemsTable();
 } 

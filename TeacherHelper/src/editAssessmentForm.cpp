@@ -54,6 +54,7 @@ EditAssessmentForm::EditAssessmentForm(QWidget *parent,
 void EditAssessmentForm::showEvent(QShowEvent *event) 
 {
     QDialog::showEvent(event);
+	setWindowIcon(QIcon(":/global/editTest64.png"));
 	testTypeController.loadTestTypes();
 	subjectController.loadSubjects();
 	schoolController.loadSchools();

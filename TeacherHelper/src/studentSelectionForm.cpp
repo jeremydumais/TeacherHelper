@@ -31,6 +31,7 @@ StudentSelectionForm::StudentSelectionForm(QWidget *parent, const DatabaseConnec
 void StudentSelectionForm::showEvent(QShowEvent *event) 
 {
     QDialog::showEvent(event);
+	setWindowIcon(QIcon(":/global/student64.png"));
 	controller.loadStudents();
 	refreshItemsTable("");
 	ui.lineEditFilter->setFocus();

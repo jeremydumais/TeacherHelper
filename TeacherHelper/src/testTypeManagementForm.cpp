@@ -39,6 +39,7 @@ TestTypeManagementForm::TestTypeManagementForm(QWidget *parent, const DatabaseCo
 void TestTypeManagementForm::showEvent(QShowEvent *event) 
 {
     QDialog::showEvent(event);
+	setWindowIcon(QIcon(":/global/testType64.png"));
 	controller.loadTestTypes();
     refreshItemsTable();
 } 

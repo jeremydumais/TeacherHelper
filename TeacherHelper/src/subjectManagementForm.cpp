@@ -40,6 +40,7 @@ SubjectManagementForm::SubjectManagementForm(QWidget *parent, const DatabaseConn
 void SubjectManagementForm::showEvent(QShowEvent *event) 
 {
     QDialog::showEvent(event);
+	setWindowIcon(QIcon(":/global/subject64.png"));
 	controller.loadSubjects();
     refreshItemsTable();
 } 

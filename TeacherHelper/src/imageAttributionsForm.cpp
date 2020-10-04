@@ -7,4 +7,5 @@ ImageAttributionsForm::ImageAttributionsForm(QWidget *parent)
 	  ui(Ui::imageAttributionsFormClass())
 {
 	ui.setupUi(this);
+	setWindowIcon(QIcon(":/global/TeacherHelper Icon256.png"));
 }
