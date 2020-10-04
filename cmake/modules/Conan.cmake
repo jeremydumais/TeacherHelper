@@ -13,6 +13,15 @@ macro(run_conan)
     URL
     https://api.bintray.com/conan/bincrafters/public-conan)
 
+set(COMPILER_RUNTIME "")
+if (WIN32)
+  if (LOWERCASE_CMAKE_BUILD_TYPE MATCHES "^(debug)$" OR LOWERCASE_CMAKE_BUILD_TYPE STREQUAL "")
+    set(COMPILER_RUNTIME "compiler.runtime=MDd")
+  else()
+  set(COMPILER_RUNTIME "compiler.runtime=MD")
+  endif()
+endif()
+
   conan_cmake_run(
     REQUIRES
     ${CONAN_EXTRA_REQUIRES}
@@ -20,6 +29,7 @@ macro(run_conan)
     gtest/1.10.0
     fmt/7.0.1
     sqlite3/3.32.3
+    SETTINGS ${COMPILER_RUNTIME}
     OPTIONS
     ${CONAN_EXTRA_OPTIONS}
     BASIC_SETUP
