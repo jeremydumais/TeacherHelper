@@ -91,6 +91,7 @@ TEST(CityStorage_updateItem, FailedUpdate_ReturnFalse)
 TEST(CityStorage_deleteItem, ValidDelete_ReturnTrue)
 {
     auto factory { make_unique<FakeOperationFactory>( vector<FakeOperationResult> { 
+        FakeOperationResultFactory::createNewSelectResult(true, "", { vector<boost::any> { 0 } }),
         FakeOperationResultFactory::createNewDeleteResult(true)
     }) };
     CityStorage storage(DatabaseConnection("fake"), move(factory));
@@ -98,13 +99,25 @@ TEST(CityStorage_deleteItem, ValidDelete_ReturnTrue)
     ASSERT_EQ(QueryResult::OK, storage.deleteItem(1));
 }
 
-TEST(CityStorage_deleteItem, FailedDelete_ReturnFalse)
+TEST(CityStorage_deleteItem, FailedDelete_ReturnError)
 {
     auto factory { make_unique<FakeOperationFactory>( vector<FakeOperationResult> { 
-        FakeOperationResultFactory::createNewDeleteResult(false, "Constraint error during the delete operation", QueryResult::CONSTRAINTERROR)
+        FakeOperationResultFactory::createNewSelectResult(true, "", { vector<boost::any> { 0 } }),
+        FakeOperationResultFactory::createNewDeleteResult(false, "Error during the delete operation", QueryResult::ERROR)
+    }) };
+    CityStorage storage(DatabaseConnection("fake"), move(factory));
+
+    ASSERT_EQ(QueryResult::ERROR, storage.deleteItem(1));
+    ASSERT_EQ("Error during the delete operation", storage.getLastError());
+}
+
+TEST(CityStorage_deleteItem, FailedDeleteByReferentialIntegrityContrainst_ReturnConstraintError)
+{
+    auto factory { make_unique<FakeOperationFactory>( vector<FakeOperationResult> { 
+        FakeOperationResultFactory::createNewSelectResult(true, "", { vector<boost::any> { 2 } })
     }) };
     CityStorage storage(DatabaseConnection("fake"), move(factory));
 
     ASSERT_EQ(QueryResult::CONSTRAINTERROR, storage.deleteItem(1));
-    ASSERT_EQ("Constraint error during the delete operation", storage.getLastError());
 }
+

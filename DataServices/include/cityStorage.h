@@ -27,6 +27,7 @@ public:
     bool insertItem(const City &city) override;
     bool updateItem(const City &city) override;
     QueryResult deleteItem(size_t id) override;
+    bool isReferentialIntegrityConstraint(size_t cityId); 
 private:
     const DatabaseConnection * const connection;
     std::string lastError;

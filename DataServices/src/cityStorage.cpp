@@ -74,8 +74,10 @@ bool CityStorage::updateItem(const City &city)
 
 QueryResult CityStorage::deleteItem(size_t id)
 {
-    //Ensure that the record is not user as a foreign key in another table
-    
+    //Ensure that the record is not used as a foreign key in another table
+    if (isReferentialIntegrityConstraint(id)) {
+        return QueryResult::CONSTRAINTERROR;
+    }
     auto operation = operationFactory->createDeleteOperation(*connection, 
         "DELETE FROM city WHERE id = ?", 
         vector<string> { to_string(id) });
@@ -83,4 +85,25 @@ QueryResult CityStorage::deleteItem(size_t id)
         lastError = operation->getLastError();
     }
     return operation->getExtendedResultInfo();
+}
+
+
+bool CityStorage::isReferentialIntegrityConstraint(size_t cityId) 
+{
+    size_t nbOfConstraints {0};
+    auto operationSelectConstraints = operationFactory->createSelectOperation(*connection, 
+     "SELECT COUNT(id) FROM school WHERE city_id= ?", { to_string(cityId) });
+    if (operationSelectConstraints->execute()) {
+        if (operationSelectConstraints->getRow()) {
+            nbOfConstraints = operationSelectConstraints->getIntValue(0);
+        }
+        else {
+            lastError = "Unable to retreive the constraints for the city.";
+        }
+        operationSelectConstraints->close();
+    }
+    else {
+        lastError = operationSelectConstraints->getLastError();
+    }
+    return nbOfConstraints > 0;
 }
