@@ -5,11 +5,11 @@
 using namespace std;
 
 SchoolController::SchoolController(const DatabaseConnection &dbConnection,
-                               unique_ptr<IManagementItemStorage<School>> managementItemStorage)
+                               unique_ptr<ManagementItemStorageBase<School>> managementItemStorage)
     : schools(list<School>()),
       storage { managementItemStorage ? 
                 move(managementItemStorage) : 
-                unique_ptr<IManagementItemStorage<School>>(make_unique<SchoolStorage>(dbConnection))},
+                unique_ptr<ManagementItemStorageBase<School>>(make_unique<SchoolStorage>(dbConnection))},
       lastError("")
 {
 }

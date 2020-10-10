@@ -5,11 +5,11 @@
 using namespace std;
 
 CityController::CityController(const DatabaseConnection &dbConnection,
-                               unique_ptr<IManagementItemStorage<City>> managementItemStorage)
+                               unique_ptr<ManagementItemStorageBase<City>> managementItemStorage)
     : cities(list<City>()),
       storage { managementItemStorage ? 
                 move(managementItemStorage) : 
-                unique_ptr<IManagementItemStorage<City>>(make_unique<CityStorage>(dbConnection))},
+                unique_ptr<ManagementItemStorageBase<City>>(make_unique<CityStorage>(dbConnection))},
       lastError("")
 {
 }

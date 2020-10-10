@@ -2,8 +2,8 @@
 
 #include "city.h"
 #include "databaseConnection.h"
-#include "IManagementItemStorage.h"
 #include "IStorageOperationFactory.h"
+#include "ManagementItemStorageBase.h"
 #include <list>
 #include <memory>
 
@@ -17,19 +17,20 @@
     #define CITYSTORAGE_API
 #endif
 
-class CITYSTORAGE_API CityStorage : public IManagementItemStorage<City>
+class CITYSTORAGE_API CityStorage : public ManagementItemStorageBase<City>
 {
 public:
     explicit CityStorage(const DatabaseConnection &connection, 
                          const std::unique_ptr<IStorageOperationFactory> operationFactory = nullptr);
-    std::list<City> getAllItems() override;
-    const std::string &getLastError() const override;
-    bool insertItem(const City &city) override;
-    bool updateItem(const City &city) override;
-    QueryResult deleteItem(size_t id) override;
-    bool isReferentialIntegrityConstraint(size_t cityId); 
-private:
-    const DatabaseConnection * const connection;
-    std::string lastError;
-    std::unique_ptr<IStorageOperationFactory> operationFactory;
+
+    std::string getSelectCommand() const override;
+    City getItemFromRecord(const IStorageSelectOperation &record) const override;
+    std::string getInsertCommand() const override;
+    std::vector<std::string> getInsertValues(const City &item) const override;
+    std::string getUpdateCommand() const override;
+    std::vector<std::string> getUpdateValues(const City &item) const override;
+    std::string getDeleteCommand() const override;
+    std::vector<std::string> getDeleteValues(size_t id) const override;
+    std::string getReferentialIntegrityConstraintsCommand() const override;
+    std::vector<std::string> getReferentialIntegrityConstraintsValues(size_t id) const override;
 };

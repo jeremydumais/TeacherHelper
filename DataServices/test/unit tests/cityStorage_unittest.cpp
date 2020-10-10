@@ -88,7 +88,7 @@ TEST(CityStorage_updateItem, FailedUpdate_ReturnFalse)
     ASSERT_EQ("Error during the update operation", storage.getLastError());
 }
 
-TEST(CityStorage_deleteItem, ValidDelete_ReturnTrue)
+TEST(CityStorage_deleteItem, ValidDelete_ReturnOK)
 {
     auto factory { make_unique<FakeOperationFactory>( vector<FakeOperationResult> { 
         FakeOperationResultFactory::createNewSelectResult(true, "", { vector<boost::any> { 0 } }),
@@ -121,3 +121,24 @@ TEST(CityStorage_deleteItem, FailedDeleteByReferentialIntegrityContrainst_Return
     ASSERT_EQ(QueryResult::CONSTRAINTERROR, storage.deleteItem(1));
 }
 
+TEST(CityStorage_isReferentialIntegrityConstraint, FailedAtRetreiveReferentialIntegrity_ReturnFalse)
+{
+    auto factory { make_unique<FakeOperationFactory>( vector<FakeOperationResult> { 
+        FakeOperationResultFactory::createNewSelectResult(false, "Error during fetching referential integrity constraint")
+    }) };
+    CityStorage storage(DatabaseConnection("fake"), move(factory));
+
+    ASSERT_FALSE(storage.isReferentialIntegrityConstraint(1));
+    ASSERT_EQ("Error during fetching referential integrity constraint", storage.getLastError());
+}
+
+TEST(CityStorage_isReferentialIntegrityConstraint, FailedAtRetreiveReferentialIntegrityRow_ReturnFalse)
+{
+    auto factory { make_unique<FakeOperationFactory>( vector<FakeOperationResult> { 
+        FakeOperationResultFactory::createNewSelectResult(true, "", { })
+    }) };
+    CityStorage storage(DatabaseConnection("fake"), move(factory));
+
+    ASSERT_FALSE(storage.isReferentialIntegrityConstraint(1));
+    ASSERT_EQ("Unable to retreive the referential integrity constraints.", storage.getLastError());
+}

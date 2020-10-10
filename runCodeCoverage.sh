@@ -1,7 +1,6 @@
 ctest --progress
 
 lcov -c -d . -o main_coverage.info
-lcov -r main_coverage.info "*/include/*" -o main_coverage.info
 lcov -r main_coverage.info "*/test/*" -o main_coverage.info
 lcov -r main_coverage.info "*TeacherHelper/src/*" -o main_coverage.info
 lcov -r main_coverage.info "*TeacherHelperApp_autogen*" -o main_coverage.info

@@ -5,11 +5,11 @@
 using namespace std;
 
 TestTypeController::TestTypeController(const DatabaseConnection &dbConnection,
-                               unique_ptr<IManagementItemStorage<TestType>> managementItemStorage)
+                               unique_ptr<ManagementItemStorageBase<TestType>> managementItemStorage)
     : testTypes(list<TestType>()),
       storage { managementItemStorage ? 
                 move(managementItemStorage) : 
-                unique_ptr<IManagementItemStorage<TestType>>(make_unique<TestTypeStorage>(dbConnection))},
+                unique_ptr<ManagementItemStorageBase<TestType>>(make_unique<TestTypeStorage>(dbConnection))},
       lastError("")
 {
 }

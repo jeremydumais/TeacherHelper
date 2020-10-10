@@ -1,7 +1,7 @@
 #pragma once
 
 #include "school.h"
-#include "IManagementItemStorage.h"
+#include "ManagementItemStorageBase.h"
 #include "databaseConnection.h"
 #include <list>
 #include <memory>
@@ -20,7 +20,7 @@ class SCHOOLCONTROLLER_API SchoolController
 {
 public:
     explicit SchoolController(const DatabaseConnection &dbConnection,
-                            std::unique_ptr<IManagementItemStorage<School>> managementItemStorage = nullptr);
+                            std::unique_ptr<ManagementItemStorageBase<School>> managementItemStorage = nullptr);
     const std::list<School> &getSchools() const;
     const School* findSchool(size_t id) const;
     bool isNewNameAvailableForAdd(const std::string &name) const;
@@ -33,6 +33,6 @@ public:
     bool deleteSchool(size_t id);
 private:
 	std::list<School> schools;
-    std::unique_ptr<IManagementItemStorage<School>> storage;
+    std::unique_ptr<ManagementItemStorageBase<School>> storage;
     std::string lastError;
 };

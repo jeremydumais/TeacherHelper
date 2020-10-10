@@ -4,19 +4,31 @@
 
 using namespace std;
 
-class FakeSchoolStorage : public IManagementItemStorage<School>
+class FakeSchoolStorage : public ManagementItemStorageBase<School>
 {
 public:
     FakeSchoolStorage()
 		: schools(std::list<School> {
 			School(1, "Thomas Jefferson High School", City("Alexandria")),
 			School(2, "Carnegie Vanguard High School", City("Houston"))
-		}) {}
+		}),
+		ManagementItemStorageBase<School>(DatabaseConnection("nulldb")) {}
     std::list<School> getAllItems() override { return schools;	}
     const std::string &getLastError() const override { return lastError; }
     bool insertItem(const School &school) override { return insertResult; }
     bool updateItem(const School &school) override { return updateResult; }
     QueryResult deleteItem(size_t id) override { return deleteResult; }
+	bool isReferentialIntegrityConstraint(size_t id) override { return true; };
+	std::string getSelectCommand() const override { return ""; };
+    School getItemFromRecord(const IStorageSelectOperation &record) const override { return { 1, "FakeSchool", City {1, "FakeCity"} }; };
+    std::string getInsertCommand() const override { return ""; };
+    std::vector<std::string> getInsertValues(const School &item) const override { return {"", ""}; };
+    std::string getUpdateCommand() const override {return ""; };
+    std::vector<std::string> getUpdateValues(const School &item) const override { return {"", ""}; };
+    std::string getDeleteCommand() const override {return ""; };
+    std::vector<std::string> getDeleteValues(size_t id) const override { return {""}; };
+    std::string getReferentialIntegrityConstraintsCommand() const override { return ""; };
+    std::vector<std::string> getReferentialIntegrityConstraintsValues(size_t id) const override { return {""}; };
 	bool insertResult = true;
 	bool updateResult = true;
 	QueryResult deleteResult = QueryResult::OK;
@@ -38,13 +50,13 @@ public:
 												 std::move(fakeStorage));
 	}
 
-	unique_ptr<IManagementItemStorage<School>> fakeStorage;								 
+	unique_ptr<ManagementItemStorageBase<School>> fakeStorage;								 
 	unique_ptr<SchoolController> controller;
 };
 
 TEST(SchoolController_Constructor, ValidArguments_ReturnSuccess)
 {
-	SchoolController controller(DatabaseConnection("nulldb"), unique_ptr<IManagementItemStorage<School>>(make_unique<FakeSchoolStorage>()));
+	SchoolController controller(DatabaseConnection("nulldb"), unique_ptr<ManagementItemStorageBase<School>>(make_unique<FakeSchoolStorage>()));
 }
 
 TEST_F(SchoolControllerTest, getSchools_Return2Schools)

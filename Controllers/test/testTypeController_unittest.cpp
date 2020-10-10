@@ -4,19 +4,31 @@
 
 using namespace std;
 
-class FakeTestTypeStorage : public IManagementItemStorage<TestType>
+class FakeTestTypeStorage : public ManagementItemStorageBase<TestType>
 {
 public:
     FakeTestTypeStorage()
 		: testTypes(std::list<TestType> {
 			TestType(1, "Exam"),
 			TestType(2, "Exercice")
-		}) {}
+		}),
+		ManagementItemStorageBase<TestType>(DatabaseConnection("nulldb")) {}
     std::list<TestType> getAllItems() override { return testTypes;	}
     const std::string &getLastError() const override { return lastError; }
     bool insertItem(const TestType &testType) override { return insertResult; }
     bool updateItem(const TestType &testType) override { return updateResult; }
     QueryResult deleteItem(size_t id) override { return deleteResult; }
+	bool isReferentialIntegrityConstraint(size_t id) override { return true; };
+	std::string getSelectCommand() const override { return ""; };
+    TestType getItemFromRecord(const IStorageSelectOperation &record) const override { return { 1, "FakeTypeTest" }; };
+    std::string getInsertCommand() const override { return ""; };
+    std::vector<std::string> getInsertValues(const TestType &item) const override { return {"", ""}; };
+    std::string getUpdateCommand() const override {return ""; };
+    std::vector<std::string> getUpdateValues(const TestType &item) const override { return {"", ""}; };
+    std::string getDeleteCommand() const override {return ""; };
+    std::vector<std::string> getDeleteValues(size_t id) const override { return {""}; };
+    std::string getReferentialIntegrityConstraintsCommand() const override { return ""; };
+    std::vector<std::string> getReferentialIntegrityConstraintsValues(size_t id) const override { return {""}; };
 	bool insertResult = true;
 	bool updateResult = true;
 	QueryResult deleteResult = QueryResult::OK;
@@ -37,13 +49,13 @@ public:
 		controller = make_unique<TestTypeController>(DatabaseConnection("nulldb"), 
 												 std::move(fakeStorage));
 	}
-	unique_ptr<IManagementItemStorage<TestType>> fakeStorage;								 
+	unique_ptr<ManagementItemStorageBase<TestType>> fakeStorage;								 
 	unique_ptr<TestTypeController> controller;
 };
 
 TEST(TestTypeController_Constructor, ValidArguments_ReturnSuccess)
 {
-	TestTypeController controller(DatabaseConnection("nulldb"), unique_ptr<IManagementItemStorage<TestType>>(make_unique<FakeTestTypeStorage>()));
+	TestTypeController controller(DatabaseConnection("nulldb"), unique_ptr<ManagementItemStorageBase<TestType>>(make_unique<FakeTestTypeStorage>()));
 }
 
 TEST_F(TestTypeControllerTest, getTestTypes_Return2TestTypes)
