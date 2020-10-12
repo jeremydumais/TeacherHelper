@@ -155,8 +155,8 @@ TEST(ClassStorage_insertItem, ValidInsertButFailedAtRetreivingRecordIdNoRowRetur
     Class myClass(1, "MyClass", School("Test", City("New York")));
 
     ASSERT_TRUE(storage.insertItem(myClass));
-    ASSERT_EQ(0, storage.retreiveAssignedClassId());
-    ASSERT_EQ("Unable to retreive the assigned id for the new class record.", storage.getLastError());
+    ASSERT_EQ(0, storage.retreiveAssignedRecordId());
+    ASSERT_EQ("Unable to retreive the assigned id for the new record.", storage.getLastError());
 }
 
 TEST(ClassStorage_insertItem, ValidInsertAndAddingOneMember_ReturnTrue)
@@ -292,7 +292,7 @@ TEST(ClassStorage_updateItem, FailedUpdateAtAddingMember_ReturnFalse)
     ASSERT_EQ("Error at adding member", storage.getLastError());
 }
 
-TEST(ClassStorage_deleteItem, ValidDeleteOfClassWithNoMembers_ReturnTrue)
+TEST(ClassStorage_deleteItem, ValidDeleteOfClassWithNoMembers_ReturnOK)
 {
     auto factory { make_unique<FakeOperationFactory>( vector<FakeOperationResult> { 
         FakeOperationResultFactory::createNewSelectResult(true),
@@ -304,9 +304,10 @@ TEST(ClassStorage_deleteItem, ValidDeleteOfClassWithNoMembers_ReturnTrue)
     ASSERT_EQ(QueryResult::OK, storage.deleteItem(1));
 }
 
-TEST(ClassStorage_deleteItem, ValidDeleteOfClassWith2Members_ReturnTrue)
+TEST(ClassStorage_deleteItem, ValidDeleteOfClassWith2Members_ReturnOK)
 {
     auto factory { make_unique<FakeOperationFactory>( vector<FakeOperationResult> { 
+        FakeOperationResultFactory::createNewSelectResult(true, "", { vector<boost::any> { 0 } }),
         FakeOperationResultFactory::createNewSelectResult(true, "", { studentSample1, studentSample2 }),
         FakeOperationResultFactory::createNewDeleteResult(true),
         FakeOperationResultFactory::createNewDeleteResult(true)
@@ -316,9 +317,10 @@ TEST(ClassStorage_deleteItem, ValidDeleteOfClassWith2Members_ReturnTrue)
     ASSERT_EQ(QueryResult::OK, storage.deleteItem(1));
 }
 
-TEST(ClassStorage_deleteItem, FailedDeleteAtLoadingMembers_ReturnFalse)
+TEST(ClassStorage_deleteItem, FailedDeleteAtLoadingMembers_ReturnError)
 {
     auto factory { make_unique<FakeOperationFactory>( vector<FakeOperationResult> { 
+        FakeOperationResultFactory::createNewSelectResult(true, "", { vector<boost::any> { 0 } }),
         FakeOperationResultFactory::createNewSelectResult(false, "Error at loading members")
     }) };
     ClassStorage storage(DatabaseConnection("fake"), move(factory));
@@ -327,9 +329,10 @@ TEST(ClassStorage_deleteItem, FailedDeleteAtLoadingMembers_ReturnFalse)
     ASSERT_EQ("Error at loading members", storage.getLastError());
 }
 
-TEST(ClassStorage_deleteItem, FailedDeleteAtRemovingMembers_ReturnFalse)
+TEST(ClassStorage_deleteItem, FailedDeleteAtRemovingMembers_ReturnError)
 {
     auto factory { make_unique<FakeOperationFactory>( vector<FakeOperationResult> { 
+        FakeOperationResultFactory::createNewSelectResult(true, "", { vector<boost::any> { 0 } }),
         FakeOperationResultFactory::createNewSelectResult(true, "", { studentSample1, studentSample2 }),
         FakeOperationResultFactory::createNewDeleteResult(false, "Error at removing members", QueryResult::ERROR)
     }) };
@@ -339,9 +342,10 @@ TEST(ClassStorage_deleteItem, FailedDeleteAtRemovingMembers_ReturnFalse)
     ASSERT_EQ("Error at removing members", storage.getLastError());
 }
 
-TEST(ClassStorage_deleteItem, FailedDeleteAtRemovingClass_ReturnFalse)
+TEST(ClassStorage_deleteItem, FailedDeleteAtRemovingClass_ReturnError)
 {
     auto factory { make_unique<FakeOperationFactory>( vector<FakeOperationResult> { 
+        FakeOperationResultFactory::createNewSelectResult(true, "", { vector<boost::any> { 0 } }),
         FakeOperationResultFactory::createNewSelectResult(true, "", { studentSample1, studentSample2 }),
         FakeOperationResultFactory::createNewDeleteResult(true),
         FakeOperationResultFactory::createNewDeleteResult(false, "Error at removing members", QueryResult::ERROR)
@@ -350,4 +354,37 @@ TEST(ClassStorage_deleteItem, FailedDeleteAtRemovingClass_ReturnFalse)
 
     ASSERT_EQ(QueryResult::ERROR, storage.deleteItem(1));
     ASSERT_EQ("Error at removing members", storage.getLastError());
+}
+
+
+TEST(ClassStorage_deleteItem, FailedDeleteByReferentialIntegrityContrainst_ReturnConstraintError)
+{
+    auto factory { make_unique<FakeOperationFactory>( vector<FakeOperationResult> { 
+        FakeOperationResultFactory::createNewSelectResult(true, "", { vector<boost::any> { 2 } })
+    }) };
+    ClassStorage storage(DatabaseConnection("fake"), move(factory));
+
+    ASSERT_EQ(QueryResult::CONSTRAINTERROR, storage.deleteItem(1));
+}
+
+TEST(ClassStorage_isReferentialIntegrityConstraint, FailedAtRetreiveReferentialIntegrity_ReturnFalse)
+{
+    auto factory { make_unique<FakeOperationFactory>( vector<FakeOperationResult> { 
+        FakeOperationResultFactory::createNewSelectResult(false, "Error during fetching referential integrity constraint")
+    }) };
+    ClassStorage storage(DatabaseConnection("fake"), move(factory));
+
+    ASSERT_FALSE(storage.isReferentialIntegrityConstraint(1));
+    ASSERT_EQ("Error during fetching referential integrity constraint", storage.getLastError());
+}
+
+TEST(ClassStorage_isReferentialIntegrityConstraint, FailedAtRetreiveReferentialIntegrityRow_ReturnFalse)
+{
+    auto factory { make_unique<FakeOperationFactory>( vector<FakeOperationResult> { 
+        FakeOperationResultFactory::createNewSelectResult(true, "", { })
+    }) };
+    ClassStorage storage(DatabaseConnection("fake"), move(factory));
+
+    ASSERT_FALSE(storage.isReferentialIntegrityConstraint(1));
+    ASSERT_EQ("Unable to retreive the referential integrity constraints.", storage.getLastError());
 }

@@ -5,11 +5,11 @@
 using namespace std;
 
 SubjectController::SubjectController(const DatabaseConnection &dbConnection,
-                               unique_ptr<IManagementItemStorage<Subject>> managementItemStorage)
+                               unique_ptr<ManagementItemStorageBase<Subject>> managementItemStorage)
     : subjects(list<Subject>()),
       storage { managementItemStorage ? 
                 move(managementItemStorage) : 
-                unique_ptr<IManagementItemStorage<Subject>>(make_unique<SubjectStorage>(dbConnection))},
+                unique_ptr<ManagementItemStorageBase<Subject>>(make_unique<SubjectStorage>(dbConnection))},
       lastError("")
 {
 }

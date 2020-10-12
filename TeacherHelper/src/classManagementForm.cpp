@@ -1,3 +1,4 @@
+#include "assessmentController.h"
 #include "classManagementForm.h"
 #include "studentSelectionForm.h"
 #include <QtGui/QKeyEvent>
@@ -14,7 +15,8 @@ ClassManagementForm::ClassManagementForm(QWidget *parent, const DatabaseConnecti
 	  ui(Ui::classManagementFormClass()),
 	  controller(connection),
 	  schoolController(connection),
-	  studentController(connection)
+	  studentController(connection),
+	  connection(connection)
 {
 	ui.setupUi(this);
 	ui.frameDetails->setEnabled(false);
@@ -157,7 +159,7 @@ void ClassManagementForm::pushButtonModify_Click()
 {
 	auto row = ui.tableWidgetItems->selectionModel()->selectedIndexes();
 	if (!row.empty()) {
-		//Find the selected school
+		//Find the selected class
 		auto editedClass = controller.findClass(row[0].data().toUInt());
 		if (editedClass) {
 			ui.lineEditName->setText(editedClass->getName().c_str());
@@ -369,8 +371,38 @@ void ClassManagementForm::pushButtonAddMember_Click()
 
 void ClassManagementForm::pushButtonRemoveMember_Click() 
 {
-	auto row = ui.tableWidgetMembers->selectionModel()->selectedIndexes();
-	ui.tableWidgetMembers->removeRow(row[0].row());
+	//Check if the student as assessments results in that class before removing it
+	auto rowClass = ui.tableWidgetItems->selectionModel()->selectedIndexes();
+	AssessmentController assessmentController(connection);
+	auto editedClass = controller.findClass(rowClass[0].data().toUInt());
+	if (editedClass != nullptr) {
+		//Find student
+		auto rowMember = ui.tableWidgetMembers->selectionModel()->selectedIndexes();
+		auto member = studentController.findStudent(rowMember[0].data().toUInt());
+		if (member != nullptr) {
+			assessmentController.loadAssessmentsByClass(editedClass->getId());
+			if (assessmentController.getStudentAllAssessmentResults(*member).size() > 0) {
+				QMessageBox msgBox;
+				msgBox.setText(fmt::format("The student {0} have assessment results in that class.\nAre you sure you want to remove it from the class {1} ({2})?", 
+						member->getFullName(),
+						editedClass->getName(), 
+						editedClass->getSchool().getName()).c_str());
+				msgBox.setWindowTitle("Confirmation");
+				msgBox.setStandardButtons(QMessageBox::Yes | QMessageBox::No | QMessageBox::Cancel);
+				msgBox.setDefaultButton(QMessageBox::Cancel);
+				if (msgBox.exec() != QMessageBox::Yes) {
+					return;
+				}
+			}
+			ui.tableWidgetMembers->removeRow(rowMember[0].row());
+		}
+		else {
+			showError("Unable to find the selected student.");
+		}
+	}
+	else {
+		showError("Unable to find the selected class.");
+	}
 }
 
 void ClassManagementForm::tableWidgetItems_keyPressEvent(int key, int, int) 

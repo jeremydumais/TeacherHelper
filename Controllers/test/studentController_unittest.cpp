@@ -18,13 +18,13 @@ public:
 												 std::move(fakeStorage));
 	}
 
-	unique_ptr<IManagementItemStorage<Student>> fakeStorage;								 
+	unique_ptr<ManagementItemStorageBase<Student>> fakeStorage;								 
 	unique_ptr<StudentController> controller;
 };
 
 TEST(StudentController_Constructor, ValidArguments_ReturnSuccess)
 {
-	StudentController controller(DatabaseConnection("nulldb"), unique_ptr<IManagementItemStorage<Student>>(make_unique<FakeStudentStorage>()));
+	StudentController controller(DatabaseConnection("nulldb"), unique_ptr<ManagementItemStorageBase<Student>>(make_unique<FakeStudentStorage>()));
 }
 
 TEST_F(StudentControllerTest, getStudents_Return2Students)
@@ -128,7 +128,7 @@ TEST_F(StudentControllerTest, deleteStudent_WithStudentThatWillFailedWithConstra
 
 	this->prepareController();
 	ASSERT_FALSE(controller->deleteStudent(1));
-	ASSERT_EQ("Unable to delete the student because it is used by another item. (Probably a class)", controller->getLastError());
+	ASSERT_EQ("Unable to delete the student because it is used by another item. (Probably a class or an assessment result)", controller->getLastError());
 }
 
 TEST_F(StudentControllerTest, deleteStudent_WithStudentThatWillFailedWithGenericError_ReturnFailed) 

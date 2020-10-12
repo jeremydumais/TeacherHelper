@@ -22,7 +22,7 @@ public:
     bool deleteStudent(size_t id) override { return deleteResult; }
 	
 	std::list<Student> students;
-    std::unique_ptr<IManagementItemStorage<Student>> storage;
+    std::unique_ptr<ManagementItemStorageBase<Student>> storage;
     std::string lastError;
 	std::unique_ptr<Student> findStudentResult;
 	bool insertResult = true;

@@ -1,8 +1,8 @@
 #pragma once
 
 #include "databaseConnection.h"
-#include "IManagementItemStorage.h"
 #include "IStudentController.h"
+#include "ManagementItemStorageBase.h"
 #include <memory>
 
 #ifdef _WIN32
@@ -19,7 +19,7 @@ class STUDENTCONTROLLER_API StudentController : public IStudentController
 {
 public:
     explicit StudentController(const DatabaseConnection &dbConnection,
-                            std::unique_ptr<IManagementItemStorage<Student>> managementItemStorage = nullptr);
+                            std::unique_ptr<ManagementItemStorageBase<Student>> managementItemStorage = nullptr);
     const std::list<Student> &getStudents() const override;
     const Student* findStudent(size_t id) const override;
     const std::string &getLastError() const override;
@@ -29,6 +29,6 @@ public:
     bool deleteStudent(size_t id) override;
 private:
 	std::list<Student> students;
-    std::unique_ptr<IManagementItemStorage<Student>> storage;
+    std::unique_ptr<ManagementItemStorageBase<Student>> storage;
     std::string lastError;
 };

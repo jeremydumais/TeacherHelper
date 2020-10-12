@@ -1,8 +1,8 @@
 #pragma once
 
 #include "assessment.h"
-#include "IManagementItemStorage.h"
 #include "databaseConnection.h"
+#include "ManagementItemStorageBase.h"
 #include <list>
 #include <memory>
 
@@ -20,7 +20,7 @@ class ASSESSMENTCONTROLLER_API AssessmentController
 {
 public:
     explicit AssessmentController(const DatabaseConnection &dbConnection,
-                            std::unique_ptr<IManagementItemStorage<Assessment>> managementItemStorage = nullptr);
+                            std::unique_ptr<ManagementItemStorageBase<Assessment>> managementItemStorage = nullptr);
     const std::list<Assessment> &getAssessments() const;
     const Assessment* findAssessment(size_t id) const;
     const std::string &getLastError() const;
@@ -29,8 +29,9 @@ public:
     bool insertAssessment(const Assessment &assessment);
     bool updateAssessment(const Assessment &assessment);
     bool deleteAssessment(size_t id);
+    std::vector<AssessmentResult> getStudentAllAssessmentResults(const Student &student) const;
 private:
 	std::list<Assessment> assessments;
-    std::unique_ptr<IManagementItemStorage<Assessment>> storage;
+    std::unique_ptr<ManagementItemStorageBase<Assessment>> storage;
     std::string lastError;
 };

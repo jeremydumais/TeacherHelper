@@ -5,11 +5,11 @@
 using namespace std;
 
 StudentController::StudentController(const DatabaseConnection &dbConnection,
-                               unique_ptr<IManagementItemStorage<Student>> managementItemStorage)
+                               unique_ptr<ManagementItemStorageBase<Student>> managementItemStorage)
     : students(list<Student>()),
       storage { managementItemStorage ? 
                 move(managementItemStorage) : 
-                unique_ptr<IManagementItemStorage<Student>>(make_unique<StudentStorage>(dbConnection))},
+                unique_ptr<ManagementItemStorageBase<Student>>(make_unique<StudentStorage>(dbConnection))},
       lastError("")
 {
 }
@@ -72,7 +72,7 @@ bool StudentController::deleteStudent(size_t id)
         loadStudents();
     }
     else if (retVal == QueryResult::CONSTRAINTERROR) {
-        lastError = "Unable to delete the student because it is used by another item. (Probably a class)";
+        lastError = "Unable to delete the student because it is used by another item. (Probably a class or an assessment result)";
     }
     else {
         lastError = storage->getLastError();

@@ -13,74 +13,64 @@ using namespace std;
 
 StudentStorage::StudentStorage(const DatabaseConnection &connection, 
                                unique_ptr<IStorageOperationFactory> operationFactory)
-    : connection(&connection),
-      lastError(""),
-      operationFactory { operationFactory ? 
-                         move(operationFactory) : 
-                         make_unique<SQLiteOperationFactory>()}
+    : ManagementItemStorageBase<Student>(connection, move(operationFactory))
 {
 }
 
-list<Student> StudentStorage::getAllItems()
+std::string StudentStorage::getSelectCommand() const
 {
-    list<Student> retVal;
-    auto operation = operationFactory->createSelectOperation(*connection,
-        "SELECT id, firstname, lastname, comments FROM student ORDER BY lastname, firstname;");
-    if (operation->execute()) {
-        while (operation->getRow()) {
-            Student tempStudent(operation->getIntValue(0),
-                                operation->getStringValue(1),
-                                operation->getStringValue(2),
-                                operation->getStringValue(3));
-            retVal.push_back(tempStudent);
-        }
-        operation->close();
-    }
-    else {
-        lastError = operation->getLastError();
-    }
-    return retVal;
+    return "SELECT id, firstname, lastname, comments FROM student ORDER BY lastname, firstname;";
 }
 
-const std::string &StudentStorage::getLastError() const
+Student StudentStorage::getItemFromRecord(const IStorageSelectOperation &record) const
 {
-    return lastError;
+    return Student(record.getIntValue(0),
+                   record.getStringValue(1),
+                   record.getStringValue(2),
+                   record.getStringValue(3));;
 }
 
-bool StudentStorage::insertItem(const Student &student)
+std::string StudentStorage::getInsertCommand() const
 {
-    auto operation = operationFactory->createInsertOperation(*connection, 
-        "INSERT INTO student (firstname, lastname, comments) VALUES(?, ?, ?)",
-        vector<string> { student.getFirstName(), student.getLastName() , student.getComments()});
-    if (!operation->execute()) {
-        lastError = operation->getLastError();
-        return false;
-    }
-    return true;
+    return "INSERT INTO student (firstname, lastname, comments) VALUES(?, ?, ?)";
 }
 
-bool StudentStorage::updateItem(const Student &student)
+std::vector<std::string> StudentStorage::getInsertValues(const Student &item) const
 {
-    auto operation = operationFactory->createUpdateOperation(*connection, 
-        "UPDATE student SET firstname = ?, lastname = ?, comments = ? WHERE id = ?",
-        vector<string> { student.getFirstName(),
-            student.getLastName(),
-            student.getComments(),
-            to_string(student.getId()) });
-    if (!operation->execute()) {
-        lastError = operation->getLastError();
-        return false;
-    }
-    return true;
+    return { item.getFirstName(), item.getLastName(), item.getComments()};
 }
 
-QueryResult StudentStorage::deleteItem(size_t id)
+std::string StudentStorage::getUpdateCommand() const
 {
-    auto operation = operationFactory->createDeleteOperation(*connection, 
-        "DELETE FROM student WHERE id = ?", 
-        vector<string> { to_string(id) });
-    if (!operation->execute()) {
-        lastError = operation->getLastError();
-    }
-    return operation->getExtendedResultInfo();
+    return "UPDATE student SET firstname = ?, lastname = ?, comments = ? WHERE id = ?";
+}
+
+std::vector<std::string> StudentStorage::getUpdateValues(const Student &item) const
+{
+    return { item.getFirstName(),
+             item.getLastName(),
+             item.getComments(),
+             to_string(item.getId()) };
+}
+std::string StudentStorage::getDeleteCommand() const
+{
+    return "DELETE FROM student WHERE id = ?";
+}
+
+std::vector<std::string> StudentStorage::getDeleteValues(size_t id) const
+{   
+    return { to_string(id) };
+}
+
+std::string StudentStorage::getReferentialIntegrityConstraintsCommand() const
+{
+    return "SELECT SUM(sum_count) FROM ("
+           "SELECT COUNT(class_id) as sum_count FROM class_student WHERE student_id = ? "
+           "UNION ALL "
+           "SELECT COUNT(id) as sum_count FROM assessmentResult WHERE student_id = ?)";
+}
+
+std::vector<std::string> StudentStorage::getReferentialIntegrityConstraintsValues(size_t id) const
+{
+    return { to_string(id), to_string(id) };
 }

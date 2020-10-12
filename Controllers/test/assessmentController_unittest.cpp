@@ -6,7 +6,7 @@ using namespace std;
 using namespace boost::posix_time;
 using namespace boost::gregorian;
 
-class FakeAssessmentStorage : public IManagementItemStorage<Assessment>
+class FakeAssessmentStorage : public ManagementItemStorageBase<Assessment>
 {
 public:
     FakeAssessmentStorage()
@@ -14,14 +14,15 @@ public:
 			Assessment(1, "Exam of Aug 23 2020", 
 				  TestType("Exam"),
 				  Subject("History"),
-				  Class("MyClass", School("Test", City("CityTest"))),
+				  Class(1, "MyClass", School("Test", City("CityTest"))),
 				  ptime(date(2020, Aug, 23), time_duration(13, 21, 33))),
 			Assessment(2, "Exercice One 2020", 
 				  TestType("Exercice"),
 				  Subject("Math"),
-				  Class("MyClass", School("Test", City("CityTest"))),
+				  Class(1, "MyClass", School("Test", City("CityTest"))),
 				  ptime(date(2020, Aug, 21), time_duration(10, 14, 22)))
-		}) 
+		}),
+		ManagementItemStorageBase<Assessment>(DatabaseConnection("nulldb"))
 	{
 		assessments.begin()->addResult(AssessmentResult(Student(1, "Joe", "Blow"), 78.5f));
 		assessments.begin()->addResult(AssessmentResult(Student(2, "Jane", "Doe"), 65.2f));
@@ -31,11 +32,25 @@ public:
     bool insertItem(const Assessment &assessment) override { return insertResult; }
     bool updateItem(const Assessment &assessment) override { return updateResult; }
     QueryResult deleteItem(size_t id) override { return deleteResult; }
+	bool isReferentialIntegrityConstraint(size_t id) override { return true; };
+	std::string getSelectCommand() const override { return ""; };
+    Assessment getItemFromRecord(const IStorageSelectOperation &record) const override { return Assessment(1, "Exam of Aug 23 2020", 
+				  TestType("Exam"),
+				  Subject("History"),
+				  Class(1, "MyClass", School("Test", City("CityTest"))),
+				  ptime(date(2020, Aug, 23), time_duration(13, 21, 33))); };
+    std::string getInsertCommand() const override { return ""; };
+    std::vector<std::string> getInsertValues(const Assessment &item) const override { return {"", ""}; };
+    std::string getUpdateCommand() const override {return ""; };
+    std::vector<std::string> getUpdateValues(const Assessment &item) const override { return {"", ""}; };
+    std::string getDeleteCommand() const override {return ""; };
+    std::vector<std::string> getDeleteValues(size_t id) const override { return {""}; };
+    std::string getReferentialIntegrityConstraintsCommand() const override { return ""; };
+    std::vector<std::string> getReferentialIntegrityConstraintsValues(size_t id) const override { return {""}; };
 	bool insertResult = true;
 	bool updateResult = true;
 	QueryResult deleteResult = QueryResult::OK;
     std::string lastError;
-private:
 	std::list<Assessment> assessments;
 };
 
@@ -52,13 +67,13 @@ public:
 												 std::move(fakeStorage));
 	}
 
-	unique_ptr<IManagementItemStorage<Assessment>> fakeStorage;								 
+	unique_ptr<ManagementItemStorageBase<Assessment>> fakeStorage;								 
 	unique_ptr<AssessmentController> controller;
 };
 
 TEST(AssessmentController_Constructor, ValidArguments_ReturnSuccess)
 {
-	AssessmentController controller(DatabaseConnection("nulldb"), unique_ptr<IManagementItemStorage<Assessment>>(make_unique<FakeAssessmentStorage>()));
+	AssessmentController controller(DatabaseConnection("nulldb"), unique_ptr<ManagementItemStorageBase<Assessment>>(make_unique<FakeAssessmentStorage>()));
 }
 
 TEST_F(AssessmentControllerTest, getAssessments_Return2Assessments)
@@ -181,4 +196,36 @@ TEST_F(AssessmentControllerTest, deleteAssessment_WithAssessmentThatWillFailFrom
 	this->prepareController();
 	ASSERT_FALSE(controller->deleteAssessment(1));
 	ASSERT_EQ("An error occurred", controller->getLastError());
+}
+
+TEST_F(AssessmentControllerTest, getStudentAllAssessmentResults_StudentWithOneResult_ReturnOneResult) 
+{
+	auto fakeAssessmentStorage = dynamic_cast<FakeAssessmentStorage*>(this->fakeStorage.get());
+
+	this->prepareController();
+	controller->loadAssessments();
+	auto actual = controller->getStudentAllAssessmentResults(Student(1, "Joe", "Blow"));
+	ASSERT_EQ(1, actual.size());
+	ASSERT_EQ("Joe", actual[0].getStudent().getFirstName());
+	ASSERT_EQ("Blow", actual[0].getStudent().getLastName());
+}
+
+TEST_F(AssessmentControllerTest, getStudentAllAssessmentResults_StudentWithNoResult_ReturnOneResult) 
+{
+	auto fakeAssessmentStorage = dynamic_cast<FakeAssessmentStorage*>(this->fakeStorage.get());
+
+	this->prepareController();
+	controller->loadAssessments();
+	auto actual = controller->getStudentAllAssessmentResults(Student(3, "Santa", "Claus"));
+	ASSERT_EQ(0, actual.size());
+}
+
+TEST_F(AssessmentControllerTest, getStudentAllAssessmentResults_StudentWithTwoResultsInDifferentAssessments_ReturnOneResult) 
+{
+	auto fakeAssessmentStorage = dynamic_cast<FakeAssessmentStorage*>(this->fakeStorage.get());
+	fakeAssessmentStorage->assessments.rbegin()->addResult(AssessmentResult(Student(1, "Joe", "Blow"), 99.1f));
+	this->prepareController();
+	controller->loadAssessments();
+	auto actual = controller->getStudentAllAssessmentResults(Student(1, "Joe", "Blow"));
+	ASSERT_EQ(2, actual.size());
 }

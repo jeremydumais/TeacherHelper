@@ -247,7 +247,7 @@ TEST_F(AssessmentStorageWithSampleTwoResult, retreiveAssignedAssessmentId_ValidI
     AssessmentStorage storage(DatabaseConnection("fake"), move(factory));
 
     ASSERT_TRUE(storage.insertItem(assessmentSample));
-    ASSERT_EQ(3, storage.retreiveAssignedAssessmentId());
+    ASSERT_EQ(3, storage.retreiveAssignedRecordId());
 }
 
 TEST_F(AssessmentStorageWithSampleTwoResult, retreiveAssignedAssessmentId_ErrorAtSelect_Return0)
@@ -261,7 +261,7 @@ TEST_F(AssessmentStorageWithSampleTwoResult, retreiveAssignedAssessmentId_ErrorA
     AssessmentStorage storage(DatabaseConnection("fake"), move(factory));
 
     ASSERT_TRUE(storage.insertItem(assessmentSample));
-    ASSERT_EQ(0, storage.retreiveAssignedAssessmentId());
+    ASSERT_EQ(0, storage.retreiveAssignedRecordId());
     ASSERT_EQ("An error occurred while selecting", storage.getLastError());
 }
 
@@ -276,8 +276,8 @@ TEST_F(AssessmentStorageWithSampleTwoResult, retreiveAssignedAssessmentId_ErrorA
     AssessmentStorage storage(DatabaseConnection("fake"), move(factory));
 
     ASSERT_TRUE(storage.insertItem(assessmentSample));
-    ASSERT_EQ(0, storage.retreiveAssignedAssessmentId());
-    ASSERT_EQ("Unable to retreive the assigned id for the new assessment record.", storage.getLastError());
+    ASSERT_EQ(0, storage.retreiveAssignedRecordId());
+    ASSERT_EQ("Unable to retreive the assigned id for the new record.", storage.getLastError());
 }
 
 TEST_F(AssessmentStorageWithSampleTwoResult, insertResults_ValidInsert_ReturnTrue)

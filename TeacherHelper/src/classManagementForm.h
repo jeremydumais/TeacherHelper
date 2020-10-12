@@ -22,6 +22,7 @@ private:
 	ClassController controller;
 	SchoolController schoolController;
 	StudentController studentController;
+	const DatabaseConnection &connection;
 	QTableWidgetKeyPressWatcher tableWidgetItemsKeyWatcher;
 	void refreshItemsTable() override;
 	void refreshSchoolTable();
