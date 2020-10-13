@@ -24,7 +24,8 @@ add_library(${PROJECT_NAME} SHARED src/databaseConnection.cpp
                                    src/subjectStorage.cpp
                                    src/sqliteDateTime.cpp
                                    src/sqliteDateTimeFactory.cpp
-                                   src/assessmentStorage.cpp)
+                                   src/assessmentStorage.cpp
+                                   src/databaseVersionStorage.cpp)
 target_compile_definitions(${PROJECT_NAME} PRIVATE DATASERVICES_EXPORTS)
 set_target_properties(${PROJECT_NAME} PROPERTIES ENABLE_EXPORTS 1)
 

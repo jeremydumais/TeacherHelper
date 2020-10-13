@@ -111,6 +111,9 @@ MainForm::MainForm(QWidget *parent)
 	   exit(1);
 	}
 
+	//Get database version
+	
+
 	loadControllers();
 	refreshTreeViewTestNavigation();
 	toggleAssessmentActionsButtons(false);
