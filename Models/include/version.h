@@ -16,6 +16,7 @@ class VERSION_API Version
 {
 public:
     Version(unsigned char major, unsigned char minor, unsigned char patch);
+    Version(const std::string &value);
     unsigned char getMajor() const;
     unsigned char getMinor() const;
     unsigned char getPatch() const;
@@ -30,4 +31,5 @@ private:
     unsigned char mMajor;
     unsigned char mMinor;
     unsigned char mPatch;
+    unsigned char getVersionPartFromString(const std::string &part) const;
 };

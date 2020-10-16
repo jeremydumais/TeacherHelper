@@ -2,6 +2,7 @@
 
 #include "databaseConnection.h"
 #include "IStorageOperationFactory.h"
+#include "version.h"
 #include <memory>
 
 #ifdef _WIN32

@@ -1,5 +1,7 @@
 #include "version.h"
+#include <fmt/format.h>
 #include <gtest/gtest.h>
+#include <climits>
 
 using namespace std;
 
@@ -19,6 +21,165 @@ TEST(VersionConstructor, Version000_ThrowInvalidArgument)
 TEST(VersionConstructor, Version100_ReturnSuccess)
 {
 	Version version(1, 0, 0);
+}
+
+TEST(VersionConstructorFromString, EmptyString_ThrowInvalidArgument)
+{
+	try
+	{
+		Version version("");
+		FAIL();
+	}
+	catch(invalid_argument &err) 
+	{
+        ASSERT_STREQ("version cannot be empty.", err.what());
+	}
+}
+
+TEST(VersionConstructorFromString, WhiteSpacesString_ThrowInvalidArgument)
+{
+	try
+	{
+		Version version("   ");
+		FAIL();
+	}
+	catch(invalid_argument &err) 
+	{
+        ASSERT_STREQ("version cannot be empty.", err.what());
+	}
+}
+
+TEST(VersionConstructorFromString, OnlyOnePartString_ThrowInvalidArgument)
+{
+	try
+	{
+		Version version("1");
+		FAIL();
+	}
+	catch(invalid_argument &err) 
+	{
+        ASSERT_STREQ("version must have three parts separated with dots.", err.what());
+	}
+}
+
+TEST(VersionConstructorFromString, OnlyTwoPartsString_ThrowInvalidArgument)
+{
+	try
+	{
+		Version version("1.1");
+		FAIL();
+	}
+	catch(invalid_argument &err) 
+	{
+        ASSERT_STREQ("version must have three parts separated with dots.", err.what());
+	}
+}
+
+TEST(VersionConstructorFromString, FourPartsString_ThrowInvalidArgument)
+{
+	try
+	{
+		Version version("1.1.1.1");
+		FAIL();
+	}
+	catch(invalid_argument &err) 
+	{
+        ASSERT_STREQ("version must have three parts separated with dots.", err.what());
+	}
+}
+
+TEST(VersionConstructorFromString, ThreePartsSeparatedWithUnderscoreString_ThrowInvalidArgument)
+{
+	try
+	{
+		Version version("1_2_3");
+		FAIL();
+	}
+	catch(invalid_argument &err) 
+	{
+        ASSERT_STREQ("version must have three parts separated with dots.", err.what());
+	}
+}
+
+TEST(VersionConstructorFromString, Version123WithDot_ReturnSuccess)
+{
+	Version version("1.2.3");
+	ASSERT_EQ(1, version.getMajor());
+	ASSERT_EQ(2, version.getMinor());
+	ASSERT_EQ(3, version.getPatch());
+}
+
+TEST(VersionConstructorFromString, Version123456WithDot_ReturnSuccess)
+{
+	Version version("12.34.56");
+	ASSERT_EQ(12, version.getMajor());
+	ASSERT_EQ(34, version.getMinor());
+	ASSERT_EQ(56, version.getPatch());
+}
+
+TEST(VersionConstructorFromString, Version000WithDot_ThrowInvalidArgument)
+{
+	try
+	{
+		Version version("0.0.0");
+		FAIL();
+	}
+	catch(invalid_argument &err) 
+	{
+        ASSERT_STREQ("version cannot be empty. (0.0.0)", err.what());
+	}
+}
+
+TEST(VersionConstructorFromString, VersionA00WithDot_ThrowInvalidArgument)
+{
+	try
+	{
+		Version version("A.0.0");
+		FAIL();
+	}
+	catch(invalid_argument &err) 
+	{
+        ASSERT_STREQ("The part A cannot be converted to integer", err.what());
+	}
+}
+
+TEST(VersionConstructorFromString, Version22560WithDot_ThrowOutOfRange)
+{
+	try
+	{
+		Version version("2.256.0");
+		FAIL();
+	}
+	catch(out_of_range &err) 
+	{
+        ASSERT_STREQ(fmt::format("The part 256 must be less than {0}", UCHAR_MAX).c_str(), err.what());
+	}
+}
+
+TEST(VersionConstructorFromString, Version2Minus10WithDot_ThrowOutOfRange)
+{
+	try
+	{
+		Version version("2.-1.0");
+		FAIL();
+	}
+	catch(out_of_range &err) 
+	{
+        ASSERT_STREQ(fmt::format("The part -1 cannot be negative", UCHAR_MAX).c_str(), err.what());
+	}
+}
+
+TEST(VersionConstructorFromString, VersionDotDot_ThrowInvalidArgument)
+{
+	try
+	{
+		Version version("..");
+		FAIL();
+	}
+	catch(invalid_argument &err) 
+	{
+        ASSERT_STREQ("One of the part is empty.", err.what());
+	}
 }
 
 TEST(VersionGetMajor, Version100_Return1)
