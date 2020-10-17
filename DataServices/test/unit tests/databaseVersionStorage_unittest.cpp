@@ -10,12 +10,27 @@
 
 using namespace std;
 
-/*struct FakeCityRow
+struct FakeVersionRow
 {
-    int id;
     string name;
     operator vector<boost::any>() const 
     { 
-        return vector<boost::any> { id, name }; 
+        return vector<boost::any> { name }; 
     }
-};*/
+};
+
+TEST(DatabaseVersionStorage_getVersion100, NoError_Return100)
+{
+    auto factory { make_unique<FakeOperationFactory>( vector<FakeOperationResult> { 
+        FakeOperationResultFactory::createNewSelectResult(true, "", { 
+            FakeVersionRow { "1.0.0" }
+        })
+    }) };
+
+    DatabaseVersionStorage storage(DatabaseConnection("fake"), move(factory));
+    auto actual = storage.getVersion();
+    ASSERT_TRUE(actual.has_value());
+    ASSERT_EQ(1, actual->getMajor());
+    ASSERT_EQ(0, actual->getMinor());
+    ASSERT_EQ(0, actual->getPatch());
+}
