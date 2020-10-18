@@ -34,6 +34,8 @@ private:
 	void refreshTreeViewTestNavigation();
 	void reselectTreeViewTestNavigationItem(size_t classId);
 	void toggleAssessmentActionsButtons(bool isAssessmentSelected);
+	void connectUIActions();
+	void prepareListsHeaders();
 private slots:
 	void action_AddAssessment_Click();
 	void action_EditAssessment_Click();

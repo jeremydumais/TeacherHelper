@@ -31,40 +31,8 @@ MainForm::MainForm(QWidget *parent)
 {
 	ui.setupUi(this);
 	this->showMaximized();
-	connect(ui.action_Quit, &QAction::triggered, this, &MainForm::close);
-	connect(ui.action_AddAssessment, &QAction::triggered, this, &MainForm::action_AddAssessment_Click);
-	connect(ui.action_EditAssessment, &QAction::triggered, this, &MainForm::action_EditAssessment_Click);
-	connect(ui.action_RemoveAssessment, &QAction::triggered, this, &MainForm::action_RemoveAssessment_Click);
-	connect(ui.action_Students, &QAction::triggered, this, &MainForm::action_StudentsManagement_Click);
-	connect(ui.action_Schools, &QAction::triggered, this, &MainForm::action_SchoolsManagement_Click);
-	connect(ui.action_Classes, &QAction::triggered, this, &MainForm::action_ClassesManagement_Click);
-	connect(ui.action_Cities, &QAction::triggered, this, &MainForm::action_CitiesManagement_Click);
-	connect(ui.action_TestTypes, &QAction::triggered, this, &MainForm::action_TestTypesManagement_Click);
-	connect(ui.action_Subjects, &QAction::triggered, this, &MainForm::action_SubjectsManagement_Click);
-	connect(ui.action_About, &QAction::triggered, this, &MainForm::action_About_Click);
-	connect(ui.action_LightTheme, &QAction::triggered, this, &MainForm::action_LightTheme_Click);
-	connect(ui.action_DarkTheme, &QAction::triggered, this, &MainForm::action_DarkTheme_Click);
-	connect(ui.toolButtonExpandAll, &QToolButton::clicked, this, &MainForm::toolButtonExpandAll_Click);
-	connect(ui.toolButtonCollapseAll, &QToolButton::clicked, this, &MainForm::toolButtonCollapseAll_Click);
-	connect(ui.treeWidgetSchoolClassNav, &QTreeWidget::currentItemChanged, this, &MainForm::treeWidgetSchoolClassNav_currentItemChanged);
-	connect(ui.tableWidgetAssessments->selectionModel(), 
-		&QItemSelectionModel::selectionChanged, 
-		this,
-  		&MainForm::tableWidgetAssessments_selectionChanged);
-	connect(ui.tableWidgetAssessments, 
-		&QTableWidget::itemDoubleClicked,
-		this,
-		&MainForm::tableWidgetAssessments_itemDoubleClicked);
-	tableWidgetAssessmentsKeyWatcher.installOn(ui.tableWidgetAssessments);
-	connect(&tableWidgetAssessmentsKeyWatcher, &QTableWidgetKeyPressWatcher::keyPressed, this, &MainForm::tableWidgetAssessments_keyPressEvent);
-
-	ui.tableWidgetAssessments->setHorizontalHeaderItem(0, new QTableWidgetItem("Id"));
-	ui.tableWidgetAssessments->setHorizontalHeaderItem(1, new QTableWidgetItem("Date"));
-	ui.tableWidgetAssessments->setHorizontalHeaderItem(2, new QTableWidgetItem("Name"));
-	ui.tableWidgetAssessments->setHorizontalHeaderItem(3, new QTableWidgetItem("Test type"));
-	ui.tableWidgetAssessments->setHorizontalHeaderItem(4, new QTableWidgetItem("Subject"));
-	ui.tableWidgetAssessments->setHorizontalHeaderItem(5, new QTableWidgetItem("Nb of results"));
-	ui.tableWidgetAssessments->setColumnHidden(0, true);
+	connectUIActions();
+	prepareListsHeaders();
 
 	//Check if the user configuration folder exist
 	userConfigFolder = SpecialFolders::getUserConfigDirectory();
@@ -117,6 +85,48 @@ MainForm::MainForm(QWidget *parent)
 	loadControllers();
 	refreshTreeViewTestNavigation();
 	toggleAssessmentActionsButtons(false);
+}
+
+void MainForm::connectUIActions() 
+{
+	connect(ui.action_Quit, &QAction::triggered, this, &MainForm::close);
+	connect(ui.action_AddAssessment, &QAction::triggered, this, &MainForm::action_AddAssessment_Click);
+	connect(ui.action_EditAssessment, &QAction::triggered, this, &MainForm::action_EditAssessment_Click);
+	connect(ui.action_RemoveAssessment, &QAction::triggered, this, &MainForm::action_RemoveAssessment_Click);
+	connect(ui.action_Students, &QAction::triggered, this, &MainForm::action_StudentsManagement_Click);
+	connect(ui.action_Schools, &QAction::triggered, this, &MainForm::action_SchoolsManagement_Click);
+	connect(ui.action_Classes, &QAction::triggered, this, &MainForm::action_ClassesManagement_Click);
+	connect(ui.action_Cities, &QAction::triggered, this, &MainForm::action_CitiesManagement_Click);
+	connect(ui.action_TestTypes, &QAction::triggered, this, &MainForm::action_TestTypesManagement_Click);
+	connect(ui.action_Subjects, &QAction::triggered, this, &MainForm::action_SubjectsManagement_Click);
+	connect(ui.action_About, &QAction::triggered, this, &MainForm::action_About_Click);
+	connect(ui.action_LightTheme, &QAction::triggered, this, &MainForm::action_LightTheme_Click);
+	connect(ui.action_DarkTheme, &QAction::triggered, this, &MainForm::action_DarkTheme_Click);
+	connect(ui.toolButtonExpandAll, &QToolButton::clicked, this, &MainForm::toolButtonExpandAll_Click);
+	connect(ui.toolButtonCollapseAll, &QToolButton::clicked, this, &MainForm::toolButtonCollapseAll_Click);
+	connect(ui.treeWidgetSchoolClassNav, &QTreeWidget::currentItemChanged, this, &MainForm::treeWidgetSchoolClassNav_currentItemChanged);
+	connect(ui.tableWidgetAssessments->selectionModel(), 
+		&QItemSelectionModel::selectionChanged, 
+		this,
+  		&MainForm::tableWidgetAssessments_selectionChanged);
+	connect(ui.tableWidgetAssessments, 
+		&QTableWidget::itemDoubleClicked,
+		this,
+		&MainForm::tableWidgetAssessments_itemDoubleClicked);
+	tableWidgetAssessmentsKeyWatcher.installOn(ui.tableWidgetAssessments);
+	connect(&tableWidgetAssessmentsKeyWatcher, &QTableWidgetKeyPressWatcher::keyPressed, this, &MainForm::tableWidgetAssessments_keyPressEvent);
+
+}
+
+void MainForm::prepareListsHeaders() 
+{
+	ui.tableWidgetAssessments->setHorizontalHeaderItem(0, new QTableWidgetItem("Id"));
+	ui.tableWidgetAssessments->setHorizontalHeaderItem(1, new QTableWidgetItem("Date"));
+	ui.tableWidgetAssessments->setHorizontalHeaderItem(2, new QTableWidgetItem("Name"));
+	ui.tableWidgetAssessments->setHorizontalHeaderItem(3, new QTableWidgetItem("Test type"));
+	ui.tableWidgetAssessments->setHorizontalHeaderItem(4, new QTableWidgetItem("Subject"));
+	ui.tableWidgetAssessments->setHorizontalHeaderItem(5, new QTableWidgetItem("Nb of results"));
+	ui.tableWidgetAssessments->setColumnHidden(0, true);
 }
 
 MainForm::~MainForm()

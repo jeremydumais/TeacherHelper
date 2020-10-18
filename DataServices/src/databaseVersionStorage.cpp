@@ -15,24 +15,76 @@ DatabaseVersionStorage::DatabaseVersionStorage(const DatabaseConnection &connect
 
 boost::optional<Version> DatabaseVersionStorage::getVersion() 
 {
+    //Check if the version table exist, if not it means that it is version 1.0.0
+    bool tableExist { false };
+    try {
+        tableExist = isVersionTableExist();
+    }
+    catch(runtime_error &err) {
+        return {};
+    }
+    if (!tableExist) {
+        return Version(1, 0, 0);
+    }
+
     auto operation = operationFactory->createSelectOperation(*connection, 
-        "SELECT name FROM Version");
+        "SELECT name FROM Version"s);
     if (operation->execute()) {
         if (operation->getRow()) {
-            Version retVal(operation->getStringValue(0));
-            operation->close();
-            return retVal;
+            try {
+                Version retVal(operation->getStringValue(0));
+                operation->close();
+                return retVal;
+            }
+            catch(invalid_argument &err) {
+                lastError = err.what();
+            }
+            catch(out_of_range &err) {
+                lastError = err.what();
+            }
         }
         else {
-            
-            operation->close();
-            return {};
+            lastError = operation->getLastError();
         }
+        operation->close(); 
     }
     else {
         lastError = operation->getLastError();
-        return {};
     }
+    return {};
 }
 
 
+bool DatabaseVersionStorage::isVersionTableExist() 
+{
+    auto operationTableExist = operationFactory->createSelectOperation(*connection, 
+        "SELECT name FROM sqlite_master WHERE type='table' AND name='version'"s);
+    if (!operationTableExist->execute()) {
+        lastError = operationTableExist->getLastError();
+        throw runtime_error(lastError);  
+    }
+    else if (!operationTableExist->getRow()) {
+        operationTableExist->close();
+        return false;
+    }
+    else {
+        return operationTableExist->getStringValue(0) == "version";
+    }
+}
+
+const string &DatabaseVersionStorage::getLastError() const {
+        return lastError;
+}
+
+
+bool DatabaseVersionStorage::updateVersion(Version version) 
+{
+    auto operation = operationFactory->createUpdateOperation(*connection, 
+            "UPDATE version SET name = ?",
+            { version.str() });
+    if (!operation->execute()) {
+        lastError = operation->getLastError();
+        return false;
+    }
+    return true;
+}

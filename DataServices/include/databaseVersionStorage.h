@@ -22,9 +22,12 @@ public:
     explicit DatabaseVersionStorage(const DatabaseConnection &connection, 
                                     const std::unique_ptr<IStorageOperationFactory> operationFactory = nullptr);
     boost::optional<Version> getVersion();
+    const std::string &getLastError() const;
     bool updateVersion(Version version);
 protected:
     const DatabaseConnection * const connection;
     std::string lastError;
     std::unique_ptr<IStorageOperationFactory> operationFactory;
+private:
+    bool isVersionTableExist();
 };
