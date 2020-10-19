@@ -27,7 +27,10 @@ add_library(${PROJECT_NAME} SHARED src/databaseConnection.cpp
                                    src/assessmentStorage.cpp
                                    src/databaseVersionStorage.cpp)
 target_compile_definitions(${PROJECT_NAME} PRIVATE DATASERVICES_EXPORTS)
-set_target_properties(${PROJECT_NAME} PROPERTIES ENABLE_EXPORTS 1)
+if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU" OR "${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
+  target_compile_definitions(${PROJECT_NAME} PRIVATE SUPPORT_MAYBE_UNUSED)
+endif()
+set_target_properties( PROPERTIES ENABLE_EXPORTS 1)
 
 target_link_libraries(${PROJECT_NAME} Models ${CONAN_LIBS})
 set_target_properties(

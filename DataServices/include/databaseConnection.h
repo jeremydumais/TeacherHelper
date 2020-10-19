@@ -1,5 +1,6 @@
 #pragma once
 
+#include "IDatabaseConnection.h"
 #include <string>
 #include <sqlite3.h>
 
@@ -13,15 +14,15 @@
     #define DATABASECONNECTION_API
 #endif
 
-class DATABASECONNECTION_API DatabaseConnection
+class DATABASECONNECTION_API DatabaseConnection : public IDatabaseConnection
 {
 public:
     explicit DatabaseConnection(const std::string &dbName);
     virtual ~DatabaseConnection();
-    const std::string getDbName() const;
+    const std::string &getDbName() const override;
     sqlite3 *getConnectionPtr() const;
-    void open();
-    void close();
+    void open() override;
+    void close() override;
     void create();
 private:
     std::string dbName;

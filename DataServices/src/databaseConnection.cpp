@@ -22,7 +22,7 @@ DatabaseConnection::~DatabaseConnection()
     sqlite3_close(db);
 }
 
-const std::string DatabaseConnection::getDbName() const
+const std::string &DatabaseConnection::getDbName() const
 {
     return dbName;
 }

@@ -18,9 +18,12 @@
 class DATABASECONTROLLER_API DatabaseController
 {
 public:
-    explicit DatabaseController(const DatabaseConnection &dbConnection);
-    bool isDatabaseExist(std::string dbName);
-    
+    explicit DatabaseController(std::string dbName,
+                                std::unique_ptr<IDatabaseConnection> databaseConnection = nullptr);
+    const std::string &getDatabaseName() const;
+    void openDatabase();
+    void closeDatabase();
+        
 private:
-
+    std::unique_ptr<IDatabaseConnection> databaseConnection;
 };

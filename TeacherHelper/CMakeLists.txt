@@ -45,6 +45,9 @@ set(PROJECT_SOURCE_FILES ${CMAKE_CURRENT_SOURCE_DIR}/src/main.cpp
                          ${CMAKE_CURRENT_SOURCE_DIR}/res/global.qrc
                          ${APP_RESOURCE_FILES})
 add_executable(${PROJECT_NAME} ${PROJECT_SOURCE_FILES})
+if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU" OR "${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
+  target_compile_definitions(${PROJECT_NAME} PRIVATE SUPPORT_MAYBE_UNUSED)
+endif()
 
 if (WIN32)
   set_property(TARGET ${PROJECT_NAME} PROPERTY WIN32_EXECUTABLE true)
