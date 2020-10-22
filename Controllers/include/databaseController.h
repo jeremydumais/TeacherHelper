@@ -18,10 +18,10 @@
 class DATABASECONTROLLER_API DatabaseController
 {
 public:
-    explicit DatabaseController(std::string dbName,
-                                std::unique_ptr<IDatabaseConnection> databaseConnection = nullptr);
-    const std::string &getDatabaseName() const;
-    void openDatabase();
+    explicit DatabaseController(std::unique_ptr<IDatabaseConnection> databaseConnection = nullptr);
+    bool isDatabaseOpened() const;
+    std::string getOpenedDatabaseName() const;
+    void openDatabase(const std::string &databaseName);
     void closeDatabase();
         
 private:

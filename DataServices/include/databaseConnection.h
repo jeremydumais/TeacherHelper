@@ -22,9 +22,11 @@ public:
     const std::string &getDbName() const override;
     sqlite3 *getConnectionPtr() const;
     void open() override;
+    bool isOpened() const override;
     void close() override;
     void create();
 private:
     std::string dbName;
+    bool isDBOpened;
 	sqlite3 *db;
 };

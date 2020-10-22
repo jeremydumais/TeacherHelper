@@ -10,6 +10,7 @@ using namespace boost;
 
 DatabaseConnection::DatabaseConnection(const std::string &dbName)
     : dbName(dbName),
+      isDBOpened(false),
       db(nullptr)
 {
     if (trim_copy(dbName).empty()) {
@@ -42,6 +43,7 @@ void DatabaseConnection::open()
     if (connection_result != 0) {
         throw runtime_error(fmt::format("Cannot open database {0}. sqlite3_errmsg(db)", dbName));
     }
+    isDBOpened = true;
     //Enabling Foreign Key Support
     SQLiteDDLOperation operation(*this, "PRAGMA foreign_keys = ON");
     if (!operation.execute()) {
@@ -49,9 +51,16 @@ void DatabaseConnection::open()
     }
 }
 
+
+bool DatabaseConnection::isOpened() const
+{
+    return isDBOpened;
+}
+
 void DatabaseConnection::close()
 {
     sqlite3_close(db);
+    isDBOpened = false;
     db = nullptr;
 }
 

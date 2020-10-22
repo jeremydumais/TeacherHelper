@@ -3,26 +3,45 @@
 using namespace std;
 
 
-DatabaseController::DatabaseController(string dbName,
-                                       unique_ptr<IDatabaseConnection> databaseConnection) 
+DatabaseController::DatabaseController(unique_ptr<IDatabaseConnection> databaseConnection) 
     : databaseConnection { databaseConnection ? 
                            move(databaseConnection) : 
-                           unique_ptr<IDatabaseConnection>(make_unique<DatabaseConnection>(dbName))}
+                           nullptr }
 {
 }
 
-const std::string& DatabaseController::getDatabaseName() const
+bool DatabaseController::isDatabaseOpened() const
 {
-    return databaseConnection->getDbName();
+    if (databaseConnection) {
+        return databaseConnection->isOpened();
+    }
+    else {
+        return false;
+    }
 }
 
-void DatabaseController::openDatabase() 
+std::string DatabaseController::getOpenedDatabaseName() const
 {
+    if (databaseConnection)
+        return databaseConnection->getDbName();
+    else
+        return "";
+}
+
+void DatabaseController::openDatabase(const string &databaseName) 
+{
+    if (!databaseConnection)
+        databaseConnection = make_unique<DatabaseConnection>(databaseName);
     databaseConnection->open();
 }
 
 void DatabaseController::closeDatabase() 
 {
+    if (!databaseConnection)
+        throw runtime_error("No connection has been supplied.");
+    if (!databaseConnection->isOpened())
+        throw runtime_error("Cannot close an already closed database.");
+    
     databaseConnection->close();
+    databaseConnection.reset();
 }
-
