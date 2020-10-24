@@ -20,7 +20,7 @@ public:
 
 TEST(DatabaseController_Constructor, WithValidDatabaseConnection_ReturnSuccess)
 {
-	DatabaseController controller(unique_ptr<IDatabaseConnection>(make_unique<FakeDatabaseConnection>()));
+	DatabaseController controller(make_unique<FakeDatabaseConnection>());
 	ASSERT_EQ("dbtest"s, controller.getOpenedDatabaseName());
 }
 
@@ -69,7 +69,7 @@ TEST(DatabaseController_getDatabaseName, WithMyTestNoOpenedConnection_ReturnMyTe
 
 TEST(DatabaseController_openDatabase, WithValidConnection_ReturnSuccess)
 {
-	DatabaseController controller(unique_ptr<IDatabaseConnection>(make_unique<FakeDatabaseConnection>()));
+	DatabaseController controller(make_unique<FakeDatabaseConnection>());
 	controller.openDatabase("test"s);
 }
 
