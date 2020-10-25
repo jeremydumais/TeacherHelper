@@ -4,7 +4,7 @@
 
 using namespace std;
 
-SQLiteSelectOperation::SQLiteSelectOperation(const DatabaseConnection &connection, 
+SQLiteSelectOperation::SQLiteSelectOperation(const IDatabaseConnection &connection, 
                                              const std::string &query,
                                              const vector<string> &args)
     : IStorageSelectOperation(connection, query, args),
@@ -18,7 +18,7 @@ bool SQLiteSelectOperation::execute()
     char *zErrMsg {nullptr};
     sqlite3_stmt *stmt;
     
-    result = sqlite3_prepare_v2(dbConnection->getConnectionPtr(), 
+    result = sqlite3_prepare_v2(static_cast<sqlite3*>(dbConnection->getConnectionPtr()), 
                           query.c_str(),
                           -1, 
                           &stmt, 
@@ -36,7 +36,7 @@ bool SQLiteSelectOperation::execute()
     for(int i=1; i<=args.size(); i++) {
         result = sqlite3_bind_text(stmt, i, (args[i-1]).c_str(), -1, nullptr);
         if(result != SQLITE_OK) {
-            lastError = sqlite3_errmsg(dbConnection->getConnectionPtr());
+            lastError = sqlite3_errmsg(static_cast<sqlite3*>(dbConnection->getConnectionPtr()));
             sqlite3_finalize(stmt);
             return false;
         }

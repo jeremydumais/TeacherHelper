@@ -22,7 +22,7 @@
 class ASSESSMENTSTORAGE_API AssessmentStorage : public ManagementItemStorageBase<Assessment>
 {
 public:
-    explicit AssessmentStorage(const DatabaseConnection &connection, 
+    explicit AssessmentStorage(const IDatabaseConnection &connection, 
                                const std::unique_ptr<IStorageOperationFactory> operationFactory = nullptr);
 
     std::string getSelectCommand() const override;

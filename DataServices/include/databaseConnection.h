@@ -1,8 +1,11 @@
 #pragma once
 
 #include "IDatabaseConnection.h"
+#include "IDatabaseOperations.h"
+#include "IFileSystemOperations.h"
+#include "IStorageOperationFactory.h"
+#include <memory>
 #include <string>
-#include <sqlite3.h>
 
 #ifdef _WIN32
     #ifdef DATASERVICES_EXPORTS  
@@ -17,10 +20,13 @@
 class DATABASECONNECTION_API DatabaseConnection : public IDatabaseConnection
 {
 public:
-    explicit DatabaseConnection(const std::string &dbName);
+    explicit DatabaseConnection(const std::string &dbName, 
+                                std::unique_ptr<IFileSystemOperations> fileSystemOperations = nullptr,
+                                std::unique_ptr<IDatabaseOperations> databaseOperations = nullptr,
+                                std::unique_ptr<IStorageOperationFactory> operationFactory = nullptr);
     virtual ~DatabaseConnection();
     const std::string &getDbName() const override;
-    sqlite3 *getConnectionPtr() const;
+    void *getConnectionPtr() const override;
     void open() override;
     bool isOpened() const override;
     void close() override;
@@ -28,5 +34,7 @@ public:
 private:
     std::string dbName;
     bool isDBOpened;
-	sqlite3 *db;
+    std::unique_ptr<IFileSystemOperations> fileSystemOperations;
+    std::unique_ptr<IDatabaseOperations> databaseOperations;
+    std::unique_ptr<IStorageOperationFactory> operationFactory;
 };

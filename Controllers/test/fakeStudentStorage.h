@@ -1,5 +1,6 @@
 #pragma once
 
+#include "fakeDatabaseConnection.h"
 #include "ManagementItemStorageBase.h"
 #include "student.h"
 #include <list>
@@ -12,7 +13,7 @@ public:
 			Student(1, "Joe", "Blow"),
 			Student(2, "Jane", "Doe", "A comment")
 		}),
-		ManagementItemStorageBase<Student>(DatabaseConnection("nulldb")) {}
+		ManagementItemStorageBase<Student>(FakeDatabaseConnection()) {}
     std::list<Student> getAllItems() override { return students;	}
     const std::string &getLastError() const override { return lastError; }
     bool insertItem(const Student &student) override { return insertResult; }

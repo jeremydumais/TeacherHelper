@@ -1,17 +1,31 @@
 #include "databaseConnection.h"
+#include "fileSystemOperations.h"
+#include "sqliteDatabaseOperations.h"
 #include "sqliteDDLOperation.h"
+#include "sqliteOperationFactory.h"
 #include <boost/algorithm/string.hpp>
-#include <boost/filesystem.hpp>
 #include <fmt/format.h>
+#include <memory>
 #include <stdexcept>
 
 using namespace std;
 using namespace boost;
 
-DatabaseConnection::DatabaseConnection(const std::string &dbName)
+DatabaseConnection::DatabaseConnection(const std::string &dbName,
+                                       std::unique_ptr<IFileSystemOperations> fileSystemOperations,
+                                       std::unique_ptr<IDatabaseOperations> databaseOperations,
+                                       std::unique_ptr<IStorageOperationFactory> operationFactory)
     : dbName(dbName),
       isDBOpened(false),
-      db(nullptr)
+      fileSystemOperations { fileSystemOperations ? 
+                             move(fileSystemOperations) :  
+                             make_unique<FileSystemOperations>() },
+      databaseOperations { databaseOperations ?
+                           move(databaseOperations) : 
+                           make_unique<SQLiteDatabaseOperations>() },
+      operationFactory { operationFactory ? 
+                         move(operationFactory) :  
+                         make_unique<SQLiteOperationFactory>()}
 {
     if (trim_copy(dbName).empty()) {
         throw invalid_argument("dbName cannot be null or empty.");
@@ -20,7 +34,7 @@ DatabaseConnection::DatabaseConnection(const std::string &dbName)
 
 DatabaseConnection::~DatabaseConnection()
 {
-    sqlite3_close(db);
+    databaseOperations->close();
 }
 
 const std::string &DatabaseConnection::getDbName() const
@@ -28,26 +42,26 @@ const std::string &DatabaseConnection::getDbName() const
     return dbName;
 }
 
-sqlite3 *DatabaseConnection::getConnectionPtr() const
+void *DatabaseConnection::getConnectionPtr() const
 {
-    return db;
+    return databaseOperations->getConnectionPtr();
 }
 
 void DatabaseConnection::open()
 {
-    if (!filesystem::exists(dbName)) {
+    if (!fileSystemOperations->fileExists(dbName)) {
         throw runtime_error(fmt::format("The database {0} does not exist.", dbName));
     }
 
-    int connection_result = sqlite3_open(dbName.c_str(), &db);
+    int connection_result = databaseOperations->open(dbName.c_str());
     if (connection_result != 0) {
         throw runtime_error(fmt::format("Cannot open database {0}. sqlite3_errmsg(db)", dbName));
     }
     isDBOpened = true;
     //Enabling Foreign Key Support
-    SQLiteDDLOperation operation(*this, "PRAGMA foreign_keys = ON");
-    if (!operation.execute()) {
-            throw runtime_error(operation.getLastError());
+    auto operation = operationFactory->createDDLOperation(*this, "PRAGMA foreign_keys = ON");
+    if (!operation->execute()) {
+            throw runtime_error(operation->getLastError());
     }
 }
 
@@ -59,14 +73,13 @@ bool DatabaseConnection::isOpened() const
 
 void DatabaseConnection::close()
 {
-    sqlite3_close(db);
+    databaseOperations->close();
     isDBOpened = false;
-    db = nullptr;
 }
 
 void DatabaseConnection::create()
 {
-    int connection_result = sqlite3_open_v2(dbName.c_str(), 
+    /*int connection_result = sqlite3_open_v2(dbName.c_str(), 
                                             &db, 
                                             SQLITE_OPEN_READWRITE | SQLITE_OPEN_CREATE, 
                                             nullptr);
@@ -89,5 +102,5 @@ void DatabaseConnection::create()
         if (!operationCreateTableSchool.execute()) {
             throw runtime_error(operationCreateTableSchool.getLastError());
         }
-    }
+    }*/
 }

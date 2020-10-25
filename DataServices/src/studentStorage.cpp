@@ -11,7 +11,7 @@
 
 using namespace std;
 
-StudentStorage::StudentStorage(const DatabaseConnection &connection, 
+StudentStorage::StudentStorage(const IDatabaseConnection &connection, 
                                unique_ptr<IStorageOperationFactory> operationFactory)
     : ManagementItemStorageBase<Student>(connection, move(operationFactory))
 {

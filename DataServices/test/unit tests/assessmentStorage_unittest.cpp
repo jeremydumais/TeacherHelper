@@ -1,6 +1,7 @@
 #include "assessmentStorage.h"
 #include "IStorageOperationFactory.h"
 #include "IStorageUpdateOperation.h"
+#include "FakeDatabaseConnection.h"
 #include "FakeDeleteOperation.h"
 #include "FakeInsertOperation.h"
 #include "FakeUpdateOperation.h"
@@ -125,7 +126,7 @@ TEST(AssessmentStorage_getAllItems, TwoAssessmentsWithNoResultsNoError_ReturnLis
         FakeOperationResultFactory::createNewSelectResult(true, "", { assessmentSample1, assessmentSample2 }),
         FakeOperationResultFactory::createNewSelectResult(true)
     }) };
-    AssessmentStorage storage(DatabaseConnection("fake"), move(factory));
+    AssessmentStorage storage(FakeDatabaseConnection(), move(factory));
     ASSERT_EQ(2, storage.getAllItems().size());
 }
 
@@ -135,7 +136,7 @@ TEST(AssessmentStorage_getAllItems, TwoAssessmentsWithOneResultsNoError_ReturnLi
         FakeOperationResultFactory::createNewSelectResult(true, "", { assessmentSample1, assessmentSample2 }),
         FakeOperationResultFactory::createNewSelectResult(true, "", { assessmentResultSample1 })
     }) };
-    AssessmentStorage storage(DatabaseConnection("fake"), move(factory));
+    AssessmentStorage storage(FakeDatabaseConnection(), move(factory));
     auto items { storage.getAllItems() };
     ASSERT_EQ(2, items.size());
     ASSERT_EQ(1, items.begin()->getResults().size());
@@ -146,7 +147,7 @@ TEST(AssessmentStorage_getAllItems, ErrorAtFirstSelect_ReturnEmptyList)
     auto factory { make_unique<FakeOperationFactory>( vector<FakeOperationResult> { 
         FakeOperationResultFactory::createNewSelectResult(false, "An error occurred while loading the assessments."),
     }) };
-    AssessmentStorage storage(DatabaseConnection("fake"), move(factory));
+    AssessmentStorage storage(FakeDatabaseConnection(), move(factory));
     ASSERT_EQ(0, storage.getAllItems().size());
     ASSERT_EQ("An error occurred while loading the assessments.", storage.getLastError());
 }
@@ -157,7 +158,7 @@ TEST(AssessmentStorage_getAllItems, ErrorAtSecondSelect_ReturnEmptyList)
         FakeOperationResultFactory::createNewSelectResult(true, "", { assessmentSample1, assessmentSample2 }),
         FakeOperationResultFactory::createNewSelectResult(false, "An error occurred while loading the results."),
     }) };
-    AssessmentStorage storage(DatabaseConnection("fake"), move(factory));
+    AssessmentStorage storage(FakeDatabaseConnection(), move(factory));
     ASSERT_EQ(0, storage.getAllItems().size());
     ASSERT_EQ("An error occurred while loading the results.", storage.getLastError());
 }
@@ -168,7 +169,7 @@ TEST(AssessmentStorage_getItemsByClassId, NoAssessmentForClass_ReturnEmptyList)
         FakeOperationResultFactory::createNewSelectResult(true, "", { assessmentSample1, assessmentSample2 }),
         FakeOperationResultFactory::createNewSelectResult(true, "", { assessmentResultSample1 })
     }) };
-    AssessmentStorage storage(DatabaseConnection("fake"), move(factory));
+    AssessmentStorage storage(FakeDatabaseConnection(), move(factory));
 
     auto items { storage.getItemsByClassId(1) };
     ASSERT_EQ(2, items.size());
@@ -181,7 +182,7 @@ TEST(AssessmentStorage_getItemById, WithReturningTwoAssessment_ReturnNoAssessmen
         FakeOperationResultFactory::createNewSelectResult(true, "", { assessmentSample1, assessmentSample2 }),
         FakeOperationResultFactory::createNewSelectResult(true, "", { assessmentResultSample1 })
     }) };
-    AssessmentStorage storage(DatabaseConnection("fake"), move(factory));
+    AssessmentStorage storage(FakeDatabaseConnection(), move(factory));
 
     auto items { storage.getItemById(1) };
     ASSERT_FALSE(items);
@@ -194,7 +195,7 @@ TEST(AssessmentStorage_getItemById, WithReturningNoAssessment_ReturnNoAssessment
         FakeOperationResultFactory::createNewSelectResult(true, "", {}),
         FakeOperationResultFactory::createNewSelectResult(true, "", {})
     }) };
-    AssessmentStorage storage(DatabaseConnection("fake"), move(factory));
+    AssessmentStorage storage(FakeDatabaseConnection(), move(factory));
 
     auto items { storage.getItemById(1) };
     ASSERT_FALSE(items);
@@ -208,7 +209,7 @@ TEST_F(AssessmentStorageWithSampleTwoResult, insertItem_ValidInsert_ReturnTrue)
         FakeOperationResultFactory::createNewSelectResult(true, "", { vector<boost::any> { 3 } }),
         FakeOperationResultFactory::createNewInsertResult(true)
     }) };
-    AssessmentStorage storage(DatabaseConnection("fake"), move(factory));
+    AssessmentStorage storage(FakeDatabaseConnection(), move(factory));
 
     ASSERT_TRUE(storage.insertItem(assessmentSample));
 }
@@ -218,7 +219,7 @@ TEST_F(AssessmentStorageWithSampleTwoResult, insertItem_ErrorAtInsert_ReturnFals
     auto factory { make_unique<FakeOperationFactory>( vector<FakeOperationResult> { 
         FakeOperationResultFactory::createNewInsertResult(false, "An error occurred while inserting")
     }) };
-    AssessmentStorage storage(DatabaseConnection("fake"), move(factory));
+    AssessmentStorage storage(FakeDatabaseConnection(), move(factory));
 
     ASSERT_FALSE(storage.insertItem(assessmentSample));
     ASSERT_EQ("An error occurred while inserting", storage.getLastError());
@@ -230,7 +231,7 @@ TEST_F(AssessmentStorageWithSampleTwoResult, insertItem_ErrorAtRetreiveId_Return
         FakeOperationResultFactory::createNewInsertResult(true),
         FakeOperationResultFactory::createNewSelectResult(false, "An error occurred while retreiving id")
     }) };
-    AssessmentStorage storage(DatabaseConnection("fake"), move(factory));
+    AssessmentStorage storage(FakeDatabaseConnection(), move(factory));
 
     ASSERT_FALSE(storage.insertItem(assessmentSample));
     ASSERT_EQ("An error occurred while retreiving id", storage.getLastError());
@@ -244,7 +245,7 @@ TEST_F(AssessmentStorageWithSampleTwoResult, retreiveAssignedAssessmentId_ValidI
         FakeOperationResultFactory::createNewInsertResult(true, ""),
         FakeOperationResultFactory::createNewSelectResult(true, "", { vector<boost::any> { 3 } })
     }) };
-    AssessmentStorage storage(DatabaseConnection("fake"), move(factory));
+    AssessmentStorage storage(FakeDatabaseConnection(), move(factory));
 
     ASSERT_TRUE(storage.insertItem(assessmentSample));
     ASSERT_EQ(3, storage.retreiveAssignedRecordId());
@@ -258,7 +259,7 @@ TEST_F(AssessmentStorageWithSampleTwoResult, retreiveAssignedAssessmentId_ErrorA
         FakeOperationResultFactory::createNewInsertResult(true, ""),
         FakeOperationResultFactory::createNewSelectResult(false, "An error occurred while selecting")
     }) };
-    AssessmentStorage storage(DatabaseConnection("fake"), move(factory));
+    AssessmentStorage storage(FakeDatabaseConnection(), move(factory));
 
     ASSERT_TRUE(storage.insertItem(assessmentSample));
     ASSERT_EQ(0, storage.retreiveAssignedRecordId());
@@ -273,7 +274,7 @@ TEST_F(AssessmentStorageWithSampleTwoResult, retreiveAssignedAssessmentId_ErrorA
         FakeOperationResultFactory::createNewInsertResult(true, ""),
         FakeOperationResultFactory::createNewSelectResult(true, "", {})
     }) };
-    AssessmentStorage storage(DatabaseConnection("fake"), move(factory));
+    AssessmentStorage storage(FakeDatabaseConnection(), move(factory));
 
     ASSERT_TRUE(storage.insertItem(assessmentSample));
     ASSERT_EQ(0, storage.retreiveAssignedRecordId());
@@ -285,7 +286,7 @@ TEST_F(AssessmentStorageWithSampleTwoResult, insertResults_ValidInsert_ReturnTru
     auto factory { make_unique<FakeOperationFactory>( vector<FakeOperationResult> { 
         FakeOperationResultFactory::createNewInsertResult(true, ""),
     }) };
-    AssessmentStorage storage(DatabaseConnection("fake"), move(factory));
+    AssessmentStorage storage(FakeDatabaseConnection(), move(factory));
 
     ASSERT_TRUE(storage.insertResults(assessmentSample.getId(), assessmentSample.getResults()));
 }
@@ -295,7 +296,7 @@ TEST_F(AssessmentStorageWithSampleTwoResult, insertResults_ErrorAtInsert_ReturnF
     auto factory { make_unique<FakeOperationFactory>( vector<FakeOperationResult> { 
         FakeOperationResultFactory::createNewInsertResult(false, "An error occurred while inserting")
     }) };
-    AssessmentStorage storage(DatabaseConnection("fake"), move(factory));
+    AssessmentStorage storage(FakeDatabaseConnection(), move(factory));
 
     ASSERT_FALSE(storage.insertResults(assessmentSample.getId(), assessmentSample.getResults()));
     ASSERT_EQ("An error occurred while inserting", storage.getLastError());
@@ -307,7 +308,7 @@ TEST_F(AssessmentStorageWithSampleTwoResult, updateItem_ValidUpdate_ReturnTrue)
         FakeOperationResultFactory::createNewSelectResult(true),
         FakeOperationResultFactory::createNewUpdateResult(true), //Update assessment
     }) };
-    AssessmentStorage storage(DatabaseConnection("fake"), move(factory));
+    AssessmentStorage storage(FakeDatabaseConnection(), move(factory));
 
     ASSERT_TRUE(storage.updateItem(assessmentSample));
 }
@@ -317,7 +318,7 @@ TEST_F(AssessmentStorageWithSampleTwoResult, updateItem_ErrorAtLoadOldResults_Re
     auto factory { make_unique<FakeOperationFactory>( vector<FakeOperationResult> { 
         FakeOperationResultFactory::createNewSelectResult(false, "An error occurred while loading old results")
     }) };
-    AssessmentStorage storage(DatabaseConnection("fake"), move(factory));
+    AssessmentStorage storage(FakeDatabaseConnection(), move(factory));
 
     ASSERT_FALSE(storage.updateItem(assessmentSample));
     ASSERT_EQ("An error occurred while loading old results", storage.getLastError());
@@ -329,7 +330,7 @@ TEST_F(AssessmentStorageWithSampleTwoResult, updateItem_ErrorAtUpdate_ReturnFals
         FakeOperationResultFactory::createNewSelectResult(true),
         FakeOperationResultFactory::createNewUpdateResult(false, "An error occurred while updating")
     }) };
-    AssessmentStorage storage(DatabaseConnection("fake"), move(factory));
+    AssessmentStorage storage(FakeDatabaseConnection(), move(factory));
 
     ASSERT_FALSE(storage.updateItem(assessmentSample));
     ASSERT_EQ("An error occurred while updating", storage.getLastError());
@@ -344,7 +345,7 @@ TEST_F(AssessmentStorageWithSampleTwoResult, updateItem_ValidUpdateWithUpdatingT
         FakeOperationResultFactory::createNewUpdateResult(true),
         FakeOperationResultFactory::createNewUpdateResult(true)
     }) };
-    AssessmentStorage storage(DatabaseConnection("fake"), move(factory));
+    AssessmentStorage storage(FakeDatabaseConnection(), move(factory));
 
     ASSERT_TRUE(storage.updateItem(assessmentSample));
 }
@@ -357,7 +358,7 @@ TEST_F(AssessmentStorageWithSampleTwoResult, updateItem_ValidUpdateButErrorAtUpd
         //Updating the two results
         FakeOperationResultFactory::createNewUpdateResult(false, "An error occurred while updating the results")
     }) };
-    AssessmentStorage storage(DatabaseConnection("fake"), move(factory));
+    AssessmentStorage storage(FakeDatabaseConnection(), move(factory));
 
     ASSERT_FALSE(storage.updateItem(assessmentSample));
     ASSERT_EQ("An error occurred while updating the results", storage.getLastError());
@@ -371,7 +372,7 @@ TEST_F(AssessmentStorageWithSampleTwoResult, updateItem_ValidUpdateWithUpdatingO
         FakeOperationResultFactory::createNewUpdateResult(true), //Updating one result
         FakeOperationResultFactory::createNewDeleteResult(true)  //Deleting one result
     }) };
-    AssessmentStorage storage(DatabaseConnection("fake"), move(factory));
+    AssessmentStorage storage(FakeDatabaseConnection(), move(factory));
     assessmentSample.removeResult(result1);
     ASSERT_TRUE(storage.updateItem(assessmentSample));
 }
@@ -384,7 +385,7 @@ TEST_F(AssessmentStorageWithSampleTwoResult, updateItem_ValidUpdateWithUpdatingO
         FakeOperationResultFactory::createNewUpdateResult(true), //Updating one result
         FakeOperationResultFactory::createNewDeleteResult(false, "An error occurred while deleting the results") //Deleting one result
     }) };
-    AssessmentStorage storage(DatabaseConnection("fake"), move(factory));
+    AssessmentStorage storage(FakeDatabaseConnection(), move(factory));
     assessmentSample.removeResult(result1);
     ASSERT_FALSE(storage.updateItem(assessmentSample));
     ASSERT_EQ("An error occurred while deleting the results", storage.getLastError());
@@ -401,7 +402,7 @@ TEST_F(AssessmentStorageWithSampleTwoResult, updateItem_ValidUpdateWithDeletingT
         FakeOperationResultFactory::createNewInsertResult(true)
 
     }) };
-    AssessmentStorage storage(DatabaseConnection("fake"), move(factory));
+    AssessmentStorage storage(FakeDatabaseConnection(), move(factory));
     assessmentSample.removeResult(result1);
     assessmentSample.removeResult(result2);
     assessmentSample.addResult(AssessmentResult(Student(3, "Santa", "Claus"), 77.7f, ""));
@@ -417,7 +418,7 @@ auto factory { make_unique<FakeOperationFactory>( vector<FakeOperationResult> {
         FakeOperationResultFactory::createNewDeleteResult(true) 
 
     }) };
-    AssessmentStorage storage(DatabaseConnection("fake"), move(factory));
+    AssessmentStorage storage(FakeDatabaseConnection(), move(factory));
     ASSERT_EQ(QueryResult::OK, storage.deleteItem(assessmentSample.getId()));
 }
 
@@ -432,7 +433,7 @@ auto factory { make_unique<FakeOperationFactory>( vector<FakeOperationResult> {
         FakeOperationResultFactory::createNewDeleteResult(true) 
 
     }) };
-    AssessmentStorage storage(DatabaseConnection("fake"), move(factory));
+    AssessmentStorage storage(FakeDatabaseConnection(), move(factory));
     ASSERT_EQ(QueryResult::OK, storage.deleteItem(assessmentSample.getId()));
 }
 
@@ -441,7 +442,7 @@ TEST_F(AssessmentStorageWithSampleTwoResult, deleteItem_FailedAtLoadingTheAssess
 auto factory { make_unique<FakeOperationFactory>( vector<FakeOperationResult> { 
         FakeOperationResultFactory::createNewSelectResult(false, "Failed at loading the assessment")
     }) };
-    AssessmentStorage storage(DatabaseConnection("fake"), move(factory));
+    AssessmentStorage storage(FakeDatabaseConnection(), move(factory));
     ASSERT_EQ(QueryResult::ERROR, storage.deleteItem(assessmentSample.getId()));
     ASSERT_EQ("No assessment was returned.", storage.getLastError());
 
@@ -455,7 +456,7 @@ auto factory { make_unique<FakeOperationFactory>( vector<FakeOperationResult> {
         //Delete the two results
         FakeOperationResultFactory::createNewDeleteResult(false, "Failed at deleting the assessment results")
     }) };
-    AssessmentStorage storage(DatabaseConnection("fake"), move(factory));
+    AssessmentStorage storage(FakeDatabaseConnection(), move(factory));
     ASSERT_EQ(QueryResult::ERROR, storage.deleteItem(assessmentSample.getId()));
     ASSERT_EQ("Failed at deleting the assessment results", storage.getLastError());
 }
@@ -470,7 +471,7 @@ auto factory { make_unique<FakeOperationFactory>( vector<FakeOperationResult> {
         //Delete the assessment
         FakeOperationResultFactory::createNewDeleteResult(false, "Failed at deleting the assessment", QueryResult::ERROR)
     }) };
-    AssessmentStorage storage(DatabaseConnection("fake"), move(factory));
+    AssessmentStorage storage(FakeDatabaseConnection(), move(factory));
     ASSERT_EQ(QueryResult::ERROR, storage.deleteItem(assessmentSample.getId()));
     ASSERT_EQ("Failed at deleting the assessment", storage.getLastError());
 }

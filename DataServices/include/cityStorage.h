@@ -20,7 +20,7 @@
 class CITYSTORAGE_API CityStorage : public ManagementItemStorageBase<City>
 {
 public:
-    explicit CityStorage(const DatabaseConnection &connection, 
+    explicit CityStorage(const IDatabaseConnection &connection, 
                          const std::unique_ptr<IStorageOperationFactory> operationFactory = nullptr);
 
     std::string getSelectCommand() const override;

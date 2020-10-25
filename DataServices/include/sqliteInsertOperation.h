@@ -7,7 +7,7 @@
 class SQLiteInsertOperation : public IStorageInsertOperation
 {
 public:
-    SQLiteInsertOperation(const DatabaseConnection &connection, 
+    SQLiteInsertOperation(const IDatabaseConnection &connection, 
                           const std::string &query,
                           const std::vector<std::string> &args);
     bool execute() override;

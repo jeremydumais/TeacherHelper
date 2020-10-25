@@ -15,7 +15,7 @@
 
 using namespace std;
 
-AssessmentStorage::AssessmentStorage(const DatabaseConnection &connection, 
+AssessmentStorage::AssessmentStorage(const IDatabaseConnection &connection, 
                                      unique_ptr<IStorageOperationFactory> operationFactory)
 : ManagementItemStorageBase<Assessment>(connection, move(operationFactory)),
   oldResults(map<size_t, vector<AssessmentResult>>())

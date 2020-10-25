@@ -1,6 +1,6 @@
 #pragma once
 
-#include "databaseConnection.h"
+#include "IDatabaseConnection.h"
 #include "IStorageOperationFactory.h"
 #include "sqliteOperationFactory.h"
 #include "queryResult.h"
@@ -28,7 +28,7 @@ template <class T>
 class MANAGEMENTITEMSTORAGEBASE_API ManagementItemStorageBase
 {
 public:
-    explicit ManagementItemStorageBase(const DatabaseConnection &connection, 
+    explicit ManagementItemStorageBase(const IDatabaseConnection &connection, 
                          std::unique_ptr<IStorageOperationFactory> operationFactory = nullptr)
         : connection(&connection),
         lastError(""),
@@ -194,7 +194,7 @@ protected:
     virtual std::string getReferentialIntegrityConstraintsCommand() const = 0;
     virtual std::vector<std::string> getReferentialIntegrityConstraintsValues(size_t id) const = 0;
 protected:
-    const DatabaseConnection * const connection;
+    const IDatabaseConnection * const connection;
     std::string lastError;
     std::unique_ptr<IStorageOperationFactory> operationFactory;
 };

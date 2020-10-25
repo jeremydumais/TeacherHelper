@@ -19,7 +19,7 @@
 class TESTTYPESTORAGE_API TestTypeStorage : public ManagementItemStorageBase<TestType>
 {
 public:
-    explicit TestTypeStorage(const DatabaseConnection &connection, 
+    explicit TestTypeStorage(const IDatabaseConnection &connection, 
                          const std::unique_ptr<IStorageOperationFactory> operationFactory = nullptr);
 
     std::string getSelectCommand() const override;

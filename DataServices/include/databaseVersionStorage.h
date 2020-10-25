@@ -19,13 +19,13 @@
 class DATABASEVERSIONSTORAGE_API DatabaseVersionStorage
 {
 public:
-    explicit DatabaseVersionStorage(const DatabaseConnection &connection, 
+    explicit DatabaseVersionStorage(const IDatabaseConnection &connection, 
                                     const std::unique_ptr<IStorageOperationFactory> operationFactory = nullptr);
     boost::optional<Version> getVersion();
     const std::string &getLastError() const;
     bool updateVersion(Version version);
 protected:
-    const DatabaseConnection * const connection;
+    const IDatabaseConnection * const connection;
     std::string lastError;
     std::unique_ptr<IStorageOperationFactory> operationFactory;
 private:

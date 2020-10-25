@@ -22,7 +22,7 @@
 class CLASSSTORAGE_API ClassStorage : public ManagementItemStorageBase<Class>
 {
 public:
-    explicit ClassStorage(const DatabaseConnection &connection, 
+    explicit ClassStorage(const IDatabaseConnection &connection, 
                           const std::unique_ptr<IStorageOperationFactory> operationFactory = nullptr);
     std::string getSelectCommand() const override;
     Class getItemFromRecord(const IStorageSelectOperation &record) const override;

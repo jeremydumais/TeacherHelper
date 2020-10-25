@@ -1,22 +1,9 @@
 #include "databaseController.h"
+#include "fakeDatabaseConnection.h"
 #include <gtest/gtest.h>
 #include <memory>
 
 using namespace std;
-
-class FakeDatabaseConnection : public IDatabaseConnection
-{
-public:
-    FakeDatabaseConnection()
-		: dbName("dbtest"s),
-		  isDBOpened(false) {}
-	const std::string &getDbName() const override { return dbName; };
-    void open() override {};
-	bool isOpened() const override { return isDBOpened; }
-    void close() override {};
-	string dbName;
-	bool isDBOpened;
-};
 
 TEST(DatabaseController_Constructor, WithValidDatabaseConnection_ReturnSuccess)
 {

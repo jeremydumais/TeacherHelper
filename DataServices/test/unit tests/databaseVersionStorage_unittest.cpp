@@ -1,6 +1,7 @@
 #include "databaseVersionStorage.h"
 #include "IStorageOperationFactory.h"
 #include "IStorageUpdateOperation.h"
+#include "FakeDatabaseConnection.h"
 #include "FakeInsertOperation.h"
 #include "FakeUpdateOperation.h"
 #include "FakeOperationFactory.h"
@@ -26,7 +27,7 @@ TEST(DatabaseVersionStorage_getVersion, WhenTableDoesntExist_ReturnVersion100)
         FakeOperationResultFactory::createNewSelectResult(true, "", { FakeVersionRow { "1.0.0" }})
     }) };
 
-    DatabaseVersionStorage storage(DatabaseConnection("fake"), move(factory));
+    DatabaseVersionStorage storage(FakeDatabaseConnection(), move(factory));
     auto actual = storage.getVersion();
     ASSERT_TRUE(actual.has_value());
     ASSERT_EQ(Version(1, 0, 0), actual);
@@ -38,7 +39,7 @@ TEST(DatabaseVersionStorage_getVersion, ErrorAtSelectingTableExist_ReturnNoVersi
         FakeOperationResultFactory::createNewSelectResult(false, "Error at looking for the version tables")
     }) };
 
-    DatabaseVersionStorage storage(DatabaseConnection("fake"), move(factory));
+    DatabaseVersionStorage storage(FakeDatabaseConnection(), move(factory));
     auto actual = storage.getVersion();
     ASSERT_FALSE(actual.has_value());
     ASSERT_EQ("Error at looking for the version tables"s, storage.getLastError());
@@ -50,7 +51,7 @@ TEST(DatabaseVersionStorage_getVersion, ErrorAtSelectingRowTableExist_ReturnVers
         FakeOperationResultFactory::createNewSelectResult(true, "", {})
     }) };
 
-    DatabaseVersionStorage storage(DatabaseConnection("fake"), move(factory));
+    DatabaseVersionStorage storage(FakeDatabaseConnection(), move(factory));
     auto actual = storage.getVersion();
     ASSERT_TRUE(actual.has_value());
     ASSERT_EQ(Version(1, 0, 0), actual);
@@ -62,7 +63,7 @@ TEST(DatabaseVersionStorage_getVersion, ErrorAtSelectingTableExistRowReturnedBut
         FakeOperationResultFactory::createNewSelectResult(true, "", { { "test"s }})
     }) };
 
-    DatabaseVersionStorage storage(DatabaseConnection("fake"), move(factory));
+    DatabaseVersionStorage storage(FakeDatabaseConnection(), move(factory));
     auto actual = storage.getVersion();
     ASSERT_TRUE(actual.has_value());
     ASSERT_EQ(Version(1, 0, 0), actual);
@@ -75,7 +76,7 @@ TEST(DatabaseVersionStorage_getVersion, WithVersion100_ReturnVersion100)
         FakeOperationResultFactory::createNewSelectResult(true, "", { FakeVersionRow { "1.0.0" }})
     }) };
 
-    DatabaseVersionStorage storage(DatabaseConnection("fake"), move(factory));
+    DatabaseVersionStorage storage(FakeDatabaseConnection(), move(factory));
     auto actual = storage.getVersion();
     ASSERT_TRUE(actual.has_value());
     ASSERT_EQ(Version(1, 0, 0), actual);
@@ -88,7 +89,7 @@ TEST(DatabaseVersionStorage_getVersion, WithVersion234_ReturnVersion234)
         FakeOperationResultFactory::createNewSelectResult(true, "", { FakeVersionRow { "2.3.4" }})
     }) };
 
-    DatabaseVersionStorage storage(DatabaseConnection("fake"), move(factory));
+    DatabaseVersionStorage storage(FakeDatabaseConnection(), move(factory));
     auto actual = storage.getVersion();
     ASSERT_TRUE(actual.has_value());
     ASSERT_EQ(Version(2, 3, 4), actual);
@@ -101,7 +102,7 @@ TEST(DatabaseVersionStorage_getVersion, ErrorAtSelectingVersionTable_ReturnNoVer
         FakeOperationResultFactory::createNewSelectResult(false, "Error at selection version table."s)
     }) };
 
-    DatabaseVersionStorage storage(DatabaseConnection("fake"), move(factory));
+    DatabaseVersionStorage storage(FakeDatabaseConnection(), move(factory));
     auto actual = storage.getVersion();
     ASSERT_FALSE(actual.has_value());
     ASSERT_EQ("Error at selection version table."s, storage.getLastError());
@@ -114,7 +115,7 @@ TEST(DatabaseVersionStorage_getVersion, ErrorAtSelectingVersionTableRow_ReturnNo
         FakeOperationResultFactory::createNewSelectResult(true, "Error at selecting row"s, {})
     }) };
 
-    DatabaseVersionStorage storage(DatabaseConnection("fake"), move(factory));
+    DatabaseVersionStorage storage(FakeDatabaseConnection(), move(factory));
     auto actual = storage.getVersion();
     ASSERT_FALSE(actual.has_value());
     ASSERT_EQ("Error at selecting row"s, storage.getLastError());
@@ -127,7 +128,7 @@ TEST(DatabaseVersionStorage_getVersion, ErrorVersionTableRowEmptyString_ReturnNo
         FakeOperationResultFactory::createNewSelectResult(true, ""s, { FakeVersionRow { "" }})
     }) };
 
-    DatabaseVersionStorage storage(DatabaseConnection("fake"), move(factory));
+    DatabaseVersionStorage storage(FakeDatabaseConnection(), move(factory));
     auto actual = storage.getVersion();
     ASSERT_FALSE(actual.has_value());
 }
@@ -139,7 +140,7 @@ TEST(DatabaseVersionStorage_getVersion, ErrorVersionTableRowOutOfRangeValues_Ret
         FakeOperationResultFactory::createNewSelectResult(true, ""s, { FakeVersionRow { "666.666.666" }})
     }) };
 
-    DatabaseVersionStorage storage(DatabaseConnection("fake"), move(factory));
+    DatabaseVersionStorage storage(FakeDatabaseConnection(), move(factory));
     auto actual = storage.getVersion();
     ASSERT_FALSE(actual.has_value());
 }
@@ -150,7 +151,7 @@ TEST(DatabaseVersionStorage_updateVersion, Version101_ReturnTrue)
         FakeOperationResultFactory::createNewUpdateResult(true, ""s)
     }) };
 
-    DatabaseVersionStorage storage(DatabaseConnection("fake"), move(factory));
+    DatabaseVersionStorage storage(FakeDatabaseConnection(), move(factory));
     ASSERT_TRUE(storage.updateVersion(Version(1, 0, 1)));
 }
 
@@ -160,7 +161,7 @@ TEST(DatabaseVersionStorage_updateVersion, ErrorAtUpdating_ReturnFalse)
         FakeOperationResultFactory::createNewUpdateResult(false, "Error while updating version"s)
     }) };
 
-    DatabaseVersionStorage storage(DatabaseConnection("fake"), move(factory));
+    DatabaseVersionStorage storage(FakeDatabaseConnection(), move(factory));
     ASSERT_FALSE(storage.updateVersion(Version(1, 0, 1)));
     ASSERT_EQ("Error while updating version"s, storage.getLastError());
 }

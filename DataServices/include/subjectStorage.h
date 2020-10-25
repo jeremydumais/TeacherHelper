@@ -20,7 +20,7 @@
 class SUBJECTSTORAGE_API SubjectStorage : public ManagementItemStorageBase<Subject>
 {
 public:
-    explicit SubjectStorage(const DatabaseConnection &connection, 
+    explicit SubjectStorage(const IDatabaseConnection &connection, 
                             const std::unique_ptr<IStorageOperationFactory> operationFactory = nullptr);
     std::string getSelectCommand() const override;
     Subject getItemFromRecord(const IStorageSelectOperation &record) const override;

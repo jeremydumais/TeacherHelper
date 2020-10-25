@@ -6,7 +6,7 @@
 class IStorageSelectOperation : public OperationBase
 {
 public:
-    IStorageSelectOperation(const DatabaseConnection &connection, 
+    IStorageSelectOperation(const IDatabaseConnection &connection, 
                           const std::string &query,
                           const std::vector<std::string> &args = std::vector<std::string>())
         : OperationBase(connection, query, args) {}

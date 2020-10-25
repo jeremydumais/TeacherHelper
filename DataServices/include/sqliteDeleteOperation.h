@@ -8,7 +8,7 @@
 class SQLiteDeleteOperation : public IStorageDeleteOperation
 {
 public:
-    SQLiteDeleteOperation(const DatabaseConnection &connection, 
+    SQLiteDeleteOperation(const IDatabaseConnection &connection, 
                           const std::string &query,
                           const std::vector<std::string> &args);
     bool execute() override;

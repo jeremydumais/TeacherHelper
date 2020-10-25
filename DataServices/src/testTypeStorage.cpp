@@ -12,7 +12,7 @@
 
 using namespace std;
 
-TestTypeStorage::TestTypeStorage(const DatabaseConnection &connection, 
+TestTypeStorage::TestTypeStorage(const IDatabaseConnection &connection, 
                          unique_ptr<IStorageOperationFactory> operationFactory)
     : ManagementItemStorageBase<TestType>(connection, move(operationFactory))
 {

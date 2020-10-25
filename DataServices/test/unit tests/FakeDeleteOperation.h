@@ -5,7 +5,7 @@
 class FakeDeleteOperation : public IStorageDeleteOperation
 {
 public:
-    FakeDeleteOperation(const DatabaseConnection &connection, 
+    FakeDeleteOperation(const IDatabaseConnection &connection, 
                           const std::string &query,
                           const std::vector<std::string> &args,
                           bool executeResult,

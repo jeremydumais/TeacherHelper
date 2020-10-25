@@ -7,7 +7,7 @@
 class SQLiteUpdateOperation : public IStorageUpdateOperation
 {
 public:
-    SQLiteUpdateOperation(const DatabaseConnection &connection, 
+    SQLiteUpdateOperation(const IDatabaseConnection &connection, 
                           const std::string &query,
                           const std::vector<std::string> &args);
     bool execute() override;

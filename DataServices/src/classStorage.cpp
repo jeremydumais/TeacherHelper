@@ -12,7 +12,7 @@
 
 using namespace std;
 
-ClassStorage::ClassStorage(const DatabaseConnection &connection, 
+ClassStorage::ClassStorage(const IDatabaseConnection &connection, 
                            unique_ptr<IStorageOperationFactory> operationFactory)
     : ManagementItemStorageBase<Class>(connection, move(operationFactory)),
       oldMembers(list<Student>())

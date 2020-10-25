@@ -10,7 +10,7 @@
 class FakeSelectOperation : public IStorageSelectOperation
 {
 public:
-    FakeSelectOperation(const DatabaseConnection &connection, 
+    FakeSelectOperation(const IDatabaseConnection &connection, 
                           const std::string &query,
                           const std::vector<std::string> &args,
                           bool executeResult,

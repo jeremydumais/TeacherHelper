@@ -12,7 +12,7 @@
 
 using namespace std;
 
-SubjectStorage::SubjectStorage(const DatabaseConnection &connection, 
+SubjectStorage::SubjectStorage(const IDatabaseConnection &connection, 
                                unique_ptr<IStorageOperationFactory> operationFactory)
     : ManagementItemStorageBase<Subject>(connection, move(operationFactory))
 {

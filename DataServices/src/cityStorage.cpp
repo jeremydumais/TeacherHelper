@@ -12,7 +12,7 @@
 
 using namespace std;
 
-CityStorage::CityStorage(const DatabaseConnection &connection, 
+CityStorage::CityStorage(const IDatabaseConnection &connection, 
                          unique_ptr<IStorageOperationFactory> operationFactory)
     : ManagementItemStorageBase<City>(connection, move(operationFactory))
 {

@@ -20,7 +20,7 @@
 class SCHOOLSTORAGE_API SchoolStorage : public ManagementItemStorageBase<School>
 {
 public:
-    explicit SchoolStorage(const DatabaseConnection &connection, 
+    explicit SchoolStorage(const IDatabaseConnection &connection, 
                            const std::unique_ptr<IStorageOperationFactory> operationFactory = nullptr);
 
     std::string getSelectCommand() const override;

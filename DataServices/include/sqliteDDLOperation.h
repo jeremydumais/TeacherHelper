@@ -1,13 +1,14 @@
 #pragma once
 
-#include "operationBase.h"
+#include "IStorageDDLOperation.h"
 #include <string>
 #include <vector>
 
-class SQLiteDDLOperation : public OperationBase
+class SQLiteDDLOperation : public IStorageDDLOperation
 {
 public:
-    SQLiteDDLOperation(const DatabaseConnection &connection, 
-                          const std::string &query);
+    SQLiteDDLOperation(const IDatabaseConnection &connection, 
+                       const std::string &query,
+                       const std::vector<std::string> &args = {});
     bool execute() override;
 };

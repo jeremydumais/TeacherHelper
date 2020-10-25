@@ -1,13 +1,14 @@
 #pragma once
 
 #include "IStorageSelectOperation.h"
+#include <sqlite3.h>
 #include <string>
 #include <vector>
 
 class SQLiteSelectOperation : public IStorageSelectOperation
 {
 public:
-    SQLiteSelectOperation(const DatabaseConnection &connection, 
+    SQLiteSelectOperation(const IDatabaseConnection &connection, 
                           const std::string &query,
                           const std::vector<std::string> &args = std::vector<std::string>());
     bool execute() override;

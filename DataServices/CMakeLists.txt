@@ -10,6 +10,8 @@ if(APPLE)
 endif()
 
 add_library(${PROJECT_NAME} SHARED src/databaseConnection.cpp
+                                   src/fileSystemOperations.cpp
+                                   src/sqliteDatabaseOperations.cpp
                                    src/sqliteInsertOperation.cpp
                                    src/sqliteUpdateOperation.cpp
                                    src/sqliteSelectOperation.cpp
@@ -25,7 +27,8 @@ add_library(${PROJECT_NAME} SHARED src/databaseConnection.cpp
                                    src/sqliteDateTime.cpp
                                    src/sqliteDateTimeFactory.cpp
                                    src/assessmentStorage.cpp
-                                   src/databaseVersionStorage.cpp)
+                                   src/databaseVersionStorage.cpp
+                                   src/databaseManagementOperations.cpp)
 target_compile_definitions(${PROJECT_NAME} PRIVATE DATASERVICES_EXPORTS)
 if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU" OR "${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
   target_compile_definitions(${PROJECT_NAME} PRIVATE SUPPORT_MAYBE_UNUSED)

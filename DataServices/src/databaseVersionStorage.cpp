@@ -3,7 +3,7 @@
 
 using namespace std;
 
-DatabaseVersionStorage::DatabaseVersionStorage(const DatabaseConnection &connection, 
+DatabaseVersionStorage::DatabaseVersionStorage(const IDatabaseConnection &connection, 
                                                unique_ptr<IStorageOperationFactory> operationFactory)
     : connection(&connection),
       lastError(""),

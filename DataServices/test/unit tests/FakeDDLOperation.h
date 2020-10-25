@@ -1,16 +1,16 @@
 #pragma once
 
-#include "IStorageInsertOperation.h"
+#include "IStorageDDLOperation.h"
 
-class FakeInsertOperation : public IStorageInsertOperation
+class FakeDDLOperation : public IStorageDDLOperation
 {
 public:
-    FakeInsertOperation(const IDatabaseConnection &connection, 
+    FakeDDLOperation(const IDatabaseConnection &connection, 
                           const std::string &query,
                           const std::vector<std::string> &args,
                           bool executeResult,
                           const std::string &lastError)
-        : IStorageInsertOperation(connection, query, args),
+        : IStorageDDLOperation(connection, query, args),
           executeResult(executeResult) 
           { 
               this->lastError = lastError;

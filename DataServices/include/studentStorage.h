@@ -20,7 +20,7 @@
 class STUDENTSTORAGE_API StudentStorage : public ManagementItemStorageBase<Student>
 {
 public:
-    explicit StudentStorage(const DatabaseConnection &connection, 
+    explicit StudentStorage(const IDatabaseConnection &connection, 
                             const std::unique_ptr<IStorageOperationFactory> operationFactory = nullptr);
     std::string getSelectCommand() const override;
     Student getItemFromRecord(const IStorageSelectOperation &record) const override;
