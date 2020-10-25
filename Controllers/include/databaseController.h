@@ -1,7 +1,8 @@
 #pragma once
 
 #include "version.h"
-#include "databaseConnection.h"
+#include "IDatabaseConnection.h"
+#include "IDatabaseManagementOperations.h"
 #include <list>
 #include <memory>
 
@@ -18,7 +19,8 @@
 class DATABASECONTROLLER_API DatabaseController
 {
 public:
-    explicit DatabaseController(std::unique_ptr<IDatabaseConnection> databaseConnection = nullptr);
+    explicit DatabaseController(std::unique_ptr<IDatabaseConnection> databaseConnection = nullptr,
+                                std::unique_ptr<IDatabaseManagementOperations> databaseManagementOperations = nullptr);
     bool isDatabaseOpened() const;
     std::string getOpenedDatabaseName() const;
     void openDatabase(const std::string &databaseName);
@@ -26,4 +28,5 @@ public:
         
 private:
     std::unique_ptr<IDatabaseConnection> databaseConnection;
+    std::unique_ptr<IDatabaseManagementOperations> databaseManagementOperations;
 };

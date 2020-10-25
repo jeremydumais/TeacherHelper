@@ -65,6 +65,19 @@ void DatabaseConnection::open()
     }
 }
 
+void DatabaseConnection::openForCreation() 
+{
+    int connection_result = databaseOperations->openForCreation(dbName.c_str());
+    if (connection_result != 0) {
+        throw runtime_error(fmt::format("Cannot open database {0} for creation. sqlite3_errmsg(db)", dbName));
+    }
+    isDBOpened = true;
+    //Enabling Foreign Key Support
+    auto operation = operationFactory->createDDLOperation(*this, "PRAGMA foreign_keys = ON");
+    if (!operation->execute()) {
+            throw runtime_error(operation->getLastError());
+    }
+}
 
 bool DatabaseConnection::isOpened() const
 {

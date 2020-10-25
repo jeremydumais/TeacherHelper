@@ -10,6 +10,10 @@ public:
 		return openReturnValue;
 	};
 
+	int openForCreation(const std::string &fileName) override {
+		return openForCreationReturnValue;
+	};
+
     int close() override {
 		return closeReturnValue;
 	};
@@ -19,6 +23,7 @@ public:
 	};
 
 	int openReturnValue;
+	int openForCreationReturnValue;
 	int closeReturnValue;
 	void *getConnectionPtrReturnValue;
 };

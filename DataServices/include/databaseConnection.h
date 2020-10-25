@@ -28,6 +28,7 @@ public:
     const std::string &getDbName() const override;
     void *getConnectionPtr() const override;
     void open() override;
+    void openForCreation() override;
     bool isOpened() const override;
     void close() override;
     void create();

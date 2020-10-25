@@ -165,3 +165,47 @@ TEST(DatabaseConnection_open, AllStepsValid_ReturnSuccess)
 
 	dbConn.open();
 }
+
+TEST(DatabaseConnection_isOpened, DatabaseIsOpen_ReturnTrue)
+{
+	auto factory { make_unique<FakeOperationFactory>( vector<FakeOperationResult> { 
+		FakeOperationResultFactory::createNewDDLResult(true, "")
+	}) };
+	auto fakeFileSystem { make_unique<FakeFileSystemOperations>() };
+	fakeFileSystem->isFileExists = true;
+	auto fakeDatabaseOperations { make_unique<FakeDatabaseOperations>() };
+	fakeDatabaseOperations->openReturnValue = 0;
+	DatabaseConnection dbConn("validFile", 
+								move(fakeFileSystem),
+								move(fakeDatabaseOperations),
+								move(factory));
+
+	dbConn.open();
+	ASSERT_TRUE(dbConn.isOpened());
+}
+
+TEST(DatabaseConnection_open, DatabaseIsNotOpen_ReturnFalse)
+{
+	auto fakeFileSystem { make_unique<FakeFileSystemOperations>() };
+	fakeFileSystem->isFileExists = false;
+	DatabaseConnection dbConn("notAValidFile", move(fakeFileSystem));
+	try
+	{
+		dbConn.open();
+	}
+	catch(runtime_error &err) 
+	{
+        ASSERT_STREQ("The database notAValidFile does not exist.", err.what());
+	}
+	ASSERT_FALSE(dbConn.isOpened());
+}
+
+TEST(DatabaseConnection_close, closeValidConnection_ReturnSuccess)
+{
+	DatabaseConnection dbConn("Test", 
+							  move(make_unique<FakeFileSystemOperations>()),
+							  move(make_unique<FakeDatabaseOperations>()),
+							  move(make_unique<FakeOperationFactory>(vector<FakeOperationResult> {})));
+	dbConn.close();
+	ASSERT_FALSE(dbConn.isOpened());
+}

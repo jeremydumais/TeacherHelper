@@ -12,13 +12,14 @@ endif()
 add_library(${PROJECT_NAME} SHARED src/databaseConnection.cpp
                                    src/fileSystemOperations.cpp
                                    src/sqliteDatabaseOperations.cpp
+                                   src/databaseConnectionFactory.cpp
                                    src/sqliteInsertOperation.cpp
                                    src/sqliteUpdateOperation.cpp
                                    src/sqliteSelectOperation.cpp
                                    src/sqliteDeleteOperation.cpp
                                    src/sqliteDDLOperation.cpp
-                                   src/studentStorage.cpp
                                    src/sqliteOperationFactory.cpp
+                                   src/studentStorage.cpp
                                    src/schoolStorage.cpp
                                    src/classStorage.cpp
                                    src/cityStorage.cpp

@@ -12,6 +12,7 @@ public:
 	const std::string &getDbName() const override { return dbName; };
     void *getConnectionPtr() const override { return nullptr; };
     void open() override {};
+    void openForCreation() override {};
 	bool isOpened() const override { return isDBOpened; }
     void close() override {};
 	std::string dbName;

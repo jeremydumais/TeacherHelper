@@ -1,13 +1,20 @@
+#include "databaseConnection.h"
 #include "databaseController.h"
+#include "databaseManagementOperations.h"
+#include <memory>
 #include <stdexcept>
 
 using namespace std;
 
 
-DatabaseController::DatabaseController(unique_ptr<IDatabaseConnection> databaseConnection) 
+DatabaseController::DatabaseController(unique_ptr<IDatabaseConnection> databaseConnection,
+                                       unique_ptr<IDatabaseManagementOperations> databaseManagementOperations) 
     : databaseConnection { databaseConnection ? 
                            move(databaseConnection) : 
-                           nullptr }
+                           nullptr },
+      databaseManagementOperations { databaseManagementOperations ? 
+                                     move(databaseManagementOperations) : 
+                                     make_unique<DatabaseManagementOperations>() }
 {
 }
 

@@ -18,6 +18,7 @@ class SQLITEDATABASEOPERATIONS_API SQLiteDatabaseOperations : public IDatabaseOp
 public:
     SQLiteDatabaseOperations();
     int open(const std::string &fileName) override;
+    int openForCreation(const std::string &fileName) override;
     int close() override;
     void *getConnectionPtr() const;
 private:
