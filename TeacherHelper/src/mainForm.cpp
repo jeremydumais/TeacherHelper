@@ -49,9 +49,9 @@ MainForm::MainForm(QWidget *parent)
 	setAppStylesheet(configManager.getStringValue(ConfigurationManager::THEME_PATH));
 
 	//Check if the database exist. If not, ask for creation.
-	//dbConnection = new DatabaseConnection(userConfigFolder + "teacherdb");
 	databaseController = make_unique<DatabaseController>();
-	if (!boost::filesystem::exists(userConfigFolder + "teacherdb")) {
+	const string DATABASEFULLPATH { userConfigFolder + "teacherdb" };
+	if (!databaseController->isDatabaseExist(DATABASEFULLPATH)) {
 		QMessageBox msgBox;
 		msgBox.setText("The database doesn't seem to exist.");
 		msgBox.setInformativeText("Do you want to create it?");
@@ -61,7 +61,7 @@ MainForm::MainForm(QWidget *parent)
 
 		if (msgBox.exec() == QMessageBox::Yes) {
 			try {
-				//dbConnection->create();
+				databaseController->createDatabase(DATABASEFULLPATH);
 			}
 			catch(runtime_error &err) {
 				showErrorMessage("The database cannot be created.",
@@ -74,7 +74,7 @@ MainForm::MainForm(QWidget *parent)
 		}
 	}
   	try {
-		databaseController->openDatabase(userConfigFolder + "teacherdb");
+		databaseController->openDatabase(DATABASEFULLPATH);
 	}
 	catch(runtime_error &err) {
 	   showErrorMessage("Can't open database", err.what());
