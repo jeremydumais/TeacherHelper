@@ -1,4 +1,5 @@
 #include "assessmentController.h"
+#include "fakeDatabaseController.h"
 #include <gtest/gtest.h>
 #include <memory>
 
@@ -22,7 +23,7 @@ public:
 				  Class(1, "MyClass", School("Test", City("CityTest"))),
 				  ptime(date(2020, Aug, 21), time_duration(10, 14, 22)))
 		}),
-		ManagementItemStorageBase<Assessment>(DatabaseConnection("nulldb"))
+		ManagementItemStorageBase<Assessment>(FakeDatabaseController().getDatabaseConnection())
 	{
 		assessments.begin()->addResult(AssessmentResult(Student(1, "Joe", "Blow"), 78.5f));
 		assessments.begin()->addResult(AssessmentResult(Student(2, "Jane", "Doe"), 65.2f));
@@ -63,7 +64,7 @@ public:
 
 	void prepareController()
 	{
-		controller = make_unique<AssessmentController>(DatabaseConnection("nulldb"), 
+		controller = make_unique<AssessmentController>(FakeDatabaseController(), 
 												 std::move(fakeStorage));
 	}
 
@@ -73,7 +74,7 @@ public:
 
 TEST(AssessmentController_Constructor, ValidArguments_ReturnSuccess)
 {
-	AssessmentController controller(DatabaseConnection("nulldb"), unique_ptr<ManagementItemStorageBase<Assessment>>(make_unique<FakeAssessmentStorage>()));
+	AssessmentController controller(FakeDatabaseController(), unique_ptr<ManagementItemStorageBase<Assessment>>(make_unique<FakeAssessmentStorage>()));
 }
 
 TEST_F(AssessmentControllerTest, getAssessments_Return2Assessments)

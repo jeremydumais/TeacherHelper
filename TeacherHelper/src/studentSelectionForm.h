@@ -9,7 +9,7 @@ class StudentSelectionForm : public QDialog
 Q_OBJECT
 
 public:
-	StudentSelectionForm(QWidget *parent, const DatabaseConnection &connection);
+	StudentSelectionForm(QWidget *parent, const IDatabaseController &databaseController);
 	~StudentSelectionForm() = default;
 	void showEvent(QShowEvent *event) override;
 	void refreshItemsTable(const std::string &filter);

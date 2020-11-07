@@ -1,4 +1,5 @@
 #include "subjectController.h"
+#include "fakeDatabaseController.h"
 #include <gtest/gtest.h>
 #include <memory>
 
@@ -12,7 +13,7 @@ public:
 			Subject(1, "Math", true),
 			Subject(2, "English")
 		}),
-		ManagementItemStorageBase<Subject>(DatabaseConnection("nulldb")) {}
+		ManagementItemStorageBase<Subject>(FakeDatabaseController().getDatabaseConnection()) {}
     std::list<Subject> getAllItems() override { return subjects;	}
     const std::string &getLastError() const override { return lastError; }
     bool insertItem(const Subject &subject) override { return insertResult; }
@@ -46,7 +47,7 @@ public:
 
 	void prepareController()
 	{
-		controller = make_unique<SubjectController>(DatabaseConnection("nulldb"), 
+		controller = make_unique<SubjectController>(FakeDatabaseController(), 
 												 std::move(fakeStorage));
 	}
 	unique_ptr<ManagementItemStorageBase<Subject>> fakeStorage;								 
@@ -55,7 +56,7 @@ public:
 
 TEST(SubjectController_Constructor, ValidArguments_ReturnSuccess)
 {
-	SubjectController controller(DatabaseConnection("nulldb"), unique_ptr<ManagementItemStorageBase<Subject>>(make_unique<FakeSubjectStorage>()));
+	SubjectController controller(FakeDatabaseController(), unique_ptr<ManagementItemStorageBase<Subject>>(make_unique<FakeSubjectStorage>()));
 }
 
 TEST_F(SubjectControllerTest, getSubjects_Return2Subjects)

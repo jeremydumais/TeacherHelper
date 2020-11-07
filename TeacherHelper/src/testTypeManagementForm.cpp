@@ -6,11 +6,11 @@
 
 using namespace std;
 
-TestTypeManagementForm::TestTypeManagementForm(QWidget *parent, const DatabaseConnection &connection)
+TestTypeManagementForm::TestTypeManagementForm(QWidget *parent, const IDatabaseController &databaseController)
 	: QDialog(parent),
-	  ManagementFormBase(connection),
+	  ManagementFormBase(databaseController.getDatabaseConnection()),
 	  ui(Ui::testTypeManagementFormClass()),
-	  controller(connection)
+	  controller(databaseController)
 {
 	ui.setupUi(this);
 	ui.frameDetails->setEnabled(false);

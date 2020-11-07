@@ -1,7 +1,7 @@
 #pragma once
 
 #include "assessment.h"
-#include "databaseConnection.h"
+#include "IDatabaseController.h"
 #include "ManagementItemStorageBase.h"
 #include <list>
 #include <memory>
@@ -19,7 +19,7 @@
 class ASSESSMENTCONTROLLER_API AssessmentController
 {
 public:
-    explicit AssessmentController(const DatabaseConnection &dbConnection,
+    explicit AssessmentController(const IDatabaseController &databaseController,
                             std::unique_ptr<ManagementItemStorageBase<Assessment>> managementItemStorage = nullptr);
     const std::list<Assessment> &getAssessments() const;
     const Assessment* findAssessment(size_t id) const;

@@ -36,6 +36,11 @@ std::string DatabaseController::getOpenedDatabaseName() const
         return "";
 }
 
+const IDatabaseConnection& DatabaseController::getDatabaseConnection() const
+{
+    return *databaseConnection.get();
+}
+
 void DatabaseController::openDatabase(const string &databaseName) 
 {
     if (!databaseConnection)

@@ -2,6 +2,7 @@
 
 #include "version.h"
 #include "IDatabaseConnection.h"
+#include "IDatabaseController.h"
 #include "IDatabaseManagementOperations.h"
 #include <list>
 #include <memory>
@@ -16,15 +17,16 @@
     #define DATABASECONTROLLER_API
 #endif
 
-class DATABASECONTROLLER_API DatabaseController
+class DATABASECONTROLLER_API DatabaseController : public IDatabaseController
 {
 public:
     explicit DatabaseController(std::unique_ptr<IDatabaseConnection> databaseConnection = nullptr,
                                 std::unique_ptr<IDatabaseManagementOperations> databaseManagementOperations = nullptr);
-    bool isDatabaseOpened() const;
-    std::string getOpenedDatabaseName() const;
-    void openDatabase(const std::string &databaseName);
-    void closeDatabase();
+    bool isDatabaseOpened() const override;
+    std::string getOpenedDatabaseName() const override;
+    const IDatabaseConnection &getDatabaseConnection() const override;
+    void openDatabase(const std::string &databaseName) override;
+    void closeDatabase() override;
         
 private:
     std::unique_ptr<IDatabaseConnection> databaseConnection;

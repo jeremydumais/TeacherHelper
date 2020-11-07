@@ -1,4 +1,5 @@
 #include "testTypeController.h"
+#include "fakeDatabaseController.h"
 #include <gtest/gtest.h>
 #include <memory>
 
@@ -12,7 +13,7 @@ public:
 			TestType(1, "Exam"),
 			TestType(2, "Exercice")
 		}),
-		ManagementItemStorageBase<TestType>(DatabaseConnection("nulldb")) {}
+		ManagementItemStorageBase<TestType>(FakeDatabaseController().getDatabaseConnection()) {}
     std::list<TestType> getAllItems() override { return testTypes;	}
     const std::string &getLastError() const override { return lastError; }
     bool insertItem(const TestType &testType) override { return insertResult; }
@@ -46,7 +47,7 @@ public:
 
 	void prepareController()
 	{
-		controller = make_unique<TestTypeController>(DatabaseConnection("nulldb"), 
+		controller = make_unique<TestTypeController>(FakeDatabaseController(), 
 												 std::move(fakeStorage));
 	}
 	unique_ptr<ManagementItemStorageBase<TestType>> fakeStorage;								 
@@ -55,7 +56,7 @@ public:
 
 TEST(TestTypeController_Constructor, ValidArguments_ReturnSuccess)
 {
-	TestTypeController controller(DatabaseConnection("nulldb"), unique_ptr<ManagementItemStorageBase<TestType>>(make_unique<FakeTestTypeStorage>()));
+	TestTypeController controller(FakeDatabaseController(), unique_ptr<ManagementItemStorageBase<TestType>>(make_unique<FakeTestTypeStorage>()));
 }
 
 TEST_F(TestTypeControllerTest, getTestTypes_Return2TestTypes)

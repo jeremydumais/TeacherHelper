@@ -1,4 +1,5 @@
 #include "cityController.h"
+#include "fakeDatabaseController.h"
 #include <gtest/gtest.h>
 #include <memory>
 
@@ -12,7 +13,7 @@ public:
 			City(1, "New York"),
 			City(2, "Los Angeles")
 		}),
-		ManagementItemStorageBase<City>(DatabaseConnection("nulldb")) {}
+		ManagementItemStorageBase<City>(FakeDatabaseController().getDatabaseConnection()) {}
     std::list<City> getAllItems() override { return cities;	}
     const std::string &getLastError() const override { return lastError; }
     bool insertItem(const City &city) override { return insertResult; }
@@ -46,7 +47,7 @@ public:
 
 	void prepareController()
 	{
-		controller = make_unique<CityController>(DatabaseConnection("nulldb"), 
+		controller = make_unique<CityController>(FakeDatabaseController(), 
 												 std::move(fakeStorage));
 	}
 
@@ -56,7 +57,7 @@ public:
 
 TEST(CityController_Constructor, ValidArguments_ReturnSuccess)
 {
-	CityController controller(DatabaseConnection("nulldb"), unique_ptr<ManagementItemStorageBase<City>>(make_unique<FakeCityStorage>()));
+	CityController controller(FakeDatabaseController(), unique_ptr<ManagementItemStorageBase<City>>(make_unique<FakeCityStorage>()));
 }
 
 TEST_F(CityControllerTest, getCities_Return2Cities)

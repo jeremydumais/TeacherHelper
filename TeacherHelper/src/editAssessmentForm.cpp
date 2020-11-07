@@ -10,17 +10,17 @@ using namespace boost::posix_time;
 using namespace boost::gregorian;
 
 EditAssessmentForm::EditAssessmentForm(QWidget *parent, 
-						   const DatabaseConnection &connection,
+						   const IDatabaseController &databaseController,
 						   const EditAssessmentActionMode editMode,
 						   const Assessment * const  assessmentToEdit)
 	: QDialog(parent),
 	  ui(Ui::editAssessmentFormClass()),
 	  editMode(editMode),
-	  controller(connection),
-	  testTypeController(connection),
-	  subjectController(connection),
-	  schoolController(connection),
-	  classController(connection),
+	  controller(databaseController),
+	  testTypeController(databaseController),
+	  subjectController(databaseController),
+	  schoolController(databaseController),
+	  classController(databaseController),
 	  assessmentToEdit(assessmentToEdit)
 {
 	this->setResult(QDialog::DialogCode::Rejected);

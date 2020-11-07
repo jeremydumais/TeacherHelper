@@ -1,6 +1,6 @@
 #pragma once
 
-#include "databaseConnection.h"
+#include "IDatabaseConnection.h"
 #include <string>
 
 enum class ActionMode {
@@ -12,13 +12,13 @@ enum class ActionMode {
 class ManagementFormBase
 {
 public:
-    ManagementFormBase(const DatabaseConnection &connection);
+    ManagementFormBase(const IDatabaseConnection &connection);
     virtual ~ManagementFormBase();
-	void setDatabaseConnection(const DatabaseConnection &connection);
+	void setDatabaseConnection(const IDatabaseConnection &connection);
 	virtual bool getDataHasChanged() const;
 protected:
 	ActionMode mode;
-    const DatabaseConnection * dbConnection;
+    const IDatabaseConnection * dbConnection;
 	bool dataHasChanged;
 	void showError(const std::string &message) const;
 private:

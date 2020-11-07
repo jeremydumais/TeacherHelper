@@ -1,5 +1,6 @@
 #include "mainForm.h"
 #include "aboutBoxForm.h"
+#include "databaseController.h"
 #include "configurationManager.h"
 #include "specialFolders.h"
 #include "editAssessmentForm.h"
@@ -26,7 +27,7 @@ using namespace boost::property_tree;
 MainForm::MainForm(QWidget *parent)
 	: QMainWindow(parent),
 	  ui(Ui::MainForm()),
-	  dbConnection(nullptr),
+	  databaseController(nullptr),
 	  functionAfterShownCalled(false)
 {
 	ui.setupUi(this);
@@ -48,7 +49,8 @@ MainForm::MainForm(QWidget *parent)
 	setAppStylesheet(configManager.getStringValue(ConfigurationManager::THEME_PATH));
 
 	//Check if the database exist. If not, ask for creation.
-	dbConnection = new DatabaseConnection(userConfigFolder + "teacherdb");
+	//dbConnection = new DatabaseConnection(userConfigFolder + "teacherdb");
+	databaseController = make_unique<DatabaseController>();
 	if (!boost::filesystem::exists(userConfigFolder + "teacherdb")) {
 		QMessageBox msgBox;
 		msgBox.setText("The database doesn't seem to exist.");
@@ -59,7 +61,7 @@ MainForm::MainForm(QWidget *parent)
 
 		if (msgBox.exec() == QMessageBox::Yes) {
 			try {
-				dbConnection->create();
+				//dbConnection->create();
 			}
 			catch(runtime_error &err) {
 				showErrorMessage("The database cannot be created.",
@@ -72,7 +74,7 @@ MainForm::MainForm(QWidget *parent)
 		}
 	}
   	try {
-		dbConnection->open();
+		databaseController->openDatabase(userConfigFolder + "teacherdb");
 	}
 	catch(runtime_error &err) {
 	   showErrorMessage("Can't open database", err.what());
@@ -131,7 +133,7 @@ void MainForm::prepareListsHeaders()
 
 MainForm::~MainForm()
 {
-	delete dbConnection;
+	databaseController->closeDatabase();
 }
 
 void MainForm::functionAfterShown()
@@ -154,7 +156,7 @@ bool MainForm::event(QEvent *event)
 
 void MainForm::action_AddAssessment_Click() 
 {
-	EditAssessmentForm formEditAssessment(this, *dbConnection, EditAssessmentActionMode::Add);
+	EditAssessmentForm formEditAssessment(this, *databaseController.get(), EditAssessmentActionMode::Add);
 	if (formEditAssessment.exec() == QDialog::DialogCode::Accepted) {
 		//Refresh the navigation and test list
 		refreshTreeViewTestNavigation();
@@ -169,7 +171,7 @@ void MainForm::action_EditAssessment_Click()
 		//Find selected assessment
 		auto assessmentPtr = assessmentController->findAssessment(selectedAssessmentRow[0].data().toUInt());
 		if (assessmentPtr != nullptr) {
-			EditAssessmentForm formEditAssessment(this, *dbConnection, 
+			EditAssessmentForm formEditAssessment(this, *databaseController.get(), 
 												EditAssessmentActionMode::Modify, 
 												assessmentPtr);
 			if (formEditAssessment.exec() == QDialog::DialogCode::Accepted) {
@@ -213,13 +215,13 @@ void MainForm::action_RemoveAssessment_Click()
 	
 void MainForm::action_StudentsManagement_Click()
 {
-	StudentManagementForm formStudentManagement(this, *dbConnection);
+	StudentManagementForm formStudentManagement(this, *databaseController.get());
 	formStudentManagement.exec();
 }
 
 void MainForm::action_SchoolsManagement_Click()
 {
-	SchoolManagementForm formSchoolManagement(this, *dbConnection);
+	SchoolManagementForm formSchoolManagement(this, *databaseController.get());
 	formSchoolManagement.exec();
 	if (formSchoolManagement.getDataHasChanged()) {
 		schoolController->loadSchools();
@@ -230,7 +232,7 @@ void MainForm::action_SchoolsManagement_Click()
 
 void MainForm::action_ClassesManagement_Click()
 {
-	ClassManagementForm formClassManagement(this, *dbConnection);
+	ClassManagementForm formClassManagement(this, *databaseController.get());
 	formClassManagement.exec();
 	if (formClassManagement.getDataHasChanged()) {
 		schoolController->loadSchools();
@@ -241,19 +243,19 @@ void MainForm::action_ClassesManagement_Click()
 
 void MainForm::action_CitiesManagement_Click()
 {
-	CityManagementForm formCityManagement(this, *dbConnection);
+	CityManagementForm formCityManagement(this, *databaseController.get());
 	formCityManagement.exec();
 }
 
 void MainForm::action_TestTypesManagement_Click() 
 {
-	TestTypeManagementForm formTestTypeManagement(this, *dbConnection);
+	TestTypeManagementForm formTestTypeManagement(this, *databaseController.get());
 	formTestTypeManagement.exec();
 }
 
 void MainForm::action_SubjectsManagement_Click() 
 {
-	SubjectManagementForm formSubjectManagement(this, *dbConnection);
+	SubjectManagementForm formSubjectManagement(this, *databaseController.get());
 	formSubjectManagement.exec();
 }
 
@@ -337,13 +339,13 @@ void MainForm::setAppStylesheet(const std::string &style)
 
 void MainForm::loadControllers() 
 {
-	assessmentController = make_unique<AssessmentController>(*dbConnection);
+	assessmentController = make_unique<AssessmentController>(*databaseController.get());
 	if (!assessmentController) {
 		showErrorMessage("Can't create the assessment controller", "");
 	   	exit(1);
 	}
 
-	schoolController = make_unique<SchoolController>(*dbConnection);
+	schoolController = make_unique<SchoolController>(*databaseController.get());
 	if (schoolController) {
 		schoolController->loadSchools();
 	}
@@ -352,7 +354,7 @@ void MainForm::loadControllers()
 	   	exit(1);
 	}
 
-	classController = make_unique<ClassController>(*dbConnection);
+	classController = make_unique<ClassController>(*databaseController.get());
 	if (classController) {
 		classController->loadClasses();
 	}

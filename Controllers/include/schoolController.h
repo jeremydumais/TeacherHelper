@@ -2,7 +2,7 @@
 
 #include "school.h"
 #include "ManagementItemStorageBase.h"
-#include "databaseConnection.h"
+#include "IDatabaseController.h"
 #include <list>
 #include <memory>
 
@@ -19,7 +19,7 @@
 class SCHOOLCONTROLLER_API SchoolController
 {
 public:
-    explicit SchoolController(const DatabaseConnection &dbConnection,
+    explicit SchoolController(const IDatabaseController &databaseController,
                             std::unique_ptr<ManagementItemStorageBase<School>> managementItemStorage = nullptr);
     const std::list<School> &getSchools() const;
     const School* findSchool(size_t id) const;

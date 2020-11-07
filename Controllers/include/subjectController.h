@@ -2,7 +2,7 @@
 
 #include "subject.h"
 #include "ManagementItemStorageBase.h"
-#include "databaseConnection.h"
+#include "IDatabaseController.h"
 #include <list>
 #include <memory>
 
@@ -19,7 +19,7 @@
 class SUBJECTCONTROLLER_API SubjectController
 {
 public:
-    explicit SubjectController(const DatabaseConnection &dbConnection,
+    explicit SubjectController(const IDatabaseController &databaseController,
                             std::unique_ptr<ManagementItemStorageBase<Subject>> managementItemStorage = nullptr);
     const std::list<Subject> &getSubjects() const;
     const Subject* findSubject(size_t id) const;

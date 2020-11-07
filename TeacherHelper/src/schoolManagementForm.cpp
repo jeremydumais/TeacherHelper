@@ -5,12 +5,12 @@
 
 using namespace std;
 
-SchoolManagementForm::SchoolManagementForm(QWidget *parent, const DatabaseConnection &connection)
+SchoolManagementForm::SchoolManagementForm(QWidget *parent, const IDatabaseController &databaseController)
 	: QDialog(parent),
-	  ManagementFormBase(connection),
+	  ManagementFormBase(databaseController.getDatabaseConnection()),
 	  ui(Ui::schoolManagementFormClass()),
-	  controller(connection),
-	  cityController(connection)
+	  controller(databaseController),
+	  cityController(databaseController)
 {
 	ui.setupUi(this);
 	ui.frameDetails->setEnabled(false);

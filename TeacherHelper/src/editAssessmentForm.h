@@ -2,7 +2,7 @@
 #ifndef EDITASSESSMENTFORM_H
 #define EDITASSESSMENTFORM_H
 
-#include "databaseConnection.h"
+#include "IDatabaseController.h"
 #include "classController.h"
 #include "assessmentController.h"
 #include "schoolController.h"
@@ -22,7 +22,7 @@ Q_OBJECT
 
 public:
 	EditAssessmentForm(QWidget *parent, 
-				 const DatabaseConnection &connection, 
+				 const IDatabaseController &databaseController, 
 				 const EditAssessmentActionMode editMode,
 				 const Assessment * const assessmentToEdit = nullptr);
 	~EditAssessmentForm() = default;

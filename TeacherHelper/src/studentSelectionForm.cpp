@@ -6,10 +6,10 @@
 
 using namespace std;
 
-StudentSelectionForm::StudentSelectionForm(QWidget *parent, const DatabaseConnection &connection)
+StudentSelectionForm::StudentSelectionForm(QWidget *parent, const IDatabaseController &databaseController)
 	: QDialog(parent),
 	  ui(Ui::studentSelectionFormClass()),
-	  controller(connection),
+	  controller(databaseController),
 	  selectedStudent(nullptr)
 {
 	ui.setupUi(this);

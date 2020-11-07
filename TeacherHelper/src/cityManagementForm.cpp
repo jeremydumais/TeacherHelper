@@ -6,11 +6,11 @@
 
 using namespace std;
 
-CityManagementForm::CityManagementForm(QWidget *parent, const DatabaseConnection &connection)
+CityManagementForm::CityManagementForm(QWidget *parent, const IDatabaseController &databaseController)
 	: QDialog(parent),
-	  ManagementFormBase(connection),
+	  ManagementFormBase(databaseController.getDatabaseConnection()),
 	  ui(Ui::cityManagementFormClass()),
-	  controller(connection)
+	  controller(databaseController)
 {
 	ui.setupUi(this);
 	ui.frameDetails->setEnabled(false);

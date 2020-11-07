@@ -4,12 +4,12 @@
 
 using namespace std;
 
-AssessmentController::AssessmentController(const DatabaseConnection &dbConnection,
+AssessmentController::AssessmentController(const IDatabaseController &databaseController,
                                unique_ptr<ManagementItemStorageBase<Assessment>> managementItemStorage)
     : assessments(list<Assessment>()),
       storage { managementItemStorage ? 
                 move(managementItemStorage) : 
-                unique_ptr<ManagementItemStorageBase<Assessment>>(make_unique<AssessmentStorage>(dbConnection))},
+                unique_ptr<ManagementItemStorageBase<Assessment>>(make_unique<AssessmentStorage>(databaseController.getDatabaseConnection()))},
       lastError("")
 {
 }

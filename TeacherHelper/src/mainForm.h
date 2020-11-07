@@ -3,7 +3,7 @@
 
 #include "assessmentController.h"
 #include "classController.h"
-#include "databaseConnection.h"
+#include "IDatabaseController.h"
 #include "qTableWidgetKeyPressWatcher.h"
 #include "schoolController.h"
 #include "ui_mainForm.h"
@@ -20,7 +20,7 @@ public:
     void functionAfterShown();
 private:
 	Ui::MainForm ui;
-	DatabaseConnection *dbConnection;
+	std::unique_ptr<IDatabaseController> databaseController;
 	std::unique_ptr<AssessmentController> assessmentController;
 	std::unique_ptr<SchoolController> schoolController;
 	std::unique_ptr<ClassController> classController;

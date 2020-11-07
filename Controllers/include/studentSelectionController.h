@@ -2,7 +2,7 @@
 
 #include "student.h"
 #include "studentController.h"
-#include "databaseConnection.h"
+#include "IDatabaseController.h"
 #include <list>
 #include <memory>
 
@@ -19,7 +19,7 @@
 class STUDENTSELECTIONCONTROLLER_API StudentSelectionController
 {
 public:
-    explicit StudentSelectionController(const DatabaseConnection &dbConnection,
+    explicit StudentSelectionController(const IDatabaseController &databaseController,
         std::unique_ptr<IStudentController> studentController = nullptr);
 	bool isStudentInFilter(const std::string &filter, const Student &student) const;
     const std::list<Student> &getStudents() const;

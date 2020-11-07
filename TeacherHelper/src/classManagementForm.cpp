@@ -9,14 +9,14 @@
 
 using namespace std;
 
-ClassManagementForm::ClassManagementForm(QWidget *parent, const DatabaseConnection &connection)
+ClassManagementForm::ClassManagementForm(QWidget *parent, const IDatabaseController &databaseController)
 	: QDialog(parent),
-	  ManagementFormBase(connection),
+	  ManagementFormBase(databaseController.getDatabaseConnection()),
 	  ui(Ui::classManagementFormClass()),
-	  controller(connection),
-	  schoolController(connection),
-	  studentController(connection),
-	  connection(connection)
+	  controller(databaseController),
+	  databaseController(databaseController),
+	  schoolController(databaseController),
+	  studentController(databaseController)
 {
 	ui.setupUi(this);
 	ui.frameDetails->setEnabled(false);
@@ -352,7 +352,7 @@ void ClassManagementForm::keyPressEvent(QKeyEvent *e)
 
 void ClassManagementForm::pushButtonAddMember_Click() 
 {
-	StudentSelectionForm formStudentSelection(this, *dbConnection);
+	StudentSelectionForm formStudentSelection(this, databaseController);
 	formStudentSelection.exec();
 	auto student = formStudentSelection.getSelectedStudent();
 	if (student) {
@@ -373,7 +373,7 @@ void ClassManagementForm::pushButtonRemoveMember_Click()
 {
 	//Check if the student as assessments results in that class before removing it
 	auto rowClass = ui.tableWidgetItems->selectionModel()->selectedIndexes();
-	AssessmentController assessmentController(connection);
+	AssessmentController assessmentController(databaseController);
 	auto editedClass = controller.findClass(rowClass[0].data().toUInt());
 	if (editedClass != nullptr) {
 		//Find student

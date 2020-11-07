@@ -2,7 +2,7 @@
 
 #include "city.h"
 #include "ManagementItemStorageBase.h"
-#include "databaseConnection.h"
+#include "IDatabaseController.h"
 #include <list>
 #include <memory>
 
@@ -19,7 +19,7 @@
 class CITYCONTROLLER_API CityController
 {
 public:
-    explicit CityController(const DatabaseConnection &dbConnection,
+    explicit CityController(const IDatabaseController &databaseController,
                             std::unique_ptr<ManagementItemStorageBase<City>> managementItemStorage = nullptr);
     const std::list<City> &getCities() const;
     const City* findCity(size_t id) const;

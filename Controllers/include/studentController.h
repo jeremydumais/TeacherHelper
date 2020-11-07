@@ -1,6 +1,6 @@
 #pragma once
 
-#include "databaseConnection.h"
+#include "IDatabaseController.h"
 #include "IStudentController.h"
 #include "ManagementItemStorageBase.h"
 #include <memory>
@@ -18,7 +18,7 @@
 class STUDENTCONTROLLER_API StudentController : public IStudentController
 {
 public:
-    explicit StudentController(const DatabaseConnection &dbConnection,
+    explicit StudentController(const IDatabaseController &databaseController,
                             std::unique_ptr<ManagementItemStorageBase<Student>> managementItemStorage = nullptr);
     const std::list<Student> &getStudents() const override;
     const Student* findStudent(size_t id) const override;

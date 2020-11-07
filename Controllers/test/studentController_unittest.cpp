@@ -1,5 +1,6 @@
 #include "fakeStudentStorage.h"
 #include "studentController.h"
+#include "fakeDatabaseController.h"
 #include <gtest/gtest.h>
 #include <memory>
 
@@ -14,7 +15,7 @@ public:
 
 	void prepareController()
 	{
-		controller = make_unique<StudentController>(DatabaseConnection("nulldb"), 
+		controller = make_unique<StudentController>(FakeDatabaseController(), 
 												 std::move(fakeStorage));
 	}
 
@@ -24,7 +25,7 @@ public:
 
 TEST(StudentController_Constructor, ValidArguments_ReturnSuccess)
 {
-	StudentController controller(DatabaseConnection("nulldb"), unique_ptr<ManagementItemStorageBase<Student>>(make_unique<FakeStudentStorage>()));
+	StudentController controller(FakeDatabaseController(), unique_ptr<ManagementItemStorageBase<Student>>(make_unique<FakeStudentStorage>()));
 }
 
 TEST_F(StudentControllerTest, getStudents_Return2Students)
@@ -74,12 +75,6 @@ TEST_F(StudentControllerTest, findStudent_WithIdTwo_ReturnJaneDoe)
 	ASSERT_EQ("Doe", actual->getLastName());
 	ASSERT_EQ("A comment", actual->getComments());
 }
-
-
-
-
-
-
 
 TEST_F(StudentControllerTest, insertStudent_WithStudentThatWillSuccess_ReturnTrue) 
 {

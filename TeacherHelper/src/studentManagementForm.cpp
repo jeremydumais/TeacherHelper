@@ -5,11 +5,11 @@
 
 using namespace std;
 
-StudentManagementForm::StudentManagementForm(QWidget *parent, const DatabaseConnection &connection)
+StudentManagementForm::StudentManagementForm(QWidget *parent, const IDatabaseController &databaseController)
 	: QDialog(parent),
-	  ManagementFormBase(connection),
+	  ManagementFormBase(databaseController.getDatabaseConnection()),
 	  ui(Ui::studentManagementFormClass()),
-	  controller(connection)
+	  controller(databaseController)
 {
 	ui.setupUi(this);
 	ui.frameDetails->setEnabled(false);

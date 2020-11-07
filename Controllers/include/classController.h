@@ -1,8 +1,8 @@
 #pragma once
 
 #include "class.h"
+#include "IDatabaseController.h"
 #include "ManagementItemStorageBase.h"
-#include "databaseConnection.h"
 #include <list>
 #include <memory>
 
@@ -19,7 +19,7 @@
 class CLASSCONTROLLER_API ClassController
 {
 public:
-    explicit ClassController(const DatabaseConnection &dbConnection,
+    explicit ClassController(const IDatabaseController &databaseController,
                             std::unique_ptr<ManagementItemStorageBase<Class>> managementItemStorage = nullptr);
     const std::list<Class> &getClasses() const;
     const std::list<Class> getClassesBySchool(const School &school) const;

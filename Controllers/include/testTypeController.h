@@ -2,7 +2,7 @@
 
 #include "testType.h"
 #include "ManagementItemStorageBase.h"
-#include "databaseConnection.h"
+#include "IDatabaseController.h"
 #include <list>
 #include <memory>
 
@@ -19,7 +19,7 @@
 class TESTTYPECONTROLLER_API TestTypeController
 {
 public:
-    explicit TestTypeController(const DatabaseConnection &dbConnection,
+    explicit TestTypeController(const IDatabaseController &databaseController,
                             std::unique_ptr<ManagementItemStorageBase<TestType>> managementItemStorage = nullptr);
     const std::list<TestType> &getTestTypes() const;
     const TestType* findTestType(size_t id) const;

@@ -1,4 +1,5 @@
 #include "schoolController.h"
+#include "fakeDatabaseController.h"
 #include <gtest/gtest.h>
 #include <memory>
 
@@ -12,7 +13,7 @@ public:
 			School(1, "Thomas Jefferson High School", City("Alexandria")),
 			School(2, "Carnegie Vanguard High School", City("Houston"))
 		}),
-		ManagementItemStorageBase<School>(DatabaseConnection("nulldb")) {}
+		ManagementItemStorageBase<School>(FakeDatabaseController().getDatabaseConnection()) {}
     std::list<School> getAllItems() override { return schools;	}
     const std::string &getLastError() const override { return lastError; }
     bool insertItem(const School &school) override { return insertResult; }
@@ -46,7 +47,7 @@ public:
 
 	void prepareController()
 	{
-		controller = make_unique<SchoolController>(DatabaseConnection("nulldb"), 
+		controller = make_unique<SchoolController>(FakeDatabaseController(), 
 												 std::move(fakeStorage));
 	}
 
@@ -56,7 +57,7 @@ public:
 
 TEST(SchoolController_Constructor, ValidArguments_ReturnSuccess)
 {
-	SchoolController controller(DatabaseConnection("nulldb"), unique_ptr<ManagementItemStorageBase<School>>(make_unique<FakeSchoolStorage>()));
+	SchoolController controller(FakeDatabaseController(), unique_ptr<ManagementItemStorageBase<School>>(make_unique<FakeSchoolStorage>()));
 }
 
 TEST_F(SchoolControllerTest, getSchools_Return2Schools)

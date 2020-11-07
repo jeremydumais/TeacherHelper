@@ -12,7 +12,7 @@ class StudentManagementForm : public QDialog, public ManagementFormBase
 Q_OBJECT
 
 public:
-	StudentManagementForm(QWidget *parent, const DatabaseConnection &connection);
+	StudentManagementForm(QWidget *parent, const IDatabaseController &databaseController);
 	~StudentManagementForm();
 	void showEvent(QShowEvent *event) override;
 private:

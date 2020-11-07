@@ -4,12 +4,12 @@
 
 using namespace std;
 
-SchoolController::SchoolController(const DatabaseConnection &dbConnection,
+SchoolController::SchoolController(const IDatabaseController &databaseController,
                                unique_ptr<ManagementItemStorageBase<School>> managementItemStorage)
     : schools(list<School>()),
       storage { managementItemStorage ? 
                 move(managementItemStorage) : 
-                unique_ptr<ManagementItemStorageBase<School>>(make_unique<SchoolStorage>(dbConnection))},
+                unique_ptr<ManagementItemStorageBase<School>>(make_unique<SchoolStorage>(databaseController.getDatabaseConnection()))},
       lastError("")
 {
 }

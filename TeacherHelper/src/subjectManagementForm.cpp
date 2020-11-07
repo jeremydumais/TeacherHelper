@@ -6,11 +6,11 @@
 
 using namespace std;
 
-SubjectManagementForm::SubjectManagementForm(QWidget *parent, const DatabaseConnection &connection)
+SubjectManagementForm::SubjectManagementForm(QWidget *parent, const IDatabaseController &databaseController)
 	: QDialog(parent),
-	  ManagementFormBase(connection),
+	  ManagementFormBase(databaseController.getDatabaseConnection()),
 	  ui(Ui::subjectManagementFormClass()),
-	  controller(connection)
+	  controller(databaseController)
 {
 	ui.setupUi(this);
 	ui.frameDetails->setEnabled(false);

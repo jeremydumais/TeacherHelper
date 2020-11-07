@@ -4,11 +4,11 @@
 
 using namespace std;
 
-StudentSelectionController::StudentSelectionController(const DatabaseConnection &dbConnection,
+StudentSelectionController::StudentSelectionController(const IDatabaseController &databaseController,
 													   std::unique_ptr<IStudentController> studentController)
     : studentController { studentController ? 
                   		  move(studentController) : 
-                  		  unique_ptr<IStudentController>(make_unique<StudentController>(dbConnection))}
+                  		  unique_ptr<IStudentController>(make_unique<StudentController>(databaseController))}
 {
 }
 

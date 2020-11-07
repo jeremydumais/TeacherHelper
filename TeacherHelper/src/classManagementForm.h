@@ -3,6 +3,7 @@
 #define CLASSMANAGEMENTNFORM_H
 
 #include "classController.h"
+#include "IDatabaseController.h"
 #include "managementFormBase.h"
 #include "qTableWidgetKeyPressWatcher.h"
 #include "schoolController.h"
@@ -14,15 +15,15 @@ class ClassManagementForm : public QDialog, public ManagementFormBase
 Q_OBJECT
 
 public:
-	ClassManagementForm(QWidget *parent, const DatabaseConnection &connection);
+	ClassManagementForm(QWidget *parent, const IDatabaseController &databaseController);
 	~ClassManagementForm() = default;
 	void showEvent(QShowEvent *event) override;
 private:
 	Ui::classManagementFormClass ui;
 	ClassController controller;
+	const IDatabaseController &databaseController;
 	SchoolController schoolController;
 	StudentController studentController;
-	const DatabaseConnection &connection;
 	QTableWidgetKeyPressWatcher tableWidgetItemsKeyWatcher;
 	void refreshItemsTable() override;
 	void refreshSchoolTable();

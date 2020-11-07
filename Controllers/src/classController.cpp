@@ -4,12 +4,12 @@
 
 using namespace std;
 
-ClassController::ClassController(const DatabaseConnection &dbConnection,
+ClassController::ClassController(const IDatabaseController &databaseController,
                                unique_ptr<ManagementItemStorageBase<Class>> managementItemStorage)
     : classes(list<Class>()),
       storage { managementItemStorage ? 
                 move(managementItemStorage) : 
-                unique_ptr<ManagementItemStorageBase<Class>>(make_unique<ClassStorage>(dbConnection))},
+                unique_ptr<ManagementItemStorageBase<Class>>(make_unique<ClassStorage>(databaseController.getDatabaseConnection()))},
       lastError("")
 {
 }
