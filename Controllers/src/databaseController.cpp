@@ -1,6 +1,7 @@
 #include "databaseConnection.h"
 #include "databaseController.h"
 #include "databaseManagementOperations.h"
+#include "libraryCurrentVersion.h"
 #include <memory>
 #include <stdexcept>
 
@@ -8,14 +9,18 @@ using namespace std;
 
 
 DatabaseController::DatabaseController(unique_ptr<IDatabaseConnection> databaseConnection,
-                                       unique_ptr<IDatabaseManagementOperations> databaseManagementOperations) 
+                                       unique_ptr<IDatabaseManagementOperations> databaseManagementOperations,
+                                       unique_ptr<DatabaseVersionStorage> databaseVersionStorage) 
     : lastError {""},
       databaseConnection { databaseConnection ? 
                            move(databaseConnection) : 
                            nullptr },
       databaseManagementOperations { databaseManagementOperations ? 
                                      move(databaseManagementOperations) : 
-                                     make_unique<DatabaseManagementOperations>() }
+                                     make_unique<DatabaseManagementOperations>() },
+      databaseVersionStorage { databaseVersionStorage ? 
+                               move(databaseVersionStorage) :
+                               nullptr }                  
 {
 }
 
@@ -53,11 +58,34 @@ const std::string &DatabaseController::getLastError() const
     return lastError;
 }
 
+boost::optional<Version> DatabaseController::getVersion() 
+{
+    auto version = databaseVersionStorage->getVersion();
+    if (!version.has_value()) {
+        lastError = databaseVersionStorage->getLastError();
+    }
+    return version;
+}
+
+bool DatabaseController::isDatabaseUpgradeRequired() const 
+{
+    //Get current database version
+    auto currentDatabaseVersion = databaseVersionStorage->getVersion();
+    auto currentStorageLibraryVersion = LibraryCurrentVersion::getInstance();
+    if (currentStorageLibraryVersion > currentDatabaseVersion) {
+        if (currentDatabaseVersion == Version(1, 0, 0) && currentStorageLibraryVersion == Version(1, 1, 0)) {
+            return true;
+        }
+    }
+    return false;
+}
+
 void DatabaseController::openDatabase(const string &databaseName) 
 {
     if (!databaseConnection)
         databaseConnection = make_unique<DatabaseConnection>(databaseName);
     databaseConnection->open();
+    databaseVersionStorage = make_unique<DatabaseVersionStorage>(*databaseConnection.get());
 }
 
 void DatabaseController::closeDatabase() 
@@ -69,6 +97,7 @@ void DatabaseController::closeDatabase()
     
     databaseConnection->close();
     databaseConnection.reset();
+    databaseVersionStorage.reset();
 }
 
 bool DatabaseController::createDatabase(const string &databaseName) 

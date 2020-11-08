@@ -28,6 +28,7 @@ public:
     const std::string &getLastError() const override;
     bool exist(const std::string &databaseName) const override;
     bool create(const std::string &databaseName) override; 
+    bool upgrade(const IDatabaseConnection &connection) override;
 private:
     std::string lastError;
     std::shared_ptr<IFileSystemOperations> fileSystemOperations;

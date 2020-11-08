@@ -60,12 +60,9 @@ MainForm::MainForm(QWidget *parent)
 		msgBox.setDefaultButton(QMessageBox::Cancel);
 
 		if (msgBox.exec() == QMessageBox::Yes) {
-			try {
-				databaseController->createDatabase(DATABASEFULLPATH);
-			}
-			catch(runtime_error &err) {
+			if (!databaseController->createDatabase(DATABASEFULLPATH)) {
 				showErrorMessage("The database cannot be created.",
-								 err.what());
+								 databaseController->getLastError());
 				exit(2);
 			}
 		}
@@ -82,7 +79,26 @@ MainForm::MainForm(QWidget *parent)
 	}
 
 	//Get database version
-	
+	auto currentDatabaseVersion = databaseController->getVersion();
+	if (!currentDatabaseVersion.has_value()) {
+		showErrorMessage("Can't get the database version", databaseController->getLastError());
+	   	exit(3);
+	}
+
+	//Check if a database migration is required
+	if (databaseController->isDatabaseUpgradeRequired()) {
+		QMessageBox msgBox;
+		msgBox.setText("The database needs to be upgraded. This step is required.\nDo you want to proceed now?");
+		msgBox.setWindowTitle("Confirmation");
+		msgBox.setStandardButtons(QMessageBox::Yes | QMessageBox::No | QMessageBox::Cancel);
+		msgBox.setDefaultButton(QMessageBox::Cancel);
+		if (msgBox.exec() == QMessageBox::Yes) {
+			//Do the upgrade
+		}
+		else {
+			exit(4);
+		}
+	}
 
 	loadControllers();
 	refreshTreeViewTestNavigation();

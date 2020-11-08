@@ -1,6 +1,7 @@
 #include "databaseConnectionFactory.h"
 #include "databaseManagementOperations.h"
 #include "fileSystemOperations.h"
+#include "libraryCurrentVersion.h"
 #include "sqliteDatabaseOperations.h"
 #include "sqliteOperationFactory.h"
 #include <fmt/format.h>
@@ -69,4 +70,10 @@ bool DatabaseManagementOperations::create(const string &databaseName)
         }
     }
     return true;
+}
+
+bool DatabaseManagementOperations::upgrade(const IDatabaseConnection &connection) 
+{
+    
+    return false;
 }
