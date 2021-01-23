@@ -4,7 +4,7 @@
 using namespace boost;
 using namespace std;
 
-const std::string& FileSystemOperations::getLastError() 
+const std::string& FileSystemOperations::getLastError() const
 {
     return lastError;
 }
