@@ -1,5 +1,6 @@
 #pragma once
 
+#include "databaseVersionStorage.h"
 #include "IDatabaseConnectionFactory.h"
 #include "IDatabaseOperations.h"
 #include "IDatabaseManagementOperations.h"
@@ -28,11 +29,13 @@ public:
     const std::string &getLastError() const override;
     bool exist(const std::string &databaseName) const override;
     bool create(const std::string &databaseName) override; 
-    bool upgrade(const IDatabaseConnection &connection) override;
+    bool upgrade(IDatabaseConnection &connection) override;
 private:
     std::string lastError;
     std::shared_ptr<IFileSystemOperations> fileSystemOperations;
     std::shared_ptr<IDatabaseOperations> databaseOperations;
     std::unique_ptr<IDatabaseConnectionFactory> connectionFactory;
     std::shared_ptr<IStorageOperationFactory> operationFactory;
+    std::string generateBackupDatabaseFileName() const;
+    bool migrateToV1_1_0(IDatabaseConnection &connection, DatabaseVersionStorage &databaseVersionStorage);
 };

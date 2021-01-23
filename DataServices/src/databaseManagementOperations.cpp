@@ -4,6 +4,7 @@
 #include "libraryCurrentVersion.h"
 #include "sqliteDatabaseOperations.h"
 #include "sqliteOperationFactory.h"
+#include <boost/date_time/posix_time/ptime.hpp>
 #include <fmt/format.h>
 #include <stdexcept>
 
@@ -72,8 +73,97 @@ bool DatabaseManagementOperations::create(const string &databaseName)
     return true;
 }
 
-bool DatabaseManagementOperations::upgrade(const IDatabaseConnection &connection) 
+bool DatabaseManagementOperations::upgrade(IDatabaseConnection &connection) 
 {
-    
-    return false;
+    //Extract the database folder path
+    string originalDBFileName = connection.getDbName();
+    string databaseFolderPath = fileSystemOperations->extractFolderPath(originalDBFileName);
+    //Generate backup database filename
+    string backupDatabaseFileName = generateBackupDatabaseFileName();
+    string backupDatabaseFullPath = fmt::format("{0}/{1}", databaseFolderPath, backupDatabaseFileName);
+    //Backup the database file
+    onUpgradeProgress(100, fmt::format("Backuping the database {0} to {1}...", originalDBFileName, backupDatabaseFullPath));
+    if (!fileSystemOperations->fileCopy(originalDBFileName,
+                                        backupDatabaseFullPath)) {
+        lastError = fileSystemOperations->getLastError();
+        return false;
+    }
+    onUpgradeProgress(0, "Backup succeed");
+
+    DatabaseVersionStorage databaseVersionStorage(connection);
+    auto currentDatabaseVersion = databaseVersionStorage.getVersion();
+    bool migrationSucceed { false };
+    if (currentDatabaseVersion == Version(1, 0, 0)) {
+        migrationSucceed = migrateToV1_1_0(connection, databaseVersionStorage);
+    }
+    //If an error occurred, restore the backup of the database
+    if (!migrationSucceed) {
+        connection.close();
+        onUpgradeProgress(100, fmt::format("Restoring the database backup {0}...", backupDatabaseFullPath));
+        if (!fileSystemOperations->fileCopyWithOverwrite(backupDatabaseFullPath,
+                                                            originalDBFileName)) {
+            lastError = fileSystemOperations->getLastError();
+            onUpgradeProgress(100, fmt::format("Unable to restore the database backup {0} to {1}", backupDatabaseFullPath, originalDBFileName));
+        }
+        else {
+            onUpgradeProgress(100, fmt::format("Restoring the database backup completed!", backupDatabaseFullPath));
+        }
+        onUpgradeProgress(100, "Upgrade failed!");
+        return false;
+    }
+    return true;
 }
+
+std::string DatabaseManagementOperations::generateBackupDatabaseFileName() const
+{
+    boost::posix_time::ptime now = boost::posix_time::second_clock::local_time();
+    string backupDatabaseFileName = fmt::format("teacherdb_v1.0.0_{0}_{1}_{2}_{3}_{4}_{5}.bak",
+                                                now.date().year(),
+                                                now.date().month().as_number(),
+                                                now.date().day().as_number(),
+                                                now.time_of_day().hours(),
+                                                now.time_of_day().minutes(),
+                                                now.time_of_day().seconds());
+    return backupDatabaseFileName;
+}
+
+bool DatabaseManagementOperations::migrateToV1_1_0(IDatabaseConnection &connection, DatabaseVersionStorage &databaseVersionStorage) 
+{
+    bool errorOccurred = false;
+    onUpgradeProgress(0, "Migration from version 1.0.0 to 1.1.0");
+    onUpgradeProgress(0, "Starting the upgrade...");
+    //Migrating schema
+    vector<string> tableMigrationInstructions {
+        "CREATE TABLE version(name varchar(10) PRIMARY KEY)",
+        "INSERT INTO version VALUES ('1.0.0')",
+        ""
+    };
+    int percentCompleted { 0 };
+    onUpgradeProgress(percentCompleted, fmt::format("{0}%...", percentCompleted));
+    for(const auto& instruction : tableMigrationInstructions) {
+        auto operationMigrateTable { operationFactory->createDDLOperation(connection, instruction) };
+        if (!operationMigrateTable->execute()) {
+            lastError = operationMigrateTable->getLastError();
+            errorOccurred = true;
+            break;
+        }
+        else {
+            percentCompleted += (1.0f / static_cast<float>(tableMigrationInstructions.size())) * 80; 
+            onUpgradeProgress(percentCompleted, fmt::format("{0}%...", percentCompleted));
+        }
+    }
+    //80% completed
+    if (!errorOccurred && !databaseVersionStorage.updateVersion(Version(1, 1, 0))) {
+        lastError = databaseVersionStorage.getLastError();
+        onUpgradeProgress(percentCompleted, lastError);
+        errorOccurred = true;
+    }
+    percentCompleted = 100;
+    onUpgradeProgress(percentCompleted, fmt::format("{0}%...", percentCompleted));
+
+    if (!errorOccurred) {
+        onUpgradeProgress(percentCompleted, "Upgrade completed!");
+    }
+    return !errorOccurred;
+}
+

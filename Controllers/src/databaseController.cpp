@@ -2,6 +2,7 @@
 #include "databaseController.h"
 #include "databaseManagementOperations.h"
 #include "libraryCurrentVersion.h"
+#include <fmt/format.h>
 #include <memory>
 #include <stdexcept>
 
@@ -11,7 +12,8 @@ using namespace std;
 DatabaseController::DatabaseController(unique_ptr<IDatabaseConnection> databaseConnection,
                                        unique_ptr<IDatabaseManagementOperations> databaseManagementOperations,
                                        unique_ptr<DatabaseVersionStorage> databaseVersionStorage) 
-    : lastError {""},
+    : lastError { "" },
+      userConfigFolder { "" },
       databaseConnection { databaseConnection ? 
                            move(databaseConnection) : 
                            nullptr },
@@ -73,11 +75,24 @@ bool DatabaseController::isDatabaseUpgradeRequired() const
     auto currentDatabaseVersion = databaseVersionStorage->getVersion();
     auto currentStorageLibraryVersion = LibraryCurrentVersion::getInstance();
     if (currentStorageLibraryVersion > currentDatabaseVersion) {
-        if (currentDatabaseVersion == Version(1, 0, 0) && currentStorageLibraryVersion == Version(1, 1, 0)) {
-            return true;
-        }
+        return true;
     }
     return false;
+}
+
+bool DatabaseController::upgrade()
+{
+    if (databaseManagementOperations != nullptr) {
+        databaseManagementOperations->onUpgradeProgress.disconnect_all_slots();
+        databaseManagementOperations->onUpgradeProgress.connect([this](size_t progress, const string &message) {
+            this->onUpgradeProgress(progress, message);
+        });
+    }
+    bool upgradeResult = databaseManagementOperations->upgrade(*databaseConnection);
+    if (!upgradeResult) {
+        lastError = databaseManagementOperations->getLastError();
+    }
+    return upgradeResult;
 }
 
 void DatabaseController::openDatabase(const string &databaseName) 
@@ -108,4 +123,3 @@ bool DatabaseController::createDatabase(const string &databaseName)
     }
     return createResult;
 }
-

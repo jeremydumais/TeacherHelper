@@ -16,7 +16,11 @@
 class FILESYSTEMOPERATIONS_API FileSystemOperations : public IFileSystemOperations
 {
 public:
+    const std::string &getLastError() override;
     bool fileExists(const std::string &fileName) override;
+    bool fileCopy(const std::string &source, const std::string &destination) override;
+    bool fileCopyWithOverwrite(const std::string &source, const std::string &destination) override;
+    std::string extractFolderPath(const std::string &fullPathWithFileName) const override;
 private:
     std::string lastError;
 };

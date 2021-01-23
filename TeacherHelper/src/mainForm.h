@@ -7,6 +7,7 @@
 #include "qTableWidgetKeyPressWatcher.h"
 #include "schoolController.h"
 #include "ui_mainForm.h"
+#include "upgradeProgressForm.h"
 #include <memory>
 
 class MainForm : public QMainWindow
@@ -27,8 +28,9 @@ private:
 	std::string userConfigFolder;
 	bool functionAfterShownCalled;
 	QTableWidgetKeyPressWatcher tableWidgetAssessmentsKeyWatcher;
+	std::unique_ptr<UpgradeProgressForm> upgradeProgressForm;
 	void showErrorMessage(const std::string &message,
-						  const std::string &internalError) const;
+						  const std::string &internalError = "") const;
 	void setAppStylesheet(const std::string &style);
 	void loadControllers();
 	void refreshTreeViewTestNavigation();

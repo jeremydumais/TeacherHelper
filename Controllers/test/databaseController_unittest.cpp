@@ -91,3 +91,5 @@ TEST(DatabaseController_closeDatabase, WithAlreadyClosedConnection_ThrowRuntimeE
 		ASSERT_STREQ("Cannot close an already closed database.", err.what());
 	}
 }
+
+/*TEST(DatabaseController_setUserConfigFolder, With*/

@@ -93,7 +93,23 @@ MainForm::MainForm(QWidget *parent)
 		msgBox.setStandardButtons(QMessageBox::Yes | QMessageBox::No | QMessageBox::Cancel);
 		msgBox.setDefaultButton(QMessageBox::Cancel);
 		if (msgBox.exec() == QMessageBox::Yes) {
+			//Display the upgrade windows
+			upgradeProgressForm = make_unique<UpgradeProgressForm>(this);
+			upgradeProgressForm->show();
 			//Do the upgrade
+			databaseController->onUpgradeProgress.connect([this](size_t progress, const string &message) {
+				this->upgradeProgressForm->setProgress(progress);
+				this->upgradeProgressForm->addMessage(message);
+				if (progress >= 100) {
+					this->upgradeProgressForm->enabledFinishButton();
+				}
+				QCoreApplication::processEvents();
+			});
+			
+			if (!databaseController->upgrade()) {
+				upgradeProgressForm->exec();
+				exit(5);
+			}
 		}
 		else {
 			exit(4);

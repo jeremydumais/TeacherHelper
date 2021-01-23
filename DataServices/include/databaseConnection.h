@@ -31,7 +31,6 @@ public:
     void openForCreation() override;
     bool isOpened() const override;
     void close() override;
-    void create();
 private:
     std::string dbName;
     bool isDBOpened;

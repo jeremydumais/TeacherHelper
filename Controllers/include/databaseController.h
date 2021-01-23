@@ -31,11 +31,13 @@ public:
     const std::string &getLastError() const override;
     boost::optional<Version> getVersion() override;
     bool isDatabaseUpgradeRequired() const override;
+    bool upgrade() override;
     void openDatabase(const std::string &databaseName) override;
     void closeDatabase() override;
     bool createDatabase(const std::string &databaseName) override;
 private:
     std::string lastError;
+    std::string userConfigFolder;
     std::unique_ptr<IDatabaseConnection> databaseConnection;
     std::unique_ptr<IDatabaseManagementOperations> databaseManagementOperations;
     std::unique_ptr<DatabaseVersionStorage> databaseVersionStorage;
