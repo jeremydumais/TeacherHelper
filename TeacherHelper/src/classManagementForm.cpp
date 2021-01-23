@@ -354,17 +354,23 @@ void ClassManagementForm::pushButtonAddMember_Click()
 {
 	StudentSelectionForm formStudentSelection(this, databaseController);
 	formStudentSelection.exec();
-	auto student = formStudentSelection.getSelectedStudent();
-	if (student) {
-		//Ensure that the student is not already in the list
-		if (ui.tableWidgetMembers->findItems(to_string(student->getId()).c_str(), Qt::MatchFlag::MatchExactly).size() == 0) {
-			size_t row = ui.tableWidgetMembers->rowCount();
-			ui.tableWidgetMembers->insertRow(row);
-			ui.tableWidgetMembers->setItem(row, 0, new QTableWidgetItem(to_string(student->getId()).c_str()));
-			ui.tableWidgetMembers->setItem(row, 1, new QTableWidgetItem(fmt::format("{0}, {1} ({2})", 
-																					student->getLastName(), 
-																					student->getFirstName(), 
-																					student->getComments()).c_str()));
+	auto students = formStudentSelection.getSelectedStudent();
+	if (students.size() > 0) {
+		for(const auto &student : students) {
+			//Ensure that the student is not already in the list
+			if (ui.tableWidgetMembers->findItems(to_string(student->getId()).c_str(), Qt::MatchFlag::MatchExactly).size() == 0) {
+				size_t row = ui.tableWidgetMembers->rowCount();
+				ui.tableWidgetMembers->insertRow(row);
+				ui.tableWidgetMembers->setItem(row, 0, new QTableWidgetItem(to_string(student->getId()).c_str()));
+				string comment { student->getComments() };
+				if (!comment.empty()) {
+					comment = fmt::format("({0})", comment);
+				}
+				ui.tableWidgetMembers->setItem(row, 1, new QTableWidgetItem(fmt::format("{0}, {1} {2}", 
+																						student->getLastName(), 
+																						student->getFirstName(), 
+																						comment).c_str()));
+			}
 		}
 	}
 }

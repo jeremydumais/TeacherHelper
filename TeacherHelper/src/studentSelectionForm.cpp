@@ -10,7 +10,7 @@ StudentSelectionForm::StudentSelectionForm(QWidget *parent, const IDatabaseContr
 	: QDialog(parent),
 	  ui(Ui::studentSelectionFormClass()),
 	  controller(databaseController),
-	  selectedStudent(nullptr)
+	  selectedStudent(vector<const Student *>())
 {
 	ui.setupUi(this);
 	connect(ui.pushButtonOK, SIGNAL(clicked()), this, SLOT(pushButtonOK_Click()));
@@ -19,7 +19,7 @@ StudentSelectionForm::StudentSelectionForm(QWidget *parent, const IDatabaseContr
 	ui.tableWidgetStudents->setColumnHidden(0, true);
 	connect(ui.tableWidgetStudents->selectionModel(), 
 		SIGNAL(selectionChanged(const QItemSelection &, const QItemSelection &)),
-  		SLOT(itemsTableSelectionChanged(const QItemSelection &)));
+  		SLOT(itemsTableSelectionChanged()));
 	connect(ui.tableWidgetStudents, 
 		SIGNAL(cellDoubleClicked(int, int)), 
 		SLOT(pushButtonOK_Click()));
@@ -71,14 +71,14 @@ void StudentSelectionForm::toggleTableControls(bool itemSelected)
 	ui.pushButtonOK->setEnabled(itemSelected);
 }
 
-const Student *StudentSelectionForm::getSelectedStudent() const
+const vector<const Student *> StudentSelectionForm::getSelectedStudent() const
 {
 	return selectedStudent;
 }
 
-void StudentSelectionForm::itemsTableSelectionChanged(const QItemSelection &selected)
+void StudentSelectionForm::itemsTableSelectionChanged()
 {	
-	toggleTableControls(selected.size() == 1);
+	toggleTableControls(ui.tableWidgetStudents->selectionModel()->selectedIndexes().size() >= 1);
 }
 
 void StudentSelectionForm::lineEditFilterTextChanged(const QString &value)
@@ -89,17 +89,21 @@ void StudentSelectionForm::lineEditFilterTextChanged(const QString &value)
 
 void StudentSelectionForm::pushButtonOK_Click()
 {
-	auto row = ui.tableWidgetStudents->selectionModel()->selectedIndexes();
-	if (row.size() > 0) {
-		selectedStudent = controller.findStudent(row[0].data().toUInt());
-		if (selectedStudent) {
-			close();
+	selectedStudent.clear();
+	auto rows = ui.tableWidgetStudents->selectionModel()->selectedIndexes();
+	if (rows.size() > 0) {
+		for(const auto &row : rows) {
+			const Student *student { controller.findStudent(row.data().toUInt()) };
+			if (student != nullptr) {
+				selectedStudent.push_back(student);
+			}
 		}
+		close();
 	}
 }
 
 void StudentSelectionForm::pushButtonCancel_Click()
 {
-	selectedStudent = nullptr;
+	selectedStudent.clear();
 	close();
 }
