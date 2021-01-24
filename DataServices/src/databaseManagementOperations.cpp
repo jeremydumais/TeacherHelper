@@ -136,7 +136,7 @@ bool DatabaseManagementOperations::migrateToV1_1_0(IDatabaseConnection &connecti
     vector<string> tableMigrationInstructions {
         "CREATE TABLE version(name varchar(10) PRIMARY KEY)",
         "INSERT INTO version VALUES ('1.0.0')",
-        ""
+        "ALTER TABLE assessment ADD COLUMN maxScore REAL NOT NULL DEFAULT 100"
     };
     int percentCompleted { 0 };
     onUpgradeProgress(percentCompleted, fmt::format("{0}%...", percentCompleted));

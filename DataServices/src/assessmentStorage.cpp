@@ -78,7 +78,7 @@ list<Assessment> AssessmentStorage::loadItemsFromDB(const string &whereClause)
 std::string AssessmentStorage::getSelectCommand() const
 {
     return "SELECT assessment.id, assessment.name, testType.id, testType.name, subject.id, subject.name, " 
-           "class.id, class.name, school.id, school.name, city.id, city.name, date "
+           "class.id, class.name, school.id, school.name, city.id, city.name, date, maxScore "
            "FROM assessment "
            "INNER JOIN testType ON testType.id = assessment.testType_id " 
            "INNER JOIN subject ON subject.id = assessment.subject_id " 
@@ -101,7 +101,8 @@ Assessment AssessmentStorage::getItemFromRecord(const IStorageSelectOperation &r
                                    record.getStringValue(9),
                                    City(record.getIntValue(10),
                                         record.getStringValue(11)))),
-                      record.getDateTime(12).getBoostPTime());
+                      record.getDateTime(12).getBoostPTime(),
+                      record.getDoubleValue(13));
 }
 
 void AssessmentStorage::postGetStep(list<Assessment> &items) 
@@ -122,8 +123,8 @@ void AssessmentStorage::postGetStep(list<Assessment> &items)
 
 std::string AssessmentStorage::getInsertCommand() const
 {
-    return "INSERT INTO assessment (name, testType_id, subject_id, class_id, date) "
-           "VALUES(?, ?, ?, ?, ?)";
+    return "INSERT INTO assessment (name, testType_id, subject_id, class_id, date, maxScore) "
+           "VALUES(?, ?, ?, ?, ?, ?)";
 }
 
 std::vector<std::string> AssessmentStorage::getInsertValues(const Assessment &item) const
@@ -133,7 +134,8 @@ std::vector<std::string> AssessmentStorage::getInsertValues(const Assessment &it
              to_string(item.getTestType().getId()), 
              to_string(item.getSubject().getId()), 
              to_string(item.getClass().getId()), 
-             assessmentDateTime.toSQLiteString()
+             assessmentDateTime.toSQLiteString(),
+             to_string(item.getMaxScore())
            };
 }
 
@@ -151,7 +153,7 @@ bool AssessmentStorage::postInsertStep(const Assessment &item)
 std::string AssessmentStorage::getUpdateCommand() const
 {
     return "UPDATE assessment SET name = ?, testType_id = ?, subject_id = ?, "
-           "class_id = ?, date = ? WHERE id = ?";
+           "class_id = ?, date = ?, maxScore = ? WHERE id = ?";
 }
 
 std::vector<std::string> AssessmentStorage::getUpdateValues(const Assessment &item) const
@@ -162,6 +164,7 @@ std::vector<std::string> AssessmentStorage::getUpdateValues(const Assessment &it
              to_string(item.getSubject().getId()),
              to_string(item.getClass().getId()),
              assessmentDateTime.toSQLiteString(),
+             to_string(item.getMaxScore()),
              to_string(item.getId()) 
            };
 }

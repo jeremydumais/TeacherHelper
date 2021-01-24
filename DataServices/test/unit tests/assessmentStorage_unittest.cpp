@@ -30,6 +30,7 @@ struct FakeAssessmentRow
     int cityId;
     string cityName;
     string date;
+    double maxScore;
     operator vector<boost::any>() const 
     { 
         return vector<boost::any> { id,
@@ -44,7 +45,8 @@ struct FakeAssessmentRow
                                     schoolName,
                                     cityId,
                                     cityName,
-                                    date }; 
+                                    date,
+                                    maxScore }; 
     }
     operator Assessment() const 
     { 
@@ -52,7 +54,8 @@ struct FakeAssessmentRow
                           TestType(testTypeId, testTypeName), 
                           Subject(subjectId, subjectName),
                           Class(classId, className, School(schoolId, schoolName, City(cityId, cityName))),
-                          SQLiteDateTimeFactory::NewDateTimeFromISOExtended(date).getBoostPTime()); 
+                          SQLiteDateTimeFactory::NewDateTimeFromISOExtended(date).getBoostPTime(),
+                          maxScore); 
     }
 };
 
@@ -91,7 +94,8 @@ FakeAssessmentRow assessmentSample1 { 1, "Intra Exam",
                                       1, "MyClass",
                                       1, "SchoolTest",
                                       1, "CityTest",
-                                      "2020-08-23T13:21:33" };
+                                      "2020-08-23T13:21:33",
+                                      70.0f };
 
 FakeAssessmentRow assessmentSample2 { 2, "Final Exam", 
                                       2, "FinalExam", 
@@ -99,7 +103,8 @@ FakeAssessmentRow assessmentSample2 { 2, "Final Exam",
                                       1, "MyClass",
                                       1, "SchoolTest",
                                       1, "CityTest",
-                                      "2020-08-22T11:11:13" };
+                                      "2020-08-22T11:11:13",
+                                      100.0f };
 
 FakeAssessmentResultRow assessmentResultSample1 { 1, 1, 90.5f, "", 1, "Joe", "Blow", ""};
 FakeAssessmentResultRow assessmentResultSample2 { 1, 2, 87.2f, "A result comment", 2, "Jane", "Doe", ""};

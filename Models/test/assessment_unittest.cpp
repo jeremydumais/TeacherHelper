@@ -25,7 +25,8 @@ public:
 			  TestType("Exam"),
 			  Subject("History"),
 			  Class("MyClass", School("Test", City("CityTest"))),
-				  ptime(date(2020, Aug, 23), time_duration(13, 21, 33))),
+				  ptime(date(2020, Aug, 23), time_duration(13, 21, 33)),
+			  70.0f),
 		result1 { Student(1, "Joe", "Blow"), 90.5f },
 		result2 { Student(2, "Jane", "Doe"), 87.2f }
 	{
@@ -152,7 +153,8 @@ TEST(Assessment_ConstructorWithId, ValidEntry_ReturnSuccess)
 			  TestType("Exam"),
 			  Subject("History"),
 			  Class("MyClass", School("Test", City("CityTest"))),
-			  dateExpected);
+			  dateExpected,
+			  70.0f);
 	ASSERT_EQ(1, assessment.getId());  
 	ASSERT_EQ("Intra Exam", assessment.getName());  
 	ASSERT_EQ("Exam", assessment.getTestType().getName());
@@ -161,6 +163,7 @@ TEST(Assessment_ConstructorWithId, ValidEntry_ReturnSuccess)
 	ASSERT_EQ("Test", assessment.getClass().getSchool().getName());
 	ASSERT_EQ("CityTest", assessment.getClass().getSchool().getCity().getName());
 	ASSERT_EQ(dateExpected, assessment.getDateTime());
+	ASSERT_EQ(70.0f, assessment.getMaxScore());
 }
 
 TEST_F(AssessmentSampleWithoutResults, getId_WithId1_Return1)
@@ -192,6 +195,16 @@ TEST_F(AssessmentSampleWithoutResults, getDate_With2020Aug24190405_ReturnSameDat
 {
 	auto dateExpected { ptime(date(2020, Aug, 23), time_duration(13, 21, 33)) };
 	ASSERT_EQ(dateExpected, assessment.getDateTime());
+}
+
+TEST_F(AssessmentSampleWithoutResults, getMaxScore_With100_Return100)
+{
+	ASSERT_EQ(100.0f, assessment.getMaxScore());
+}
+
+TEST_F(AssessmentSampleWithTwoResults, getMaxScore_With70_Return70)
+{
+	ASSERT_EQ(70.0f, assessment.getMaxScore());
 }
 
 TEST_F(AssessmentSampleWithoutResults, getResults_WithNoResults_ReturnEmptyVector)
@@ -296,6 +309,50 @@ TEST_F(AssessmentSampleWithoutResults, setDate_WithClassAnotherClass_ReturnSucce
 	ASSERT_EQ(expected, assessment.getDateTime());
 }
 
+TEST_F(AssessmentSampleWithoutResults, setMaxScore_WithZero_ThrowInvalidArgument)
+{
+	try 
+	{
+		assessment.setMaxScore(0);
+		FAIL();
+	}
+	catch(invalid_argument &err) 
+	{
+        ASSERT_STREQ("The max score cannot be less than 1.", err.what());
+	}
+}
+
+TEST_F(AssessmentSampleWithoutResults, setMaxScore_WithMinusOne_ThrowInvalidArgument)
+{
+	try 
+	{
+		assessment.setMaxScore(-1);
+		FAIL();
+	}
+	catch(invalid_argument &err) 
+	{
+        ASSERT_STREQ("The max score cannot be less than 1.", err.what());
+	}
+}
+
+TEST_F(AssessmentSampleWithoutResults, setMaxScore_With32769_ThrowInvalidArgument)
+{
+	try 
+	{
+		assessment.setMaxScore(32769);
+		FAIL();
+	}
+	catch(invalid_argument &err) 
+	{
+        ASSERT_STREQ("The max score cannot be higher than max (32768).", err.what());
+	}
+}
+
+TEST_F(AssessmentSampleWithoutResults, setMaxScore_With80_ReturnSuccess)
+{
+	assessment.setMaxScore(80);
+	ASSERT_EQ(80.0f, assessment.getMaxScore());
+}
 
 TEST_F(AssessmentSampleWithoutResults, addResult_WithUniqueResult_ReturnSuccess)
 {
