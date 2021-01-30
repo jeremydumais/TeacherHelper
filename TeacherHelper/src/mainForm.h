@@ -51,6 +51,7 @@ private slots:
 	void action_About_Click();
 	void action_LightTheme_Click();
 	void action_DarkTheme_Click();
+	void action_ClassAssessmentsSummaryReport_Click();
 	void toolButtonExpandAll_Click();
 	void toolButtonCollapseAll_Click();
 	void treeWidgetSchoolClassNav_currentItemChanged(QTreeWidgetItem *current);

@@ -10,6 +10,7 @@
 #include "studentManagementForm.h"
 #include "testTypeManagementForm.h"
 #include "subjectManagementForm.h"
+#include "classAssessmentsSummaryReportForm.h"
 #include <algorithm>
 #include <boost/filesystem.hpp>
 #include <boost/property_tree/ptree.hpp>
@@ -136,6 +137,7 @@ void MainForm::connectUIActions()
 	connect(ui.action_About, &QAction::triggered, this, &MainForm::action_About_Click);
 	connect(ui.action_LightTheme, &QAction::triggered, this, &MainForm::action_LightTheme_Click);
 	connect(ui.action_DarkTheme, &QAction::triggered, this, &MainForm::action_DarkTheme_Click);
+	connect(ui.action_ClassAssessmentsSummaryReport, &QAction::triggered, this, &MainForm::action_ClassAssessmentsSummaryReport_Click);
 	connect(ui.toolButtonExpandAll, &QToolButton::clicked, this, &MainForm::toolButtonExpandAll_Click);
 	connect(ui.toolButtonCollapseAll, &QToolButton::clicked, this, &MainForm::toolButtonCollapseAll_Click);
 	connect(ui.treeWidgetSchoolClassNav, &QTreeWidget::currentItemChanged, this, &MainForm::treeWidgetSchoolClassNav_currentItemChanged);
@@ -317,6 +319,12 @@ void MainForm::action_DarkTheme_Click()
 		showErrorMessage("An error occurred while saving the configuration file.", 
 						 configManager.getLastError());
 	}
+}
+
+void MainForm::action_ClassAssessmentsSummaryReport_Click() 
+{
+	ClassAssessmentsSummaryReport formClassAssessmentsSummaryReport(this, *databaseController.get());
+	formClassAssessmentsSummaryReport.exec();
 }
 
 void MainForm::showErrorMessage(const string &message,
