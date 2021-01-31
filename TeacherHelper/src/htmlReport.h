@@ -9,6 +9,7 @@ class HTMLReport
 {
 public:
     HTMLReport(const std::string &reportFileName);
+    const std::string &getReportFileName() const;
     void setData(std::shared_ptr<IReportData> data);
     void setProperties(const std::map<std::string, std::string> &properties);
     void previewReport();

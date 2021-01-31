@@ -27,8 +27,10 @@ private:
 	std::unique_ptr<ClassController> classController;
 	std::string userConfigFolder;
 	bool functionAfterShownCalled;
+	std::string resourcesPath;
 	QTableWidgetKeyPressWatcher tableWidgetAssessmentsKeyWatcher;
 	std::unique_ptr<UpgradeProgressForm> upgradeProgressForm;
+	void fetchResourcesPath();
 	void showErrorMessage(const std::string &message,
 						  const std::string &internalError = "") const;
 	void setAppStylesheet(const std::string &style);

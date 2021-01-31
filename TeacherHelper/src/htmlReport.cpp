@@ -7,6 +7,11 @@ HTMLReport::HTMLReport(const string &reportFileName)
 {
 }
 
+const std::string& HTMLReport::getReportFileName() const
+{
+    return fileName;
+}
+
 void HTMLReport::setData(std::shared_ptr<IReportData> data) 
 {
     this->data = data;

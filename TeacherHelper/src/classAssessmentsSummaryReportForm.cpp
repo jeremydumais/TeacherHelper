@@ -1,21 +1,35 @@
 #include "classAssessmentsSummaryReportForm.h"
 #include <fmt/format.h>
+#include <fstream>
+#include <QtCore/QDir>
+#include <QtCore/QFile>
+#include <QtCore/QFileInfo>
+#include <QMessageBox>
+#include <QtPrintSupport/QPrinter>
+#include <QtPrintSupport/QPrintPreviewDialog>
+#include <sstream>
 
 using namespace std;
 
-ClassAssessmentsSummaryReport::ClassAssessmentsSummaryReport(QWidget *parent, const IDatabaseController &databaseController)
+ClassAssessmentsSummaryReport::ClassAssessmentsSummaryReport(QWidget *parent, 
+															 const IDatabaseController &databaseController,
+															 const std::string &resourcesPath)
 	: QDialog(parent),
 	  ui(Ui::classAssessmentsSummaryReportFormClass()),
 	  databaseController(databaseController),
 	  schoolController(databaseController),
 	  classController(databaseController),
-	  assessmentController(databaseController)
+	  assessmentController(databaseController),
+	  resourcesPath(resourcesPath),
+	  webView(new QWebView(this))
 {
 	ui.setupUi(this);
 	connect(ui.pushButtonClose, &QPushButton::clicked, this, &ClassAssessmentsSummaryReport::close);
+	connect(ui.pushButtonShowReport, &QPushButton::clicked, this, &ClassAssessmentsSummaryReport::pushButtonShowReport_Clicked);
 	connect(ui.comboBoxSchool, static_cast<void (QComboBox::*)(int index)>(&QComboBox::currentIndexChanged), this, &ClassAssessmentsSummaryReport::comboBoxSchool_CurrentIndexChanged);
 	connect(ui.comboBoxClass, static_cast<void (QComboBox::*)(int index)>(&QComboBox::currentIndexChanged), this, &ClassAssessmentsSummaryReport::comboBoxClass_CurrentIndexChanged);
-
+	connect(ui.checkBoxIdenticalWeighting, &QCheckBox::stateChanged, this, &ClassAssessmentsSummaryReport::checkBoxIdenticalWeighting_Changed);
+	connect(ui.tableWidgetAssessments->selectionModel(), &QItemSelectionModel::selectionChanged, this, &ClassAssessmentsSummaryReport::tableWidgetAssessments_selectionChanged);
 	ui.tableWidgetAssessments->setHorizontalHeaderItem(0, new QTableWidgetItem("Id"));
 	ui.tableWidgetAssessments->setHorizontalHeaderItem(1, new QTableWidgetItem("Weighting %"));
 	ui.tableWidgetAssessments->setHorizontalHeaderItem(2, new QTableWidgetItem("Date"));
@@ -26,6 +40,11 @@ ClassAssessmentsSummaryReport::ClassAssessmentsSummaryReport(QWidget *parent, co
 	ui.tableWidgetAssessments->setColumnHidden(0, true);
 }
 
+ClassAssessmentsSummaryReport::~ClassAssessmentsSummaryReport()
+{
+	delete webView;
+}
+
 void ClassAssessmentsSummaryReport::showEvent(QShowEvent *event) 
 {
     QDialog::showEvent(event);
@@ -33,7 +52,19 @@ void ClassAssessmentsSummaryReport::showEvent(QShowEvent *event)
 	schoolController.loadSchools();
 	classController.loadClasses();
 	refreshSchoolComboBox();
+
+	ui.comboBoxSchool->setCurrentIndex(3);
+	ui.comboBoxClass->setCurrentIndex(1);
 } 
+
+void ClassAssessmentsSummaryReport::showError(const string &message) const
+{
+	QMessageBox msgBox;
+	msgBox.setText(QString(message.c_str()));
+	msgBox.setWindowTitle("Error");
+	msgBox.setIcon(QMessageBox::Icon::Critical);
+	msgBox.exec();
+}
 
 void ClassAssessmentsSummaryReport::refreshSchoolComboBox()
 {
@@ -77,6 +108,7 @@ void ClassAssessmentsSummaryReport::refreshAssessmentTable(const Class &itemClas
 		ui.tableWidgetAssessments->setItem(row, 6, createNonEditableRow((to_string(assessment.getResults().size()))));
 		row++;
 	}
+	toggleWeightingCellsEditMode(!ui.checkBoxIdenticalWeighting->isChecked());
 }
 
 QTableWidgetItem* ClassAssessmentsSummaryReport::createNonEditableRow(const std::string &value) 
@@ -89,6 +121,32 @@ QTableWidgetItem* ClassAssessmentsSummaryReport::createNonEditableRow(const std:
 QTableWidgetItem* ClassAssessmentsSummaryReport::createEditableRow(const std::string &value) 
 {
 	return new QTableWidgetItem(value.c_str());
+}
+
+void ClassAssessmentsSummaryReport::pushButtonShowReport_Clicked() 
+{
+	int selectedRowsCount { ui.tableWidgetAssessments->selectionModel()->selectedRows().count() };
+	if (selectedRowsCount > 0) {
+		HTMLReport report(fmt::format("{0}/reports/MultiAssessmentSummary.html", resourcesPath));
+		/*PreviewReportForm formPreviewReport(this, report);
+		formPreviewReport.exec();*/
+		generateReport(report);
+		QCoreApplication::processEvents();
+
+		QPrinter *printer = new QPrinter();
+		printer->setPageSize(QPrinter::Letter);
+		printer->setPageOrientation(QPageLayout::Portrait);
+		printer->setPageMargins(15.00, 10.00, 7.00, 15.00, QPrinter::Millimeter);
+		printer->setResolution(QPrinter::HighResolution);
+		printer->setFullPage(true);
+		QPrintPreviewDialog *preview = new QPrintPreviewDialog(printer, this);
+		preview->setWindowState(Qt::WindowMaximized);
+		connect(preview, SIGNAL(paintRequested(QPrinter*)), webView, SLOT(print(QPrinter*)));
+		preview->exec();
+	}
+	else {
+		showError("No assessment selected.");
+	}
 }
 
 void ClassAssessmentsSummaryReport::comboBoxSchool_CurrentIndexChanged() 
@@ -111,4 +169,101 @@ void ClassAssessmentsSummaryReport::comboBoxClass_CurrentIndexChanged()
 			refreshAssessmentTable(*selectedClass);
 		}
 	}
+}
+
+void ClassAssessmentsSummaryReport::tableWidgetAssessments_selectionChanged()
+{
+	if (ui.checkBoxIdenticalWeighting->checkState() == Qt::Checked) {
+		calculateAutomaticWeighting();
+	}
+}
+
+void ClassAssessmentsSummaryReport::checkBoxIdenticalWeighting_Changed(int state) 
+{
+	toggleWeightingCellsEditMode(state != Qt::Checked);
+	if (state == Qt::Checked) {
+		calculateAutomaticWeighting();
+	}
+}
+
+void ClassAssessmentsSummaryReport::toggleWeightingCellsEditMode(bool enabled) 
+{
+	for(int i = 0; i < ui.tableWidgetAssessments->rowCount(); i++) {
+		QTableWidgetItem *item = ui.tableWidgetAssessments->item(i, 1);
+		if (enabled) {
+			item->setFlags(Qt::ItemIsEnabled | Qt::ItemIsSelectable | Qt::ItemIsEditable);
+		}
+		else {
+			item->setFlags(Qt::ItemIsSelectable);
+		}
+	}	
+}
+
+void ClassAssessmentsSummaryReport::calculateAutomaticWeighting() 
+{
+	//Calculate equal weighting for each selected assessment
+	float assessmentWeighting { 100.0f };
+	int selectedRowsCount { ui.tableWidgetAssessments->selectionModel()->selectedRows().count() };
+	if (selectedRowsCount > 0) {
+		assessmentWeighting = 100.0f / static_cast<float>(selectedRowsCount);
+	}
+	for(int i = 0; i < ui.tableWidgetAssessments->rowCount(); i++) {
+		QTableWidgetItem *item = ui.tableWidgetAssessments->item(i, 1);
+		if (item->isSelected()) {
+			item->setText(to_string(assessmentWeighting).c_str());
+		}
+		else {
+			item->setText("");
+		}
+	}
+}
+void ClassAssessmentsSummaryReport::generateReport(HTMLReport &report) 
+{
+	createTemporaryReportFile(report);
+	string reportContent = readTemporaryReportFile();
+
+	/*PaperSize &selectedPaperSize { paperSizes[ui.comboBoxPaperSize->currentIndex()] };
+	bool isPortrait { ui.comboBoxOrientation->currentIndex() == 0 };
+	boost::replace_all(reportContent, "<:PAGEWIDTH>", fmt::format("{0}mm", isPortrait ? selectedPaperSize.width : selectedPaperSize.height));
+	boost::replace_all(reportContent, "<:PAGEHEIGHT>", fmt::format("{0}mm", isPortrait ? selectedPaperSize.height : selectedPaperSize.width));
+	boost::replace_all(reportContent, "<:PAGEHEIGHTWITHOUTMARGIN>", fmt::format("{0}mm", (isPortrait ? selectedPaperSize.height : selectedPaperSize.width) - 40.0f));
+	*/
+	saveTemporaryReportFile(reportContent);
+	webView->setUrl(QUrl(fmt::format("file://{0}", renderedReportFileName).c_str()));
+}
+
+void ClassAssessmentsSummaryReport::createTemporaryReportFile(HTMLReport &report) 
+{
+	string tempFolder = QDir::tempPath().toStdString();
+	QFile reportFile(report.getReportFileName().c_str());
+	QFileInfo reportFileInfo(report.getReportFileName().c_str());
+	renderedReportFileName = fmt::format("{0}/{1}", tempFolder, reportFileInfo.fileName().toStdString());
+	//If the file already exist remove it
+	QFile renderedReportFile(renderedReportFileName.c_str());
+	if (renderedReportFile.exists()) {
+		renderedReportFile.remove();
+	}
+	if (!reportFile.copy(renderedReportFileName.c_str())) {
+		showError(fmt::format("Unable to create the file {0} from {1}", renderedReportFileName, report.getReportFileName()));
+		close();
+	}
+}
+
+std::string ClassAssessmentsSummaryReport::readTemporaryReportFile() 
+{
+	ifstream fs;
+	std::stringstream buffer;
+	fs.open(renderedReportFileName);
+	buffer << fs.rdbuf();
+	string reportContent = buffer.str();
+	fs.close();
+	return reportContent;
+}
+
+void ClassAssessmentsSummaryReport::saveTemporaryReportFile(const std::string &content) 
+{
+	ofstream ofs;
+	ofs.open(renderedReportFileName, ofstream::out | ofstream::trunc);
+	ofs << content;
+	ofs.close();
 }

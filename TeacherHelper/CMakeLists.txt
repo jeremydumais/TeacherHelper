@@ -7,7 +7,7 @@ include_directories(${CMAKE_CURRENT_SOURCE_DIR}/include
     ${CMAKE_SOURCE_DIR}/Controllers/include
     ${QT_INCLUDE_PATH})
 
-find_package(Qt5 COMPONENTS Widgets REQUIRED)
+find_package(Qt5 COMPONENTS Widgets WebKitWidgets PrintSupport REQUIRED)
 
 #Generate QT Form headers
 set(CMAKE_AUTOUIC ON)
@@ -17,6 +17,7 @@ set(CMAKE_INCLUDE_CURRENT_DIR ON)
 set(CMAKE_AUTOUIC_SEARCH_PATHS AUTOGEN_BUILD_DIR/include)
 
 set (RESOURCE_FILES ${CMAKE_CURRENT_SOURCE_DIR}/res/darkstyle/darkstyle.qss)
+set (REPORT_FILES ${CMAKE_CURRENT_SOURCE_DIR}/res/reports/MultiAssessmentSummary.html)
 
 if (WIN32)
     set(APP_RESOURCE_FILES ${CMAKE_CURRENT_SOURCE_DIR}/res/global.rc)
@@ -60,7 +61,7 @@ elseif (APPLE)
   set_source_files_properties(${CMAKE_CURRENT_SOURCE_DIR}/res/TeacherHelperIcon256.icns PROPERTIES MACOSX_PACKAGE_LOCATION Resources)
 endif()
 
-target_link_libraries(${PROJECT_NAME} Models DataServices Controllers Qt5::Widgets sqlite3)
+target_link_libraries(${PROJECT_NAME} Models DataServices Controllers Qt5::Widgets Qt5::WebKitWidgets Qt5::PrintSupport sqlite3)
 
 if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU") #gcc
   # https://gcc.gnu.org/onlinedocs/gcc/Warning-Options.html
@@ -113,4 +114,5 @@ if (WIN32)
 else()
     install(TARGETS ${PROJECT_NAME} DESTINATION bin)
     install(FILES ${RESOURCE_FILES} DESTINATION share/${PROJECT_NAME}/res)
+    install(FILES ${REPORT_FILES} DESTINATION share/${PROJECT_NAME}/reports)
 endif()

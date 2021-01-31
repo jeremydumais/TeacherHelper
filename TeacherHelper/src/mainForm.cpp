@@ -29,9 +29,11 @@ MainForm::MainForm(QWidget *parent)
 	: QMainWindow(parent),
 	  ui(Ui::MainForm()),
 	  databaseController(nullptr),
-	  functionAfterShownCalled(false)
+	  functionAfterShownCalled(false),
+	  resourcesPath("")
 {
 	ui.setupUi(this);
+	fetchResourcesPath();
 	this->showMaximized();
 	connectUIActions();
 	prepareListsHeaders();
@@ -122,6 +124,24 @@ MainForm::MainForm(QWidget *parent)
 	toggleAssessmentActionsButtons(false);
 }
 
+void MainForm::fetchResourcesPath() 
+{
+	#ifdef _WIN32
+		char exePath[MAX_PATH]; 
+		// When NULL is passed to GetModuleHandle, the handle of the exe itself is returned
+		HMODULE hModule = GetModuleHandle(nullptr);
+		if (hModule != nullptr)
+		{
+			// Use GetModuleFileName() with module handle to get the path
+			GetModuleFileName(hModule, exePath, (sizeof(exePath))); 
+		}
+		boost::filesystem::path path(exePath);
+		resourcesPath = fmt::format("{0}\\", path.parent_path().string());
+	#else
+		resourcesPath = "/usr/local/share/TeacherHelperApp/";
+	#endif
+}
+
 void MainForm::connectUIActions() 
 {
 	connect(ui.action_Quit, &QAction::triggered, this, &MainForm::close);
@@ -175,6 +195,11 @@ void MainForm::functionAfterShown()
 	setWindowIcon(QIcon(":/global/TeacherHelper Icon256.png"));
 	const int WINDOWWIDTH {this->size().width()};
 	ui.splitter->setSizes({static_cast<int>(WINDOWWIDTH*0.2f), static_cast<int>(WINDOWWIDTH*0.8f)});
+
+	ClassAssessmentsSummaryReport formClassAssessmentsSummaryReport(this, 
+																	*databaseController.get(), 
+																	resourcesPath);
+	formClassAssessmentsSummaryReport.exec();
 }
 
 bool MainForm::event(QEvent *event)
@@ -323,7 +348,9 @@ void MainForm::action_DarkTheme_Click()
 
 void MainForm::action_ClassAssessmentsSummaryReport_Click() 
 {
-	ClassAssessmentsSummaryReport formClassAssessmentsSummaryReport(this, *databaseController.get());
+	ClassAssessmentsSummaryReport formClassAssessmentsSummaryReport(this, 
+																	*databaseController.get(), 
+																	resourcesPath);
 	formClassAssessmentsSummaryReport.exec();
 }
 
@@ -351,21 +378,7 @@ void MainForm::setAppStylesheet(const std::string &style)
 	ui.action_LightTheme->setChecked(false);
 	ui.action_DarkTheme->setChecked(false);
 	if (style == "Dark") {
-		#ifdef _WIN32
-			char exePath[MAX_PATH]; 
-			// When NULL is passed to GetModuleHandle, the handle of the exe itself is returned
-			HMODULE hModule = GetModuleHandle(nullptr);
-			if (hModule != nullptr)
-			{
-				// Use GetModuleFileName() with module handle to get the path
-				GetModuleFileName(hModule, exePath, (sizeof(exePath))); 
-			}
-			boost::filesystem::path path(exePath);
-			string stylePath { fmt::format("{0}\\res\\", path.parent_path().string())};
-		#else
-			string stylePath = "/usr/local/share/TeacherHelperApp/res/";
-		#endif
-		QFile file(fmt::format("{0}darkstyle.qss", stylePath).c_str());
+		QFile file(fmt::format("{0}/res/darkstyle.qss", resourcesPath).c_str());
 		file.open(QFile::ReadOnly);
 		const QString styleSheet = QLatin1String(file.readAll());
 		this->setStyleSheet(styleSheet);

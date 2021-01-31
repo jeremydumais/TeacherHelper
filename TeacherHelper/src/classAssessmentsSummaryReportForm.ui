@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>884</width>
-    <height>416</height>
+    <height>351</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -88,6 +88,13 @@
        <column/>
       </widget>
      </item>
+     <item row="3" column="0">
+      <widget class="QLabel" name="label_4">
+       <property name="text">
+        <string>Identical weighting :</string>
+       </property>
+      </widget>
+     </item>
      <item row="3" column="1">
       <widget class="QCheckBox" name="checkBoxIdenticalWeighting">
        <property name="text">
@@ -95,13 +102,6 @@
        </property>
        <property name="checked">
         <bool>true</bool>
-       </property>
-      </widget>
-     </item>
-     <item row="3" column="0">
-      <widget class="QLabel" name="label_4">
-       <property name="text">
-        <string>Identical weighting :</string>
        </property>
       </widget>
      </item>
@@ -123,6 +123,17 @@
       </spacer>
      </item>
      <item>
+      <widget class="QPushButton" name="pushButtonShowReport">
+       <property name="text">
+        <string>&amp;Show report</string>
+       </property>
+       <property name="icon">
+        <iconset resource="../res/global.qrc">
+         <normaloff>:/global/ok22.png</normaloff>:/global/ok22.png</iconset>
+       </property>
+      </widget>
+     </item>
+     <item>
       <widget class="QPushButton" name="pushButtonClose">
        <property name="text">
         <string>C&amp;lose</string>
@@ -138,6 +149,11 @@
   </layout>
  </widget>
  <tabstops>
+  <tabstop>comboBoxSchool</tabstop>
+  <tabstop>comboBoxClass</tabstop>
+  <tabstop>tableWidgetAssessments</tabstop>
+  <tabstop>checkBoxIdenticalWeighting</tabstop>
+  <tabstop>pushButtonShowReport</tabstop>
   <tabstop>pushButtonClose</tabstop>
  </tabstops>
  <resources>
