@@ -3,18 +3,28 @@
 #include "IReportData.h"
 #include <map>
 #include <memory>
+#include <QWebView>
 #include <string>
+#include <vector>
 
 class HTMLReport
 {
 public:
-    HTMLReport(const std::string &reportFileName);
+    HTMLReport(const std::string &reportFileNam, QWebView *webView);
     const std::string &getReportFileName() const;
-    void setData(std::shared_ptr<IReportData> data);
+    const std::string &getLastError() const;
+    void setData(const std::vector<std::shared_ptr<IReportData>> &data);
     void setProperties(const std::map<std::string, std::string> &properties);
-    void previewReport();
+    bool previewReport();
 private:
     std::string fileName;
+    QWebView *webView;
+    std::string renderedReportFileName;
+    std::string reportContent;
+    std::string lastError;
     std::map<std::string, std::string> properties;
-    std::shared_ptr<IReportData> data;
+    std::vector<std::shared_ptr<IReportData>> data;
+    bool createTemporaryReportFile();
+    bool readReportContent();
+    bool saveTemporaryReportFile();
 };

@@ -1,9 +1,7 @@
 #include "classAssessmentsSummaryReportForm.h"
+#include "multiAssessmentReportData.h"
 #include <fmt/format.h>
 #include <fstream>
-#include <QtCore/QDir>
-#include <QtCore/QFile>
-#include <QtCore/QFileInfo>
 #include <QMessageBox>
 #include <QtPrintSupport/QPrinter>
 #include <QtPrintSupport/QPrintPreviewDialog>
@@ -53,8 +51,8 @@ void ClassAssessmentsSummaryReport::showEvent(QShowEvent *event)
 	classController.loadClasses();
 	refreshSchoolComboBox();
 
-	ui.comboBoxSchool->setCurrentIndex(3);
-	ui.comboBoxClass->setCurrentIndex(1);
+	ui.comboBoxSchool->setCurrentIndex(1);
+	ui.comboBoxClass->setCurrentIndex(2);
 } 
 
 void ClassAssessmentsSummaryReport::showError(const string &message) const
@@ -127,12 +125,19 @@ void ClassAssessmentsSummaryReport::pushButtonShowReport_Clicked()
 {
 	int selectedRowsCount { ui.tableWidgetAssessments->selectionModel()->selectedRows().count() };
 	if (selectedRowsCount > 0) {
-		HTMLReport report(fmt::format("{0}/reports/MultiAssessmentSummary.html", resourcesPath));
-		/*PreviewReportForm formPreviewReport(this, report);
-		formPreviewReport.exec();*/
-		generateReport(report);
+		HTMLReport report(fmt::format("{0}/reports/MultiAssessmentSummary.html", resourcesPath), webView);
+		report.setProperties({ { "<:SCHOOLANDCLASS>", "Allo!!!" } });
+		//Load report data
+		vector<shared_ptr<IReportData>> reportData;
+		//Load class students
+		//Load assessments results
+		reportData.push_back(make_shared<MultiAssessmentReportData>("Jed", "Dum"));
+		report.setData(reportData);
+		if (!report.previewReport()) {
+			showError(report.getLastError());
+			return;
+		}
 		QCoreApplication::processEvents();
-
 		QPrinter *printer = new QPrinter();
 		printer->setPageSize(QPrinter::Letter);
 		printer->setPageOrientation(QPageLayout::Portrait);
@@ -217,17 +222,15 @@ void ClassAssessmentsSummaryReport::calculateAutomaticWeighting()
 		}
 	}
 }
-void ClassAssessmentsSummaryReport::generateReport(HTMLReport &report) 
+/*void ClassAssessmentsSummaryReport::generateReport(HTMLReport &report) 
 {
-	createTemporaryReportFile(report);
-	string reportContent = readTemporaryReportFile();
-
-	/*PaperSize &selectedPaperSize { paperSizes[ui.comboBoxPaperSize->currentIndex()] };
-	bool isPortrait { ui.comboBoxOrientation->currentIndex() == 0 };
-	boost::replace_all(reportContent, "<:PAGEWIDTH>", fmt::format("{0}mm", isPortrait ? selectedPaperSize.width : selectedPaperSize.height));
-	boost::replace_all(reportContent, "<:PAGEHEIGHT>", fmt::format("{0}mm", isPortrait ? selectedPaperSize.height : selectedPaperSize.width));
-	boost::replace_all(reportContent, "<:PAGEHEIGHTWITHOUTMARGIN>", fmt::format("{0}mm", (isPortrait ? selectedPaperSize.height : selectedPaperSize.width) - 40.0f));
-	*/
+	report.generateHeader();
+	//PaperSize &selectedPaperSize { paperSizes[ui.comboBoxPaperSize->currentIndex()] };
+	//bool isPortrait { ui.comboBoxOrientation->currentIndex() == 0 };
+	//boost::replace_all(reportContent, "<:PAGEWIDTH>", fmt::format("{0}mm", isPortrait ? selectedPaperSize.width : selectedPaperSize.height));
+	//boost::replace_all(reportContent, "<:PAGEHEIGHT>", fmt::format("{0}mm", isPortrait ? selectedPaperSize.height : selectedPaperSize.width));
+	//boost::replace_all(reportContent, "<:PAGEHEIGHTWITHOUTMARGIN>", fmt::format("{0}mm", (isPortrait ? selectedPaperSize.height : selectedPaperSize.width) - 40.0f));
+	
 	saveTemporaryReportFile(reportContent);
 	webView->setUrl(QUrl(fmt::format("file://{0}", renderedReportFileName).c_str()));
 }
@@ -266,4 +269,4 @@ void ClassAssessmentsSummaryReport::saveTemporaryReportFile(const std::string &c
 	ofs.open(renderedReportFileName, ofstream::out | ofstream::trunc);
 	ofs << content;
 	ofs.close();
-}
+}*/

@@ -6,8 +6,10 @@
 #include "assessmentController.h"
 #include "classController.h"
 #include "htmlReport.h"
+#include "IReportData.h"
 #include "schoolController.h"
 #include "ui_classAssessmentsSummaryReportForm.h"
+#include <memory>
 #include <QWebView>
 
 class ClassAssessmentsSummaryReport : public QDialog
@@ -29,6 +31,7 @@ private:
 	std::string resourcesPath;
 	std::string renderedReportFileName;
 	QWebView *webView;
+	std::shared_ptr<IReportData> reportData;
 	void showError(const std::string &message) const;
 	void refreshSchoolComboBox();
 	void refreshClassComboBox(const School &school);
