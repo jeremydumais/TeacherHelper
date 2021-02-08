@@ -125,12 +125,26 @@ void ClassAssessmentsSummaryReport::pushButtonShowReport_Clicked()
 {
 	int selectedRowsCount { ui.tableWidgetAssessments->selectionModel()->selectedRows().count() };
 	if (selectedRowsCount > 0) {
+		const School* const selectedSchool = schoolController.findSchool(ui.comboBoxSchool->currentData().toUInt());
+		const Class* const selectedClass = classController.findClass(ui.comboBoxClass->currentData().toUInt());
+
 		HTMLReport report(fmt::format("{0}/reports/MultiAssessmentSummary.html", resourcesPath), webView);
-		report.setProperties({ { "<:SCHOOLANDCLASS>", "Allo!!!" } });
+		string schoolAndClass { fmt::format("{0}, {1}", 
+											selectedSchool->getName(),
+											selectedClass->getName()) };
+		string allAssessments { "" };
+		for(const auto &assessmentRow : ui.tableWidgetAssessments->selectionModel()->selectedRows()) {
+			allAssessments += fmt::format("<li>{0} ({1})</li>", 
+										  assessmentRow.sibling(assessmentRow.row(), 3).data().toString().toStdString(),
+										  assessmentRow.sibling(assessmentRow.row(), 2).data().toString().toStdString());
+		}
+		report.setProperties({ { "<:SCHOOLANDCLASS>", schoolAndClass },
+							   { "<:ASSESSMENTSINCLUDED>", allAssessments } });
 		//Load report data
 		vector<shared_ptr<IReportData>> reportData;
-		//Load class students
 		//Load assessments results
+		assessmentController.loadAssessmentsByClass(selectedClass->getId());
+		for
 		reportData.push_back(make_shared<MultiAssessmentReportData>("Jed", "Dum"));
 		report.setData(reportData);
 		if (!report.previewReport()) {
@@ -222,51 +236,3 @@ void ClassAssessmentsSummaryReport::calculateAutomaticWeighting()
 		}
 	}
 }
-/*void ClassAssessmentsSummaryReport::generateReport(HTMLReport &report) 
-{
-	report.generateHeader();
-	//PaperSize &selectedPaperSize { paperSizes[ui.comboBoxPaperSize->currentIndex()] };
-	//bool isPortrait { ui.comboBoxOrientation->currentIndex() == 0 };
-	//boost::replace_all(reportContent, "<:PAGEWIDTH>", fmt::format("{0}mm", isPortrait ? selectedPaperSize.width : selectedPaperSize.height));
-	//boost::replace_all(reportContent, "<:PAGEHEIGHT>", fmt::format("{0}mm", isPortrait ? selectedPaperSize.height : selectedPaperSize.width));
-	//boost::replace_all(reportContent, "<:PAGEHEIGHTWITHOUTMARGIN>", fmt::format("{0}mm", (isPortrait ? selectedPaperSize.height : selectedPaperSize.width) - 40.0f));
-	
-	saveTemporaryReportFile(reportContent);
-	webView->setUrl(QUrl(fmt::format("file://{0}", renderedReportFileName).c_str()));
-}
-
-void ClassAssessmentsSummaryReport::createTemporaryReportFile(HTMLReport &report) 
-{
-	string tempFolder = QDir::tempPath().toStdString();
-	QFile reportFile(report.getReportFileName().c_str());
-	QFileInfo reportFileInfo(report.getReportFileName().c_str());
-	renderedReportFileName = fmt::format("{0}/{1}", tempFolder, reportFileInfo.fileName().toStdString());
-	//If the file already exist remove it
-	QFile renderedReportFile(renderedReportFileName.c_str());
-	if (renderedReportFile.exists()) {
-		renderedReportFile.remove();
-	}
-	if (!reportFile.copy(renderedReportFileName.c_str())) {
-		showError(fmt::format("Unable to create the file {0} from {1}", renderedReportFileName, report.getReportFileName()));
-		close();
-	}
-}
-
-std::string ClassAssessmentsSummaryReport::readTemporaryReportFile() 
-{
-	ifstream fs;
-	std::stringstream buffer;
-	fs.open(renderedReportFileName);
-	buffer << fs.rdbuf();
-	string reportContent = buffer.str();
-	fs.close();
-	return reportContent;
-}
-
-void ClassAssessmentsSummaryReport::saveTemporaryReportFile(const std::string &content) 
-{
-	ofstream ofs;
-	ofs.open(renderedReportFileName, ofstream::out | ofstream::trunc);
-	ofs << content;
-	ofs.close();
-}*/

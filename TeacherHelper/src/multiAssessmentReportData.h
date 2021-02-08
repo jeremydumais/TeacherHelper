@@ -16,12 +16,6 @@ public:
     {
     } 
 
-    /*void generateHeader(const std::map<std::string, std::string> &properties) override {
-        for(const auto &property : properties) {
-            boost::replace_all(content, property.first, property.second);
-        }
-    };*/
-
     std::string generateDataRow() const override {
         return fmt::format("<tr><td>{0}</td><td>{1}</td><td></td></tr>",
                            studentLastName,
