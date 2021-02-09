@@ -1,5 +1,6 @@
 #include "classAssessmentsSummaryReportForm.h"
 #include "multiAssessmentReportData.h"
+#include <boost/algorithm/string.hpp>
 #include <fmt/format.h>
 #include <fstream>
 #include <QMessageBox>
@@ -124,7 +125,7 @@ QTableWidgetItem* ClassAssessmentsSummaryReport::createEditableRow(const std::st
 void ClassAssessmentsSummaryReport::pushButtonShowReport_Clicked() 
 {
 	int selectedRowsCount { ui.tableWidgetAssessments->selectionModel()->selectedRows().count() };
-	if (selectedRowsCount > 0) {
+	if (selectedRowsCount > 0 && validate()) {
 		const School* const selectedSchool = schoolController.findSchool(ui.comboBoxSchool->currentData().toUInt());
 		const Class* const selectedClass = classController.findClass(ui.comboBoxClass->currentData().toUInt());
 
@@ -144,7 +145,54 @@ void ClassAssessmentsSummaryReport::pushButtonShowReport_Clicked()
 		vector<shared_ptr<IReportData>> reportData;
 		//Load assessments results
 		assessmentController.loadAssessmentsByClass(selectedClass->getId());
-		for
+		//Phase 1: Load all students and check if each of them have a result in the selected assessment
+		//If not them let the user choose another weighting
+		map<size_t, map<size_t, float>> userIdAssessmentIdWeighting;
+		for(const auto &student : selectedClass->getMembers()) {
+			int nbOfResultMissing { 0 };
+			vector<size_t> assessmentWithoutResult;
+			for(const auto &assessmentRow : ui.tableWidgetAssessments->selectionModel()->selectedRows()) {
+				uint assessmentId { assessmentRow.sibling(assessmentRow.row(), 0).data().toUInt() };
+				const auto *assessment { assessmentController.findAssessment(assessmentId) };
+				if (assessment != nullptr) {
+					const AssessmentResult *result = getStudentAssessmentResult(*assessment, student);
+					if (result == nullptr) {
+						nbOfResultMissing++;
+						assessmentWithoutResult.push_back(assessment->getId());
+					}
+				}
+				else {
+					showError(fmt::format("Unable to find the assessment with id {0}", assessmentId));
+				}
+			}
+			//If number of result missing > 0 and < total assessment selected then ask the user to select a different weighting
+			if (nbOfResultMissing > 0) {
+				if (nbOfResultMissing == selectedRowsCount) {
+					//Add the student with no result at all
+					userIdAssessmentIdWeighting.emplace(student.getId(), map<size_t, float>());
+				}
+				else {
+					//Ask for different weighting
+
+					//Add the student with is customized weighting
+				}
+			}
+			else {
+				//Add the student with is standard weighting
+				map<size_t, float> assessmentWeighting;
+				for(const auto &assessmentRow : ui.tableWidgetAssessments->selectionModel()->selectedRows()) {
+					uint assessmentId { assessmentRow.sibling(assessmentRow.row(), 0).data().toUInt() };
+					string weightingStr { assessmentRow.sibling(assessmentRow.row(), 1).data().toString().toStdString() };
+					replace(weightingStr.begin(), weightingStr.end(), ',', '.');
+					float weighting { boost::lexical_cast<float>(weightingStr) };
+					assessmentWeighting.emplace(assessmentId, weighting);
+				}
+				userIdAssessmentIdWeighting.emplace(student.getId(), assessmentWeighting);
+			}
+		}
+		//Phase2 :  and calculate the average
+
+		
 		reportData.push_back(make_shared<MultiAssessmentReportData>("Jed", "Dum"));
 		report.setData(reportData);
 		if (!report.previewReport()) {
@@ -166,6 +214,35 @@ void ClassAssessmentsSummaryReport::pushButtonShowReport_Clicked()
 	else {
 		showError("No assessment selected.");
 	}
+}
+
+bool ClassAssessmentsSummaryReport::validate() const
+{
+	//Check if the weighting equals to 100
+
+	/*for(const auto &assessmentRow : ui.tableWidgetAssessments->selectionModel()->selectedRows()) {
+		uint assessmentId { assessmentRow.sibling(assessmentRow.row(), 0).data().toUInt() };
+		string weightingStr { assessmentRow.sibling(assessmentRow.row(), 1).data().toString().toStdString() };
+		replace(weightingStr.begin(), weightingStr.end(), ',', '.');
+		float weighting { boost::lexical_cast<float>(weightingStr) };
+		assessmentWeighting.emplace(assessmentId, weighting);
+	}*/
+	return true;
+}
+
+float ClassAssessmentsSummaryReport::getAssessmentWeighting() const
+{
+	return -1.0f;
+}
+
+const AssessmentResult *ClassAssessmentsSummaryReport::getStudentAssessmentResult(const Assessment &assessment, const Student &student) const
+{
+	for(const auto &assessmentResult: assessment.getResults()) {
+		if (assessmentResult.getStudent() == student) {
+			return &assessmentResult;
+		}
+	}	
+	return nullptr;
 }
 
 void ClassAssessmentsSummaryReport::comboBoxSchool_CurrentIndexChanged() 

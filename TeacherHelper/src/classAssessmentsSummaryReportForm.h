@@ -39,16 +39,15 @@ private:
 	QTableWidgetItem *createNonEditableRow(const std::string &value);
 	QTableWidgetItem *createEditableRow(const std::string &value);
 	void pushButtonShowReport_Clicked();
+	bool validate() const;
+	float getAssessmentWeighting() const;
+	const AssessmentResult *getStudentAssessmentResult(const Assessment &assessment, const Student &student) const;
 	void comboBoxSchool_CurrentIndexChanged();
 	void comboBoxClass_CurrentIndexChanged();
 	void checkBoxIdenticalWeighting_Changed(int state);
 	void tableWidgetAssessments_selectionChanged();
 	void toggleWeightingCellsEditMode(bool enabled);
 	void calculateAutomaticWeighting();
-	void generateReport(HTMLReport &report);
-	void createTemporaryReportFile(HTMLReport &report);
-	std::string readTemporaryReportFile();
-	void saveTemporaryReportFile(const std::string &content);
 };
 
 #endif // CLASSASSESSMENTSSUMMARYREPORTFORM_H
