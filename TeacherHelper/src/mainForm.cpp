@@ -196,7 +196,7 @@ void MainForm::functionAfterShown()
 	const int WINDOWWIDTH {this->size().width()};
 	ui.splitter->setSizes({static_cast<int>(WINDOWWIDTH*0.2f), static_cast<int>(WINDOWWIDTH*0.8f)});
 
-	ClassAssessmentsSummaryReport formClassAssessmentsSummaryReport(this, 
+	ClassAssessmentsSummaryReportForm formClassAssessmentsSummaryReport(this, 
 																	*databaseController.get(), 
 																	resourcesPath);
 	formClassAssessmentsSummaryReport.exec();
@@ -348,7 +348,7 @@ void MainForm::action_DarkTheme_Click()
 
 void MainForm::action_ClassAssessmentsSummaryReport_Click() 
 {
-	ClassAssessmentsSummaryReport formClassAssessmentsSummaryReport(this, 
+	ClassAssessmentsSummaryReportForm formClassAssessmentsSummaryReport(this, 
 																	*databaseController.get(), 
 																	resourcesPath);
 	formClassAssessmentsSummaryReport.exec();

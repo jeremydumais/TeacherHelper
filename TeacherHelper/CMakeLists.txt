@@ -45,6 +45,7 @@ set(PROJECT_SOURCE_FILES ${CMAKE_CURRENT_SOURCE_DIR}/src/main.cpp
                          ${CMAKE_CURRENT_SOURCE_DIR}/src/imageAttributionsForm.cpp
                          ${CMAKE_CURRENT_SOURCE_DIR}/src/htmlReport.cpp
                          ${CMAKE_CURRENT_SOURCE_DIR}/src/classAssessmentsSummaryReportForm.cpp
+                         ${CMAKE_CURRENT_SOURCE_DIR}/src/classAssessmentsSummaryReportStudentPrecisionForm.cpp
                          ${CMAKE_CURRENT_SOURCE_DIR}/res/darkstyle/darkstyle.qrc
                          ${CMAKE_CURRENT_SOURCE_DIR}/res/global.qrc
                          ${APP_RESOURCE_FILES})

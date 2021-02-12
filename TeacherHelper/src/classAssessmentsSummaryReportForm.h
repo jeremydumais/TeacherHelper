@@ -12,15 +12,15 @@
 #include <memory>
 #include <QWebView>
 
-class ClassAssessmentsSummaryReport : public QDialog
+class ClassAssessmentsSummaryReportForm : public QDialog
 {
 Q_OBJECT
 
 public:
-	ClassAssessmentsSummaryReport(QWidget *parent, 
+	ClassAssessmentsSummaryReportForm(QWidget *parent, 
 								  const IDatabaseController &databaseController, 
 								  const std::string &resourcesPath);
-	~ClassAssessmentsSummaryReport();
+	~ClassAssessmentsSummaryReportForm();
 	void showEvent(QShowEvent *event) override;
 private:
 	Ui::classAssessmentsSummaryReportFormClass ui;
@@ -40,7 +40,7 @@ private:
 	QTableWidgetItem *createEditableRow(const std::string &value);
 	void pushButtonShowReport_Clicked();
 	bool validate() const;
-	float getAssessmentWeighting() const;
+	float getAssessmentWeighting(const QModelIndex &assessmentRow) const;
 	const AssessmentResult *getStudentAssessmentResult(const Assessment &assessment, const Student &student) const;
 	void comboBoxSchool_CurrentIndexChanged();
 	void comboBoxClass_CurrentIndexChanged();

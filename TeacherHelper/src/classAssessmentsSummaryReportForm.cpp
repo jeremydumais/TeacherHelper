@@ -1,5 +1,7 @@
 #include "classAssessmentsSummaryReportForm.h"
+#include "classAssessmentsSummaryReportStudentPrecisionForm.h"
 #include "multiAssessmentReportData.h"
+#include <algorithm>
 #include <boost/algorithm/string.hpp>
 #include <fmt/format.h>
 #include <fstream>
@@ -10,7 +12,7 @@
 
 using namespace std;
 
-ClassAssessmentsSummaryReport::ClassAssessmentsSummaryReport(QWidget *parent, 
+ClassAssessmentsSummaryReportForm::ClassAssessmentsSummaryReportForm(QWidget *parent, 
 															 const IDatabaseController &databaseController,
 															 const std::string &resourcesPath)
 	: QDialog(parent),
@@ -23,12 +25,12 @@ ClassAssessmentsSummaryReport::ClassAssessmentsSummaryReport(QWidget *parent,
 	  webView(new QWebView(this))
 {
 	ui.setupUi(this);
-	connect(ui.pushButtonClose, &QPushButton::clicked, this, &ClassAssessmentsSummaryReport::close);
-	connect(ui.pushButtonShowReport, &QPushButton::clicked, this, &ClassAssessmentsSummaryReport::pushButtonShowReport_Clicked);
-	connect(ui.comboBoxSchool, static_cast<void (QComboBox::*)(int index)>(&QComboBox::currentIndexChanged), this, &ClassAssessmentsSummaryReport::comboBoxSchool_CurrentIndexChanged);
-	connect(ui.comboBoxClass, static_cast<void (QComboBox::*)(int index)>(&QComboBox::currentIndexChanged), this, &ClassAssessmentsSummaryReport::comboBoxClass_CurrentIndexChanged);
-	connect(ui.checkBoxIdenticalWeighting, &QCheckBox::stateChanged, this, &ClassAssessmentsSummaryReport::checkBoxIdenticalWeighting_Changed);
-	connect(ui.tableWidgetAssessments->selectionModel(), &QItemSelectionModel::selectionChanged, this, &ClassAssessmentsSummaryReport::tableWidgetAssessments_selectionChanged);
+	connect(ui.pushButtonClose, &QPushButton::clicked, this, &ClassAssessmentsSummaryReportForm::close);
+	connect(ui.pushButtonShowReport, &QPushButton::clicked, this, &ClassAssessmentsSummaryReportForm::pushButtonShowReport_Clicked);
+	connect(ui.comboBoxSchool, static_cast<void (QComboBox::*)(int index)>(&QComboBox::currentIndexChanged), this, &ClassAssessmentsSummaryReportForm::comboBoxSchool_CurrentIndexChanged);
+	connect(ui.comboBoxClass, static_cast<void (QComboBox::*)(int index)>(&QComboBox::currentIndexChanged), this, &ClassAssessmentsSummaryReportForm::comboBoxClass_CurrentIndexChanged);
+	connect(ui.checkBoxIdenticalWeighting, &QCheckBox::stateChanged, this, &ClassAssessmentsSummaryReportForm::checkBoxIdenticalWeighting_Changed);
+	connect(ui.tableWidgetAssessments->selectionModel(), &QItemSelectionModel::selectionChanged, this, &ClassAssessmentsSummaryReportForm::tableWidgetAssessments_selectionChanged);
 	ui.tableWidgetAssessments->setHorizontalHeaderItem(0, new QTableWidgetItem("Id"));
 	ui.tableWidgetAssessments->setHorizontalHeaderItem(1, new QTableWidgetItem("Weighting %"));
 	ui.tableWidgetAssessments->setHorizontalHeaderItem(2, new QTableWidgetItem("Date"));
@@ -39,12 +41,12 @@ ClassAssessmentsSummaryReport::ClassAssessmentsSummaryReport(QWidget *parent,
 	ui.tableWidgetAssessments->setColumnHidden(0, true);
 }
 
-ClassAssessmentsSummaryReport::~ClassAssessmentsSummaryReport()
+ClassAssessmentsSummaryReportForm::~ClassAssessmentsSummaryReportForm()
 {
 	delete webView;
 }
 
-void ClassAssessmentsSummaryReport::showEvent(QShowEvent *event) 
+void ClassAssessmentsSummaryReportForm::showEvent(QShowEvent *event) 
 {
     QDialog::showEvent(event);
 	setWindowIcon(QIcon(":/global/class64.png"));
@@ -56,7 +58,7 @@ void ClassAssessmentsSummaryReport::showEvent(QShowEvent *event)
 	ui.comboBoxClass->setCurrentIndex(2);
 } 
 
-void ClassAssessmentsSummaryReport::showError(const string &message) const
+void ClassAssessmentsSummaryReportForm::showError(const string &message) const
 {
 	QMessageBox msgBox;
 	msgBox.setText(QString(message.c_str()));
@@ -65,7 +67,7 @@ void ClassAssessmentsSummaryReport::showError(const string &message) const
 	msgBox.exec();
 }
 
-void ClassAssessmentsSummaryReport::refreshSchoolComboBox()
+void ClassAssessmentsSummaryReportForm::refreshSchoolComboBox()
 {
 	ui.comboBoxSchool->clear();
 	ui.comboBoxClass->clear();
@@ -78,7 +80,7 @@ void ClassAssessmentsSummaryReport::refreshSchoolComboBox()
 	}
 }
 
-void ClassAssessmentsSummaryReport::refreshClassComboBox(const School &school)
+void ClassAssessmentsSummaryReportForm::refreshClassComboBox(const School &school)
 {
 	ui.comboBoxClass->clear();
 	ui.tableWidgetAssessments->model()->removeRows(0, ui.tableWidgetAssessments->rowCount());
@@ -90,7 +92,7 @@ void ClassAssessmentsSummaryReport::refreshClassComboBox(const School &school)
 	}
 }
 
-void ClassAssessmentsSummaryReport::refreshAssessmentTable(const Class &itemClass) 
+void ClassAssessmentsSummaryReportForm::refreshAssessmentTable(const Class &itemClass) 
 {
 	ui.tableWidgetAssessments->model()->removeRows(0, ui.tableWidgetAssessments->rowCount());
 	//Load the class assessments
@@ -110,132 +112,171 @@ void ClassAssessmentsSummaryReport::refreshAssessmentTable(const Class &itemClas
 	toggleWeightingCellsEditMode(!ui.checkBoxIdenticalWeighting->isChecked());
 }
 
-QTableWidgetItem* ClassAssessmentsSummaryReport::createNonEditableRow(const std::string &value) 
+QTableWidgetItem* ClassAssessmentsSummaryReportForm::createNonEditableRow(const std::string &value) 
 {
 	QTableWidgetItem *item = new QTableWidgetItem(value.c_str());
 	item->setFlags(item->flags() & ~Qt::ItemIsEditable);
 	return item;
 }
 
-QTableWidgetItem* ClassAssessmentsSummaryReport::createEditableRow(const std::string &value) 
+QTableWidgetItem* ClassAssessmentsSummaryReportForm::createEditableRow(const std::string &value) 
 {
 	return new QTableWidgetItem(value.c_str());
 }
 
-void ClassAssessmentsSummaryReport::pushButtonShowReport_Clicked() 
+void ClassAssessmentsSummaryReportForm::pushButtonShowReport_Clicked() 
 {
 	int selectedRowsCount { ui.tableWidgetAssessments->selectionModel()->selectedRows().count() };
-	if (selectedRowsCount > 0 && validate()) {
-		const School* const selectedSchool = schoolController.findSchool(ui.comboBoxSchool->currentData().toUInt());
-		const Class* const selectedClass = classController.findClass(ui.comboBoxClass->currentData().toUInt());
+	if (selectedRowsCount > 0) {
+		if (validate()) {
+			const School* const selectedSchool = schoolController.findSchool(ui.comboBoxSchool->currentData().toUInt());
+			const Class* const selectedClass = classController.findClass(ui.comboBoxClass->currentData().toUInt());
 
-		HTMLReport report(fmt::format("{0}/reports/MultiAssessmentSummary.html", resourcesPath), webView);
-		string schoolAndClass { fmt::format("{0}, {1}", 
-											selectedSchool->getName(),
-											selectedClass->getName()) };
-		string allAssessments { "" };
-		for(const auto &assessmentRow : ui.tableWidgetAssessments->selectionModel()->selectedRows()) {
-			allAssessments += fmt::format("<li>{0} ({1})</li>", 
-										  assessmentRow.sibling(assessmentRow.row(), 3).data().toString().toStdString(),
-										  assessmentRow.sibling(assessmentRow.row(), 2).data().toString().toStdString());
-		}
-		report.setProperties({ { "<:SCHOOLANDCLASS>", schoolAndClass },
-							   { "<:ASSESSMENTSINCLUDED>", allAssessments } });
-		//Load report data
-		vector<shared_ptr<IReportData>> reportData;
-		//Load assessments results
-		assessmentController.loadAssessmentsByClass(selectedClass->getId());
-		//Phase 1: Load all students and check if each of them have a result in the selected assessment
-		//If not them let the user choose another weighting
-		map<size_t, map<size_t, float>> userIdAssessmentIdWeighting;
-		for(const auto &student : selectedClass->getMembers()) {
-			int nbOfResultMissing { 0 };
-			vector<size_t> assessmentWithoutResult;
+			HTMLReport report(fmt::format("{0}/reports/MultiAssessmentSummary.html", resourcesPath), webView);
+			string schoolAndClass { fmt::format("{0}, {1}", 
+												selectedSchool->getName(),
+												selectedClass->getName()) };
+			string allAssessments { "" };
 			for(const auto &assessmentRow : ui.tableWidgetAssessments->selectionModel()->selectedRows()) {
-				uint assessmentId { assessmentRow.sibling(assessmentRow.row(), 0).data().toUInt() };
-				const auto *assessment { assessmentController.findAssessment(assessmentId) };
-				if (assessment != nullptr) {
-					const AssessmentResult *result = getStudentAssessmentResult(*assessment, student);
-					if (result == nullptr) {
-						nbOfResultMissing++;
-						assessmentWithoutResult.push_back(assessment->getId());
+				allAssessments += fmt::format("<li>{0} ({1})</li>", 
+											assessmentRow.sibling(assessmentRow.row(), 3).data().toString().toStdString(),
+											assessmentRow.sibling(assessmentRow.row(), 2).data().toString().toStdString());
+			}
+			report.setProperties({ { "<:SCHOOLANDCLASS>", schoolAndClass },
+								{ "<:ASSESSMENTSINCLUDED>", allAssessments } });
+			//Load report data
+			vector<shared_ptr<IReportData>> reportData;
+			//Load assessments results
+			assessmentController.loadAssessmentsByClass(selectedClass->getId());
+			//Phase 1: Load all students and check if each of them have a result in the selected assessment
+			//If not them let the user choose another weighting
+			map<size_t, map<size_t, float>> userIdAssessmentIdWeighting;
+			for(const auto &student : selectedClass->getMembers()) {
+				int nbOfResultMissing { 0 };
+				vector<size_t> assessmentWithoutResult;
+				for(const auto &assessmentRow : ui.tableWidgetAssessments->selectionModel()->selectedRows()) {
+					uint assessmentId { assessmentRow.sibling(assessmentRow.row(), 0).data().toUInt() };
+					const auto *assessment { assessmentController.findAssessment(assessmentId) };
+					if (assessment != nullptr) {
+						const AssessmentResult *result = getStudentAssessmentResult(*assessment, student);
+						if (result == nullptr) {
+							nbOfResultMissing++;
+							assessmentWithoutResult.push_back(assessment->getId());
+						}
+					}
+					else {
+						showError(fmt::format("Unable to find the assessment with id {0}", assessmentId));
+					}
+				}
+				//If number of result missing > 0 and < total assessment selected then ask the user to select a different weighting
+				if (nbOfResultMissing > 0) {
+					if (nbOfResultMissing == selectedRowsCount) {
+						//Add the student with no result at all
+						userIdAssessmentIdWeighting.emplace(student.getId(), map<size_t, float>());
+					}
+					else {
+						//Ask for different weighting
+						vector<const Assessment *> assessmentsToGetWeighting;
+						for(const auto &assessmentRow : ui.tableWidgetAssessments->selectionModel()->selectedRows()) {
+							uint assessmentId { assessmentRow.sibling(assessmentRow.row(), 0).data().toUInt() };
+							const auto *assessment { assessmentController.findAssessment(assessmentId) };
+							if (std::find(assessmentWithoutResult.begin(), 
+										  assessmentWithoutResult.end(), 
+										  assessmentId) == assessmentWithoutResult.end()) {
+								assessmentsToGetWeighting.push_back(assessment);
+							}
+						}
+						ClassAssessmentsSummaryReportStudentPrecisionForm precisionForm(this, student.getFullName(), assessmentsToGetWeighting);
+						if (precisionForm.exec()) {
+							//Add the student with is customized weighting
+							userIdAssessmentIdWeighting.emplace(student.getId(), precisionForm.getWeightingResult());
+						}
+						else {
+							return;
+						}
 					}
 				}
 				else {
-					showError(fmt::format("Unable to find the assessment with id {0}", assessmentId));
+					//Add the student with is standard weighting
+					map<size_t, float> assessmentWeighting;
+					for(const auto &assessmentRow : ui.tableWidgetAssessments->selectionModel()->selectedRows()) {
+						uint assessmentId { assessmentRow.sibling(assessmentRow.row(), 0).data().toUInt() };
+						float weighting { getAssessmentWeighting(assessmentRow) };
+						assessmentWeighting.emplace(assessmentId, weighting);
+					}
+					userIdAssessmentIdWeighting.emplace(student.getId(), assessmentWeighting);
 				}
 			}
-			//If number of result missing > 0 and < total assessment selected then ask the user to select a different weighting
-			if (nbOfResultMissing > 0) {
-				if (nbOfResultMissing == selectedRowsCount) {
-					//Add the student with no result at all
-					userIdAssessmentIdWeighting.emplace(student.getId(), map<size_t, float>());
-				}
-				else {
-					//Ask for different weighting
+			//Phase2 :  and calculate the average
 
-					//Add the student with is customized weighting
-				}
+			
+			reportData.push_back(make_shared<MultiAssessmentReportData>("Jed", "Dum"));
+			report.setData(reportData);
+			if (!report.previewReport()) {
+				showError(report.getLastError());
+				return;
 			}
-			else {
-				//Add the student with is standard weighting
-				map<size_t, float> assessmentWeighting;
-				for(const auto &assessmentRow : ui.tableWidgetAssessments->selectionModel()->selectedRows()) {
-					uint assessmentId { assessmentRow.sibling(assessmentRow.row(), 0).data().toUInt() };
-					string weightingStr { assessmentRow.sibling(assessmentRow.row(), 1).data().toString().toStdString() };
-					replace(weightingStr.begin(), weightingStr.end(), ',', '.');
-					float weighting { boost::lexical_cast<float>(weightingStr) };
-					assessmentWeighting.emplace(assessmentId, weighting);
-				}
-				userIdAssessmentIdWeighting.emplace(student.getId(), assessmentWeighting);
-			}
+			QCoreApplication::processEvents();
+			QPrinter *printer = new QPrinter();
+			printer->setPageSize(QPrinter::Letter);
+			printer->setPageOrientation(QPageLayout::Portrait);
+			printer->setPageMargins(15.00, 10.00, 7.00, 15.00, QPrinter::Millimeter);
+			printer->setResolution(QPrinter::HighResolution);
+			printer->setFullPage(true);
+			QPrintPreviewDialog *preview = new QPrintPreviewDialog(printer, this);
+			preview->setWindowState(Qt::WindowMaximized);
+			connect(preview, SIGNAL(paintRequested(QPrinter*)), webView, SLOT(print(QPrinter*)));
+			preview->exec();
 		}
-		//Phase2 :  and calculate the average
-
-		
-		reportData.push_back(make_shared<MultiAssessmentReportData>("Jed", "Dum"));
-		report.setData(reportData);
-		if (!report.previewReport()) {
-			showError(report.getLastError());
-			return;
-		}
-		QCoreApplication::processEvents();
-		QPrinter *printer = new QPrinter();
-		printer->setPageSize(QPrinter::Letter);
-		printer->setPageOrientation(QPageLayout::Portrait);
-		printer->setPageMargins(15.00, 10.00, 7.00, 15.00, QPrinter::Millimeter);
-		printer->setResolution(QPrinter::HighResolution);
-		printer->setFullPage(true);
-		QPrintPreviewDialog *preview = new QPrintPreviewDialog(printer, this);
-		preview->setWindowState(Qt::WindowMaximized);
-		connect(preview, SIGNAL(paintRequested(QPrinter*)), webView, SLOT(print(QPrinter*)));
-		preview->exec();
 	}
 	else {
 		showError("No assessment selected.");
 	}
 }
 
-bool ClassAssessmentsSummaryReport::validate() const
+bool ClassAssessmentsSummaryReportForm::validate() const
 {
+	float total { 0.0f };
+	//Check if all weighting are valid
+	for(const auto &assessmentRow : ui.tableWidgetAssessments->selectionModel()->selectedRows()) {
+		float weighting { getAssessmentWeighting(assessmentRow) };
+		if (weighting == -1.0f) {
+			showError(fmt::format("Invalid weighting for the assessment {0}", 
+								  assessmentRow.sibling(assessmentRow.row(), 3).data().toString().toStdString()));
+			return false;
+		}
+		else {
+			if (weighting <= 0.0f || weighting > 100.0f) {
+				showError(fmt::format("Weighting for the assessment {0} must be between 1 and 100", 
+									  assessmentRow.sibling(assessmentRow.row(), 3).data().toString().toStdString()));
+				return false;
+			}
+			total += weighting;
+		}
+	}
 	//Check if the weighting equals to 100
-
-	/*for(const auto &assessmentRow : ui.tableWidgetAssessments->selectionModel()->selectedRows()) {
-		uint assessmentId { assessmentRow.sibling(assessmentRow.row(), 0).data().toUInt() };
-		string weightingStr { assessmentRow.sibling(assessmentRow.row(), 1).data().toString().toStdString() };
-		replace(weightingStr.begin(), weightingStr.end(), ',', '.');
-		float weighting { boost::lexical_cast<float>(weightingStr) };
-		assessmentWeighting.emplace(assessmentId, weighting);
-	}*/
+	if (total != 100) {
+		showError("The total of weighting must be 100");
+		return false;
+	}
 	return true;
 }
 
-float ClassAssessmentsSummaryReport::getAssessmentWeighting() const
+float ClassAssessmentsSummaryReportForm::getAssessmentWeighting(const QModelIndex &assessmentRow) const
 {
-	return -1.0f;
+	float retVal;
+	string weightingStr { assessmentRow.sibling(assessmentRow.row(), 1).data().toString().toStdString() };
+	replace(weightingStr.begin(), weightingStr.end(), ',', '.');
+	try {
+		retVal = boost::lexical_cast<float>(weightingStr);
+	}
+	catch(boost::bad_lexical_cast &err) {
+		retVal = -1.0f;
+	}
+	return retVal;
 }
 
-const AssessmentResult *ClassAssessmentsSummaryReport::getStudentAssessmentResult(const Assessment &assessment, const Student &student) const
+const AssessmentResult *ClassAssessmentsSummaryReportForm::getStudentAssessmentResult(const Assessment &assessment, const Student &student) const
 {
 	for(const auto &assessmentResult: assessment.getResults()) {
 		if (assessmentResult.getStudent() == student) {
@@ -245,7 +286,7 @@ const AssessmentResult *ClassAssessmentsSummaryReport::getStudentAssessmentResul
 	return nullptr;
 }
 
-void ClassAssessmentsSummaryReport::comboBoxSchool_CurrentIndexChanged() 
+void ClassAssessmentsSummaryReportForm::comboBoxSchool_CurrentIndexChanged() 
 {
 	//Find the selected school
 	if (ui.comboBoxSchool->currentData().toInt() >= 1) {
@@ -256,7 +297,7 @@ void ClassAssessmentsSummaryReport::comboBoxSchool_CurrentIndexChanged()
 	}
 }
 
-void ClassAssessmentsSummaryReport::comboBoxClass_CurrentIndexChanged() 
+void ClassAssessmentsSummaryReportForm::comboBoxClass_CurrentIndexChanged() 
 {
 	//Find the selected class
 	if (ui.comboBoxClass->currentData().toInt() >= 1) {
@@ -267,14 +308,14 @@ void ClassAssessmentsSummaryReport::comboBoxClass_CurrentIndexChanged()
 	}
 }
 
-void ClassAssessmentsSummaryReport::tableWidgetAssessments_selectionChanged()
+void ClassAssessmentsSummaryReportForm::tableWidgetAssessments_selectionChanged()
 {
 	if (ui.checkBoxIdenticalWeighting->checkState() == Qt::Checked) {
 		calculateAutomaticWeighting();
 	}
 }
 
-void ClassAssessmentsSummaryReport::checkBoxIdenticalWeighting_Changed(int state) 
+void ClassAssessmentsSummaryReportForm::checkBoxIdenticalWeighting_Changed(int state) 
 {
 	toggleWeightingCellsEditMode(state != Qt::Checked);
 	if (state == Qt::Checked) {
@@ -282,7 +323,7 @@ void ClassAssessmentsSummaryReport::checkBoxIdenticalWeighting_Changed(int state
 	}
 }
 
-void ClassAssessmentsSummaryReport::toggleWeightingCellsEditMode(bool enabled) 
+void ClassAssessmentsSummaryReportForm::toggleWeightingCellsEditMode(bool enabled) 
 {
 	for(int i = 0; i < ui.tableWidgetAssessments->rowCount(); i++) {
 		QTableWidgetItem *item = ui.tableWidgetAssessments->item(i, 1);
@@ -295,7 +336,7 @@ void ClassAssessmentsSummaryReport::toggleWeightingCellsEditMode(bool enabled)
 	}	
 }
 
-void ClassAssessmentsSummaryReport::calculateAutomaticWeighting() 
+void ClassAssessmentsSummaryReportForm::calculateAutomaticWeighting() 
 {
 	//Calculate equal weighting for each selected assessment
 	float assessmentWeighting { 100.0f };
