@@ -61,7 +61,7 @@ jobs:
       uses: jurplel/install-qt-action@v2.8.0
       with:
         install-deps: 'true'
-        modules: 'qtwebengine'
+        modules: 'qtwebengine qtwebkit'
       env:
         ACTIONS_ALLOW_UNSECURE_COMMANDS: 'true'
 
