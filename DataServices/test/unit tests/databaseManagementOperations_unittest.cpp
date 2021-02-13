@@ -60,6 +60,8 @@ TEST(DatabaseManagementOperations_create, WithValidFile_ReturnTrue)
         FakeOperationResultFactory::createNewDDLResult(true, ""),
         FakeOperationResultFactory::createNewDDLResult(true, ""),
         FakeOperationResultFactory::createNewDDLResult(true, ""),
+        FakeOperationResultFactory::createNewDDLResult(true, ""),
+        FakeOperationResultFactory::createNewDDLResult(true, ""),
         FakeOperationResultFactory::createNewDDLResult(true, "")
     }) };
     DatabaseManagementOperations operations { make_shared<FakeFileSystemOperations>(),
