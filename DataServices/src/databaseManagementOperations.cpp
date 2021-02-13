@@ -60,8 +60,10 @@ bool DatabaseManagementOperations::create(const string &databaseName)
         "CREATE TABLE testType(id INTEGER PRIMARY KEY AUTOINCREMENT, name varchar(50) NOT NULL)",
         "CREATE TABLE subject(id INTEGER PRIMARY KEY AUTOINCREMENT, name varchar(50) NOT NULL, isdefault BOOLEAN NOT NULL DEFAULT 0)",
         "CREATE TABLE class_student(class_id INTEGER NOT NULL, student_id INTEGER NOT NULL, PRIMARY KEY(class_id, student_id), FOREIGN KEY(class_id) REFERENCES class(id), FOREIGN KEY(student_id) REFERENCES student(id))",
-        "CREATE TABLE assessment(id INTEGER PRIMARY KEY AUTOINCREMENT, name varchar(100) NOT NULL, testType_id INTEGER NOT NULL, subject_id INTEGER NOT NULL, class_id INTEGER NOT NULL, date TEXT NOT NULL, FOREIGN KEY(testType_id) REFERENCES testType(id), FOREIGN KEY(subject_id) REFERENCES subject(id), FOREIGN KEY(class_id) REFERENCES class(id))",
-        "CREATE TABLE assessmentResult(id INTEGER PRIMARY KEY AUTOINCREMENT, assessment_id INTEGER NOT NULL, student_id INTEGER NOT NULL, result REAL NOT NULL, comments varchar(256), FOREIGN KEY(assessment_id) REFERENCES assessment(id), FOREIGN KEY(student_id) REFERENCES student(id))"
+        "CREATE TABLE assessment(id INTEGER PRIMARY KEY AUTOINCREMENT, name varchar(100) NOT NULL, testType_id INTEGER NOT NULL, subject_id INTEGER NOT NULL, class_id INTEGER NOT NULL, date TEXT NOT NULL, maxScore REAL NOT NULL DEFAULT 100, FOREIGN KEY(testType_id) REFERENCES testType(id), FOREIGN KEY(subject_id) REFERENCES subject(id), FOREIGN KEY(class_id) REFERENCES class(id))",
+        "CREATE TABLE assessmentResult(id INTEGER PRIMARY KEY AUTOINCREMENT, assessment_id INTEGER NOT NULL, student_id INTEGER NOT NULL, result REAL NOT NULL, comments varchar(256), FOREIGN KEY(assessment_id) REFERENCES assessment(id), FOREIGN KEY(student_id) REFERENCES student(id))",
+        "CREATE TABLE version(name varchar(10) PRIMARY KEY)",
+        "INSERT INTO version VALUES ('1.1.0')",
     };
     for(const auto& instruction : tableCreationInstructions) {
         auto operationCreateTableSchool { operationFactory->createDDLOperation(*connection.get(), instruction) };
@@ -135,7 +137,7 @@ bool DatabaseManagementOperations::migrateToV1_1_0(IDatabaseConnection &connecti
     //Migrating schema
     vector<string> tableMigrationInstructions {
         "CREATE TABLE version(name varchar(10) PRIMARY KEY)",
-        "INSERT INTO version VALUES ('1.0.0')",
+        "INSERT INTO version VALUES ('1.1.0')",
         "ALTER TABLE assessment ADD COLUMN maxScore REAL NOT NULL DEFAULT 100"
     };
     int percentCompleted { 0 };

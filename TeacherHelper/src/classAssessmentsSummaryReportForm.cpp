@@ -54,9 +54,6 @@ void ClassAssessmentsSummaryReportForm::showEvent(QShowEvent *event)
 	schoolController.loadSchools();
 	classController.loadClasses();
 	refreshSchoolComboBox();
-
-	ui.comboBoxSchool->setCurrentIndex(1);
-	ui.comboBoxClass->setCurrentIndex(2);
 } 
 
 void ClassAssessmentsSummaryReportForm::showError(const string &message) const

@@ -195,11 +195,6 @@ void MainForm::functionAfterShown()
 	setWindowIcon(QIcon(":/global/TeacherHelper Icon256.png"));
 	const int WINDOWWIDTH {this->size().width()};
 	ui.splitter->setSizes({static_cast<int>(WINDOWWIDTH*0.2f), static_cast<int>(WINDOWWIDTH*0.8f)});
-
-	ClassAssessmentsSummaryReportForm formClassAssessmentsSummaryReport(this, 
-																	*databaseController.get(), 
-																	resourcesPath);
-	formClassAssessmentsSummaryReport.exec();
 }
 
 bool MainForm::event(QEvent *event)
