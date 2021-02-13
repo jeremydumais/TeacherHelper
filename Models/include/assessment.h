@@ -4,7 +4,9 @@
 #include "class.h"
 #include "subject.h"
 #include "testType.h"
-#include "boost/date_time/posix_time/posix_time.hpp"
+#include <boost/date_time/posix_time/posix_time.hpp>
+#include <boost/none.hpp>
+#include <boost/optional.hpp>
 #include <vector>
 #include <string>
 
@@ -42,6 +44,7 @@ public:
     const boost::posix_time::ptime &getDateTime() const;
     float getMaxScore() const;
     const std::vector<AssessmentResult> &getResults() const;
+    boost::optional<const AssessmentResult &> getStudentResult(const Student &student) const;
     void setName(const std::string &name);
     void setTestType(const TestType &testType);
     void setSubject(const Subject &subject);
@@ -61,7 +64,3 @@ private:
     float maxScore;
     std::vector<AssessmentResult> results;
 };
-
-
-
-

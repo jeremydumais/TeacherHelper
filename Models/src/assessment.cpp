@@ -80,6 +80,16 @@ const std::vector<AssessmentResult>& Assessment::getResults() const
     return results;
 }
 
+boost::optional<const AssessmentResult &> Assessment::getStudentResult(const Student &student) const
+{
+    for(const auto &result : results) {
+        if (result.getStudent() == student) {
+            return result;
+        }
+    }
+    return boost::none;
+}
+
 void Assessment::setName(const std::string &name) 
 {
     if (trim_copy(name).empty()) {

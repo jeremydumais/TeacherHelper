@@ -9,8 +9,11 @@
 #include "IReportData.h"
 #include "schoolController.h"
 #include "ui_classAssessmentsSummaryReportForm.h"
+#include <list>
+#include <map>
 #include <memory>
 #include <QWebView>
+#include <unordered_map>
 
 class ClassAssessmentsSummaryReportForm : public QDialog
 {
@@ -40,8 +43,17 @@ private:
 	QTableWidgetItem *createEditableRow(const std::string &value);
 	void pushButtonShowReport_Clicked();
 	bool validate() const;
+	bool processPhase1(const std::list<Student> &students, 
+					   const int selectedAssessmentCount,
+					   std::unordered_map<size_t, std::map<size_t, float>> &userIdAssessmentIdWeighting,
+					   std::vector<size_t> &studentWithDifferentWeighting);
+	bool processPhase2(const std::list<Student> &students, 
+					   std::unordered_map<size_t, std::map<size_t, float>> &userIdAssessmentIdWeighting,
+					   std::vector<size_t> &studentWithDifferentWeighting,
+					   std::vector<std::shared_ptr<IReportData>> &reportData);
 	float getAssessmentWeighting(const QModelIndex &assessmentRow) const;
 	const AssessmentResult *getStudentAssessmentResult(const Assessment &assessment, const Student &student) const;
+	const Student *findStudent(const size_t id, const std::list<Student> &students) const;
 	void comboBoxSchool_CurrentIndexChanged();
 	void comboBoxClass_CurrentIndexChanged();
 	void checkBoxIdenticalWeighting_Changed(int state);

@@ -224,6 +224,28 @@ TEST_F(AssessmentSampleWithTwoResults, getResults_WithTwoResults_ReturnVectorWit
 	ASSERT_EQ(87.2f, results[1].getResult());
 }
 
+TEST_F(AssessmentSampleWithoutResults, getStudentResult_WithInexistantStudent_ReturnNone)
+{
+	Student student(1, "Joe", "Blow");
+	ASSERT_EQ(boost::none, assessment.getStudentResult(student));
+}
+
+TEST_F(AssessmentSampleWithTwoResults, getStudentResult_WithInexistantStudent_ReturnNone)
+{
+	Student student(5, "Santa", "Claus");
+	ASSERT_EQ(boost::none, assessment.getStudentResult(student));
+}
+
+TEST_F(AssessmentSampleWithTwoResults, getStudentResult_WithExistingStudent_ReturnValidResult)
+{
+	auto results = assessment.getResults();
+	Student student(1, "Joe", "Blow");
+	auto actual { assessment.getStudentResult(student) };
+	ASSERT_EQ(results[0].getResult(), actual->getResult());
+	ASSERT_EQ(results[0].getStudent(), actual->getStudent());
+	ASSERT_EQ(results[0].getId(), actual->getId());
+}
+
 TEST_F(AssessmentSampleWithoutResults, setName_WithNameTestUpdated_ReturnSuccess)
 {
 	assessment.setName("Another Exam");

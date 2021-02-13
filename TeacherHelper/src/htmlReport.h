@@ -15,7 +15,7 @@ public:
     const std::string &getLastError() const;
     void setData(const std::vector<std::shared_ptr<IReportData>> &data);
     void setProperties(const std::map<std::string, std::string> &properties);
-    bool previewReport();
+    bool previewReport(bool ascendingOrder = true);
 private:
     std::string fileName;
     QWebView *webView;

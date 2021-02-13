@@ -38,7 +38,7 @@ void HTMLReport::setProperties(const std::map<std::string, std::string> &propert
     this->properties = properties;
 }
 
-bool HTMLReport::previewReport() 
+bool HTMLReport::previewReport(bool ascendingOrder) 
 {
     if (!createTemporaryReportFile()) {
         return false;
@@ -56,7 +56,12 @@ bool HTMLReport::previewReport()
         for(const auto &dataRow : data) {
             string rowValue { dataRow->generateDataRow() };
             if (index < data.size() -1) {
-                rowValue += "\n<:DATAROW>";
+                if (ascendingOrder) {
+                    rowValue += "\n<:DATAROW>";
+                }
+                else {
+                    rowValue = "<:DATAROW>\n" + rowValue;
+                }
             }
             boost::replace_first(reportContent, "<:DATAROW>", rowValue);
             index++;

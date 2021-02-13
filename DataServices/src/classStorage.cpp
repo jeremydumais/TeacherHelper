@@ -217,7 +217,8 @@ multimap<size_t, Student> ClassStorage::loadAllMembers()
     auto operationLoadMembers = operationFactory->createSelectOperation(*connection, 
         "SELECT class_id, student_id, student.firstname, student.lastname, student.comments "
         "FROM class_student "
-        "INNER JOIN Student ON class_student.student_id = student.id");
+        "INNER JOIN Student ON class_student.student_id = student.id "
+        "ORDER BY student.lastname, student.firstname");
     if (operationLoadMembers->execute()) {
         while (operationLoadMembers->getRow()) {
             classStudents.insert(make_pair(operationLoadMembers->getIntValue(0), 
@@ -241,7 +242,8 @@ std::list<Student> ClassStorage::loadClassMembers(size_t classId)
         "SELECT student.id, student.firstname, student.lastname, student.comments "
         "FROM class_student "
         "INNER JOIN Student ON class_student.student_id = student.id "
-        "WHERE class_student.class_id = ?", vector<string> { to_string(classId) });
+        "WHERE class_student.class_id = ? "
+        "ORDER BY student.lastname, student.firstname", vector<string> { to_string(classId) });
     if (operationLoadMembers->execute()) {
         while (operationLoadMembers->getRow()) {
             retVal.emplace_back(operationLoadMembers->getIntValue(0),

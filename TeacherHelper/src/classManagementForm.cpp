@@ -181,6 +181,7 @@ void ClassManagementForm::pushButtonModify_Click()
 																						member.getLastName(), 
 																						member.getFirstName(), 
 																						comments).c_str()));
+				row++;
 				}
 			toggleEditMode(ActionMode::Modify);
 		}

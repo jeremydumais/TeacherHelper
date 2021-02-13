@@ -3,6 +3,7 @@
 #include "multiAssessmentReportData.h"
 #include <algorithm>
 #include <boost/algorithm/string.hpp>
+#include <boost/none.hpp>
 #include <fmt/format.h>
 #include <fstream>
 #include <QMessageBox>
@@ -138,9 +139,10 @@ void ClassAssessmentsSummaryReportForm::pushButtonShowReport_Clicked()
 												selectedClass->getName()) };
 			string allAssessments { "" };
 			for(const auto &assessmentRow : ui.tableWidgetAssessments->selectionModel()->selectedRows()) {
-				allAssessments += fmt::format("<li>{0} ({1})</li>", 
+				allAssessments += fmt::format("<li>{0} ({1}) -> Weighting: {2}%</li>", 
 											assessmentRow.sibling(assessmentRow.row(), 3).data().toString().toStdString(),
-											assessmentRow.sibling(assessmentRow.row(), 2).data().toString().toStdString());
+											assessmentRow.sibling(assessmentRow.row(), 2).data().toString().toStdString(),
+											getAssessmentWeighting(assessmentRow));
 			}
 			report.setProperties({ { "<:SCHOOLANDCLASS>", schoolAndClass },
 								{ "<:ASSESSMENTSINCLUDED>", allAssessments } });
@@ -148,71 +150,25 @@ void ClassAssessmentsSummaryReportForm::pushButtonShowReport_Clicked()
 			vector<shared_ptr<IReportData>> reportData;
 			//Load assessments results
 			assessmentController.loadAssessmentsByClass(selectedClass->getId());
-			//Phase 1: Load all students and check if each of them have a result in the selected assessment
-			//If not them let the user choose another weighting
-			map<size_t, map<size_t, float>> userIdAssessmentIdWeighting;
-			for(const auto &student : selectedClass->getMembers()) {
-				int nbOfResultMissing { 0 };
-				vector<size_t> assessmentWithoutResult;
-				for(const auto &assessmentRow : ui.tableWidgetAssessments->selectionModel()->selectedRows()) {
-					uint assessmentId { assessmentRow.sibling(assessmentRow.row(), 0).data().toUInt() };
-					const auto *assessment { assessmentController.findAssessment(assessmentId) };
-					if (assessment != nullptr) {
-						const AssessmentResult *result = getStudentAssessmentResult(*assessment, student);
-						if (result == nullptr) {
-							nbOfResultMissing++;
-							assessmentWithoutResult.push_back(assessment->getId());
-						}
-					}
-					else {
-						showError(fmt::format("Unable to find the assessment with id {0}", assessmentId));
-					}
-				}
-				//If number of result missing > 0 and < total assessment selected then ask the user to select a different weighting
-				if (nbOfResultMissing > 0) {
-					if (nbOfResultMissing == selectedRowsCount) {
-						//Add the student with no result at all
-						userIdAssessmentIdWeighting.emplace(student.getId(), map<size_t, float>());
-					}
-					else {
-						//Ask for different weighting
-						vector<const Assessment *> assessmentsToGetWeighting;
-						for(const auto &assessmentRow : ui.tableWidgetAssessments->selectionModel()->selectedRows()) {
-							uint assessmentId { assessmentRow.sibling(assessmentRow.row(), 0).data().toUInt() };
-							const auto *assessment { assessmentController.findAssessment(assessmentId) };
-							if (std::find(assessmentWithoutResult.begin(), 
-										  assessmentWithoutResult.end(), 
-										  assessmentId) == assessmentWithoutResult.end()) {
-								assessmentsToGetWeighting.push_back(assessment);
-							}
-						}
-						ClassAssessmentsSummaryReportStudentPrecisionForm precisionForm(this, student.getFullName(), assessmentsToGetWeighting);
-						if (precisionForm.exec()) {
-							//Add the student with is customized weighting
-							userIdAssessmentIdWeighting.emplace(student.getId(), precisionForm.getWeightingResult());
-						}
-						else {
-							return;
-						}
-					}
-				}
-				else {
-					//Add the student with is standard weighting
-					map<size_t, float> assessmentWeighting;
-					for(const auto &assessmentRow : ui.tableWidgetAssessments->selectionModel()->selectedRows()) {
-						uint assessmentId { assessmentRow.sibling(assessmentRow.row(), 0).data().toUInt() };
-						float weighting { getAssessmentWeighting(assessmentRow) };
-						assessmentWeighting.emplace(assessmentId, weighting);
-					}
-					userIdAssessmentIdWeighting.emplace(student.getId(), assessmentWeighting);
-				}
+			//Process phase 1
+			unordered_map<size_t, map<size_t, float>> userIdAssessmentIdWeighting;
+			vector<size_t> studentWithDifferentWeighting;
+			if (!processPhase1(selectedClass->getMembers(), 
+							   selectedRowsCount, 
+							   userIdAssessmentIdWeighting, 
+							   studentWithDifferentWeighting)) {
+				return;
 			}
-			//Phase2 :  and calculate the average
+			//Process phase 2
+			if (!processPhase2(selectedClass->getMembers(),
+							   userIdAssessmentIdWeighting,
+							   studentWithDifferentWeighting,
+							   reportData)) {
+				return;
+			}
 
-			
-			reportData.push_back(make_shared<MultiAssessmentReportData>("Jed", "Dum"));
 			report.setData(reportData);
-			if (!report.previewReport()) {
+			if (!report.previewReport(false)) {
 				showError(report.getLastError());
 				return;
 			}
@@ -262,6 +218,125 @@ bool ClassAssessmentsSummaryReportForm::validate() const
 	return true;
 }
 
+//Phase 1: Load all students and check if each of them have a result in the selected assessment
+//If not them let the user choose another weighting
+bool ClassAssessmentsSummaryReportForm::processPhase1(const list<Student> &students,
+													  const int selectedAssessmentCount,
+													  unordered_map<size_t, map<size_t, float>> &userIdAssessmentIdWeighting,
+													  vector<size_t> &studentWithDifferentWeighting)
+{
+	for(const auto &student : students) {
+		int nbOfResultMissing { 0 };
+		vector<size_t> assessmentWithoutResult;
+		for(const auto &assessmentRow : ui.tableWidgetAssessments->selectionModel()->selectedRows()) {
+			uint assessmentId { assessmentRow.sibling(assessmentRow.row(), 0).data().toUInt() };
+			const auto *assessment { assessmentController.findAssessment(assessmentId) };
+			if (assessment != nullptr) {
+				const AssessmentResult *result = getStudentAssessmentResult(*assessment, student);
+				if (result == nullptr) {
+					nbOfResultMissing++;
+					assessmentWithoutResult.push_back(assessment->getId());
+				}
+			}
+			else {
+				showError(fmt::format("Unable to find the assessment with id {0}", assessmentId));
+				return false;
+			}
+		}
+		//If number of result missing > 0 and < total assessment selected then ask the user to select a different weighting
+		if (nbOfResultMissing > 0) {
+			if (nbOfResultMissing == selectedAssessmentCount) {
+				//Add the student with no result at all
+				userIdAssessmentIdWeighting.insert(make_pair(student.getId(), map<size_t, float>()));
+			}
+			else {
+				//Ask for different weighting
+				vector<const Assessment *> assessmentsToGetWeighting;
+				for(const auto &assessmentRow : ui.tableWidgetAssessments->selectionModel()->selectedRows()) {
+					uint assessmentId { assessmentRow.sibling(assessmentRow.row(), 0).data().toUInt() };
+					const auto *assessment { assessmentController.findAssessment(assessmentId) };
+					if (std::find(assessmentWithoutResult.begin(), 
+									assessmentWithoutResult.end(), 
+									assessmentId) == assessmentWithoutResult.end()) {
+						assessmentsToGetWeighting.push_back(assessment);
+					}
+				}
+				ClassAssessmentsSummaryReportStudentPrecisionForm precisionForm(this, student.getFullName(), assessmentsToGetWeighting);
+				if (precisionForm.exec()) {
+					//Add the student with it's customized weighting
+					userIdAssessmentIdWeighting.insert(make_pair(student.getId(), precisionForm.getWeightingResult()));
+					studentWithDifferentWeighting.push_back(student.getId());
+				}
+				else {
+					return false;
+				}
+			}
+		}
+		else {
+			//Add the student with is standard weighting
+			map<size_t, float> assessmentWeighting;
+			for(const auto &assessmentRow : ui.tableWidgetAssessments->selectionModel()->selectedRows()) {
+				uint assessmentId { assessmentRow.sibling(assessmentRow.row(), 0).data().toUInt() };
+				float weighting { getAssessmentWeighting(assessmentRow) };
+				assessmentWeighting.emplace(assessmentId, weighting);
+			}
+			userIdAssessmentIdWeighting.insert(make_pair(student.getId(), assessmentWeighting));
+		}
+	}
+	return true;
+}
+			
+//Phase 2: Calculate the average from the weighting assigned
+bool ClassAssessmentsSummaryReportForm::processPhase2(const list<Student> &students, 
+					   								  unordered_map<size_t, map<size_t, float>> &userIdAssessmentIdWeighting,
+					   								  vector<size_t> &studentWithDifferentWeighting,
+													  vector<shared_ptr<IReportData>> &reportData) 
+{
+	for(const auto &userIdAssessmentId : userIdAssessmentIdWeighting) {
+		const Student *student { findStudent(userIdAssessmentId.first, students) };
+		if (student == nullptr) {
+			showError(fmt::format("Unable to find student with id {0}", userIdAssessmentId.first));
+			return false;
+		}
+		float average { 0.0f };
+		if (!userIdAssessmentId.second.empty()) {
+			for(const auto &assessmentIdAndWeighting : userIdAssessmentId.second) {
+				const auto *assessment { assessmentController.findAssessment(assessmentIdAndWeighting.first) };
+				if (assessment != nullptr) {
+					//Get student assessment result and calculate on the selected weighting
+					auto studentResult { assessment->getStudentResult(*student) };
+					if (studentResult.has_value()) {
+						average += (studentResult->getResult() * assessmentIdAndWeighting.second) / assessment->getMaxScore();
+					}
+					else {
+						showError(fmt::format("Unable to find assessment result for student {0} on assessment id {1}", 
+											student->getFullName(),
+											assessmentIdAndWeighting.first));
+						return false;
+					}
+				}
+				else {
+					showError(fmt::format("Unable to find assessment with id {0}", assessmentIdAndWeighting.first));
+					return false;
+				}
+			}
+			bool studentHasDifferentWeighting { std::find(studentWithDifferentWeighting.begin(),
+														  studentWithDifferentWeighting.end(),
+														  student->getId()) != studentWithDifferentWeighting.end()};
+			reportData.push_back(make_shared<MultiAssessmentReportData>(student->getFirstName(), 
+																		student->getLastName() + (studentHasDifferentWeighting ? "*" : ""), 
+																		average));
+		}
+		else {
+			//No result at all for the student
+			reportData.push_back(make_shared<MultiAssessmentReportData>(student->getFirstName(), 
+																		student->getLastName(), 
+																		boost::none));
+		}
+	}
+	return true;
+}
+
 float ClassAssessmentsSummaryReportForm::getAssessmentWeighting(const QModelIndex &assessmentRow) const
 {
 	float retVal;
@@ -283,6 +358,16 @@ const AssessmentResult *ClassAssessmentsSummaryReportForm::getStudentAssessmentR
 			return &assessmentResult;
 		}
 	}	
+	return nullptr;
+}
+
+const Student* ClassAssessmentsSummaryReportForm::findStudent(const size_t id, const list<Student> &students) const
+{
+	for(const auto &student : students) {
+		if (student.getId() == id) {
+			return &student;
+		}
+	}
 	return nullptr;
 }
 
