@@ -74,7 +74,7 @@ public:
 
 TEST(AssessmentController_Constructor, ValidArguments_ReturnSuccess)
 {
-	AssessmentController controller(FakeDatabaseController(), unique_ptr<ManagementItemStorageBase<Assessment>>(make_unique<FakeAssessmentStorage>()));
+	AssessmentController controller(FakeDatabaseController(), make_unique<FakeAssessmentStorage>());
 }
 
 TEST_F(AssessmentControllerTest, getAssessments_Return2Assessments)

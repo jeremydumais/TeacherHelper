@@ -73,7 +73,7 @@ bool HTMLReport::previewReport(bool ascendingOrder)
     if (!saveTemporaryReportFile()) {
         return false;
     }
-	webView->setUrl(QUrl(fmt::format("file://{0}", renderedReportFileName).c_str()));
+	webView->setUrl(QUrl::fromLocalFile(renderedReportFileName.c_str()));
     return true;
 }
 

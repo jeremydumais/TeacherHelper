@@ -56,7 +56,7 @@ public:
 
 TEST(TestTypeController_Constructor, ValidArguments_ReturnSuccess)
 {
-	TestTypeController controller(FakeDatabaseController(), unique_ptr<ManagementItemStorageBase<TestType>>(make_unique<FakeTestTypeStorage>()));
+	TestTypeController controller(FakeDatabaseController(), make_unique<FakeTestTypeStorage>());
 }
 
 TEST_F(TestTypeControllerTest, getTestTypes_Return2TestTypes)

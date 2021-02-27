@@ -25,7 +25,7 @@ public:
 
 TEST(StudentController_Constructor, ValidArguments_ReturnSuccess)
 {
-	StudentController controller(FakeDatabaseController(), unique_ptr<ManagementItemStorageBase<Student>>(make_unique<FakeStudentStorage>()));
+	StudentController controller(FakeDatabaseController(), make_unique<FakeStudentStorage>());
 }
 
 TEST_F(StudentControllerTest, getStudents_Return2Students)

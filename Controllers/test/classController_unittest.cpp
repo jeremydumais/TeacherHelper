@@ -57,7 +57,7 @@ public:
 
 TEST(ClassController_Constructor, ValidArguments_ReturnSuccess)
 {
-	ClassController controller(FakeDatabaseController(), unique_ptr<ManagementItemStorageBase<Class>>(make_unique<FakeClassStorage>()));
+	ClassController controller(FakeDatabaseController(), make_unique<FakeClassStorage>());
 }
 
 TEST_F(ClassControllerTest, getClasses_Return2Classes)

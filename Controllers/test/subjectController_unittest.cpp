@@ -56,7 +56,7 @@ public:
 
 TEST(SubjectController_Constructor, ValidArguments_ReturnSuccess)
 {
-	SubjectController controller(FakeDatabaseController(), unique_ptr<ManagementItemStorageBase<Subject>>(make_unique<FakeSubjectStorage>()));
+	SubjectController controller(FakeDatabaseController(), make_unique<FakeSubjectStorage>());
 }
 
 TEST_F(SubjectControllerTest, getSubjects_Return2Subjects)

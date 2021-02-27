@@ -57,7 +57,7 @@ public:
 
 TEST(CityController_Constructor, ValidArguments_ReturnSuccess)
 {
-	CityController controller(FakeDatabaseController(), unique_ptr<ManagementItemStorageBase<City>>(make_unique<FakeCityStorage>()));
+	CityController controller(FakeDatabaseController(), make_unique<FakeCityStorage>());
 }
 
 TEST_F(CityControllerTest, getCities_Return2Cities)

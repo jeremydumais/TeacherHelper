@@ -28,6 +28,7 @@ ClassAssessmentsSummaryReportForm::ClassAssessmentsSummaryReportForm(QWidget *pa
 	  reportLoadingState(ReportLoadingResult::NotStarted)
 {
 	ui.setupUi(this);
+	webView->move(-100, -100);
 	webView->show();
 	connect(ui.pushButtonClose, &QPushButton::clicked, this, &ClassAssessmentsSummaryReportForm::close);
 	connect(ui.pushButtonShowReport, &QPushButton::clicked, this, &ClassAssessmentsSummaryReportForm::pushButtonShowReport_Clicked);
