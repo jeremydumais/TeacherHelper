@@ -7,12 +7,13 @@
 #include "classController.h"
 #include "htmlReport.h"
 #include "IReportData.h"
+#include "reportLoadingResult.h"
 #include "schoolController.h"
 #include "ui_classAssessmentsSummaryReportForm.h"
 #include <list>
 #include <map>
 #include <memory>
-#include <QWebView>
+#include <QWebEngineView>
 #include <unordered_map>
 
 class ClassAssessmentsSummaryReportForm : public QDialog
@@ -33,8 +34,9 @@ private:
 	AssessmentController assessmentController;
 	std::string resourcesPath;
 	std::string renderedReportFileName;
-	QWebView *webView;
+	QWebEngineView *webView;
 	std::shared_ptr<IReportData> reportData;
+	ReportLoadingResult reportLoadingState;
 	void showError(const std::string &message) const;
 	void refreshSchoolComboBox();
 	void refreshClassComboBox(const School &school);
@@ -60,6 +62,7 @@ private:
 	void tableWidgetAssessments_selectionChanged();
 	void toggleWeightingCellsEditMode(bool enabled);
 	void calculateAutomaticWeighting();
+	void reportLoadFinished(bool result);
 };
 
 #endif // CLASSASSESSMENTSSUMMARYREPORTFORM_H

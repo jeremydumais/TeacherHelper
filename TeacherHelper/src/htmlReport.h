@@ -3,14 +3,14 @@
 #include "IReportData.h"
 #include <map>
 #include <memory>
-#include <QWebView>
+#include <QWebEngineView>
 #include <string>
 #include <vector>
 
 class HTMLReport
 {
 public:
-    HTMLReport(const std::string &reportFileNam, QWebView *webView);
+    HTMLReport(const std::string &reportFileNam, QWebEngineView *webView);
     const std::string &getReportFileName() const;
     const std::string &getLastError() const;
     void setData(const std::vector<std::shared_ptr<IReportData>> &data);
@@ -18,7 +18,7 @@ public:
     bool previewReport(bool ascendingOrder = true);
 private:
     std::string fileName;
-    QWebView *webView;
+    QWebEngineView *webView;
     std::string renderedReportFileName;
     std::string reportContent;
     std::string lastError;

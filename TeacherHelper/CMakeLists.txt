@@ -7,7 +7,7 @@ include_directories(${CMAKE_CURRENT_SOURCE_DIR}/include
     ${CMAKE_SOURCE_DIR}/Controllers/include
     ${QT_INCLUDE_PATH})
 
-find_package(Qt5 COMPONENTS Widgets WebKitWidgets PrintSupport REQUIRED)
+find_package(Qt5 COMPONENTS Widgets WebEngineWidgets PrintSupport REQUIRED)
 
 #Generate QT Form headers
 set(CMAKE_AUTOUIC ON)
@@ -43,6 +43,7 @@ set(PROJECT_SOURCE_FILES ${CMAKE_CURRENT_SOURCE_DIR}/src/main.cpp
                          ${CMAKE_CURRENT_SOURCE_DIR}/src/upgradeProgressForm.cpp
                          ${CMAKE_CURRENT_SOURCE_DIR}/src/aboutBoxForm.cpp
                          ${CMAKE_CURRENT_SOURCE_DIR}/src/imageAttributionsForm.cpp
+                         ${CMAKE_CURRENT_SOURCE_DIR}/src/printhandler.cpp
                          ${CMAKE_CURRENT_SOURCE_DIR}/src/htmlReport.cpp
                          ${CMAKE_CURRENT_SOURCE_DIR}/src/classAssessmentsSummaryReportForm.cpp
                          ${CMAKE_CURRENT_SOURCE_DIR}/src/classAssessmentsSummaryReportStudentPrecisionForm.cpp
@@ -62,7 +63,7 @@ elseif (APPLE)
   set_source_files_properties(${CMAKE_CURRENT_SOURCE_DIR}/res/TeacherHelperIcon256.icns PROPERTIES MACOSX_PACKAGE_LOCATION Resources)
 endif()
 
-target_link_libraries(${PROJECT_NAME} Models DataServices Controllers Qt5::Widgets Qt5::WebKitWidgets Qt5::PrintSupport sqlite3)
+target_link_libraries(${PROJECT_NAME} Models DataServices Controllers Qt5::Widgets Qt5::WebEngineWidgets Qt5::PrintSupport sqlite3)
 
 if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU") #gcc
   # https://gcc.gnu.org/onlinedocs/gcc/Warning-Options.html

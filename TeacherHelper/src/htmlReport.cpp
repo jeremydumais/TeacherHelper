@@ -9,7 +9,7 @@
 
 using namespace std;
 
-HTMLReport::HTMLReport(const string &reportFileName, QWebView *webView) 
+HTMLReport::HTMLReport(const string &reportFileName, QWebEngineView *webView) 
     : fileName(reportFileName),
       webView(webView),
       renderedReportFileName(""),

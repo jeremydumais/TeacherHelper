@@ -1,6 +1,7 @@
 #include "classAssessmentsSummaryReportForm.h"
 #include "classAssessmentsSummaryReportStudentPrecisionForm.h"
 #include "multiAssessmentReportData.h"
+#include "printhandler.h"
 #include <algorithm>
 #include <boost/algorithm/string.hpp>
 #include <boost/none.hpp>
@@ -23,15 +24,18 @@ ClassAssessmentsSummaryReportForm::ClassAssessmentsSummaryReportForm(QWidget *pa
 	  classController(databaseController),
 	  assessmentController(databaseController),
 	  resourcesPath(resourcesPath),
-	  webView(new QWebView(this))
+	  webView(new QWebEngineView(this)),
+	  reportLoadingState(ReportLoadingResult::NotStarted)
 {
 	ui.setupUi(this);
+	webView->show();
 	connect(ui.pushButtonClose, &QPushButton::clicked, this, &ClassAssessmentsSummaryReportForm::close);
 	connect(ui.pushButtonShowReport, &QPushButton::clicked, this, &ClassAssessmentsSummaryReportForm::pushButtonShowReport_Clicked);
 	connect(ui.comboBoxSchool, static_cast<void (QComboBox::*)(int index)>(&QComboBox::currentIndexChanged), this, &ClassAssessmentsSummaryReportForm::comboBoxSchool_CurrentIndexChanged);
 	connect(ui.comboBoxClass, static_cast<void (QComboBox::*)(int index)>(&QComboBox::currentIndexChanged), this, &ClassAssessmentsSummaryReportForm::comboBoxClass_CurrentIndexChanged);
 	connect(ui.checkBoxIdenticalWeighting, &QCheckBox::stateChanged, this, &ClassAssessmentsSummaryReportForm::checkBoxIdenticalWeighting_Changed);
 	connect(ui.tableWidgetAssessments->selectionModel(), &QItemSelectionModel::selectionChanged, this, &ClassAssessmentsSummaryReportForm::tableWidgetAssessments_selectionChanged);
+	connect(webView->page(), &QWebEnginePage::loadFinished, this, &ClassAssessmentsSummaryReportForm::reportLoadFinished);
 	ui.tableWidgetAssessments->setHorizontalHeaderItem(0, new QTableWidgetItem("Id"));
 	ui.tableWidgetAssessments->setHorizontalHeaderItem(1, new QTableWidgetItem("Weighting %"));
 	ui.tableWidgetAssessments->setHorizontalHeaderItem(2, new QTableWidgetItem("Date"));
@@ -165,21 +169,23 @@ void ClassAssessmentsSummaryReportForm::pushButtonShowReport_Clicked()
 			}
 
 			report.setData(reportData);
+			reportLoadingState = ReportLoadingResult::NotStarted;
 			if (!report.previewReport(false)) {
 				showError(report.getLastError());
 				return;
 			}
-			QCoreApplication::processEvents();
-			QPrinter *printer = new QPrinter();
-			printer->setPageSize(QPrinter::Letter);
-			printer->setPageOrientation(QPageLayout::Portrait);
-			printer->setPageMargins(15.00, 10.00, 7.00, 15.00, QPrinter::Millimeter);
-			printer->setResolution(QPrinter::HighResolution);
-			printer->setFullPage(true);
-			QPrintPreviewDialog *preview = new QPrintPreviewDialog(printer, this);
-			preview->setWindowState(Qt::WindowMaximized);
-			connect(preview, SIGNAL(paintRequested(QPrinter*)), webView, SLOT(print(QPrinter*)));
-			preview->exec();
+			//Wait until the page finish loading
+			while(reportLoadingState == ReportLoadingResult::NotStarted) {
+				QCoreApplication::processEvents();
+			}
+			if (reportLoadingState == ReportLoadingResult::Failed) {
+				showError("Unable to load the web report");
+				return;
+			}
+
+			PrintHandler handler;
+    		handler.setPage(webView->page());
+			handler.printPreview();
 		}
 	}
 	else {
@@ -435,4 +441,9 @@ void ClassAssessmentsSummaryReportForm::calculateAutomaticWeighting()
 			item->setText("");
 		}
 	}
+}
+
+void ClassAssessmentsSummaryReportForm::reportLoadFinished(bool result) 
+{
+	reportLoadingState = (result ? ReportLoadingResult::Completed : ReportLoadingResult::Failed);
 }
