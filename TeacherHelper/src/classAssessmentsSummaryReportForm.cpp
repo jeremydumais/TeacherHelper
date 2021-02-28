@@ -135,7 +135,7 @@ void ClassAssessmentsSummaryReportForm::pushButtonShowReport_Clicked()
 			const School* const selectedSchool = schoolController.findSchool(ui.comboBoxSchool->currentData().toUInt());
 			const Class* const selectedClass = classController.findClass(ui.comboBoxClass->currentData().toUInt());
 
-			HTMLReport report(fmt::format("{0}/reports/MultiAssessmentSummary.html", resourcesPath), webView);
+			HTMLReport report(fmt::format("{0}/resources/reports/MultiAssessmentSummary.html", resourcesPath), webView);
 			string schoolAndClass { fmt::format("{0}, {1}", 
 												selectedSchool->getName(),
 												selectedClass->getName()) };
@@ -420,7 +420,7 @@ void ClassAssessmentsSummaryReportForm::toggleWeightingCellsEditMode(bool enable
 			item->setFlags(Qt::ItemIsEnabled | Qt::ItemIsSelectable | Qt::ItemIsEditable);
 		}
 		else {
-			item->setFlags(Qt::ItemIsSelectable);
+			item->setFlags(Qt::ItemIsEnabled | Qt::ItemIsSelectable);
 		}
 	}	
 }

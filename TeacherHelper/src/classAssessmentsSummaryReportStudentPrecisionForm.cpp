@@ -175,7 +175,7 @@ void ClassAssessmentsSummaryReportStudentPrecisionForm::toggleWeightingCellsEdit
 			item->setFlags(Qt::ItemIsEnabled | Qt::ItemIsSelectable | Qt::ItemIsEditable);
 		}
 		else {
-			item->setFlags(Qt::ItemIsSelectable);
+			item->setFlags(Qt::ItemIsEnabled | Qt::ItemIsSelectable);
 		}
 	}	
 }
