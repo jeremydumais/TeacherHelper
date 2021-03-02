@@ -175,18 +175,21 @@ void ClassAssessmentsSummaryReportForm::pushButtonShowReport_Clicked()
 				showError(report.getLastError());
 				return;
 			}
+			ui.pushButtonShowReport->setEnabled(false);
 			//Wait until the page finish loading
 			while(reportLoadingState == ReportLoadingResult::NotStarted) {
 				QCoreApplication::processEvents();
 			}
 			if (reportLoadingState == ReportLoadingResult::Failed) {
 				showError("Unable to load the web report");
+				ui.pushButtonShowReport->setEnabled(true);
 				return;
 			}
 
 			PrintHandler handler;
     		handler.setPage(webView->page());
 			handler.printPreview();
+			ui.pushButtonShowReport->setEnabled(true);
 		}
 	}
 	else {
@@ -420,7 +423,7 @@ void ClassAssessmentsSummaryReportForm::toggleWeightingCellsEditMode(bool enable
 			item->setFlags(Qt::ItemIsEnabled | Qt::ItemIsSelectable | Qt::ItemIsEditable);
 		}
 		else {
-			item->setFlags(Qt::ItemIsSelectable);
+			item->setFlags(Qt::ItemIsEnabled | Qt::ItemIsSelectable);
 		}
 	}	
 }
