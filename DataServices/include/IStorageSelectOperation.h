@@ -18,4 +18,5 @@ public:
     virtual bool getBoolValue(int columnNumber) const = 0;
     virtual SQLiteDateTime getDateTime(int columnNumber) const = 0;
     virtual double getDoubleValue(int columnNumber) const = 0;
+    virtual float getFloatValue(int columnNumber) const = 0;
 };

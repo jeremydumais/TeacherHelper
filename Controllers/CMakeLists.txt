@@ -21,8 +21,16 @@ add_library(${PROJECT_NAME} SHARED ${CMAKE_CURRENT_SOURCE_DIR}/src/databaseContr
                                    ${CMAKE_CURRENT_SOURCE_DIR}/src/subjectController.cpp
                                    ${CMAKE_CURRENT_SOURCE_DIR}/src/studentSelectionController.cpp
                                    ${CMAKE_CURRENT_SOURCE_DIR}/src/assessmentController.cpp)
-
-target_compile_definitions(${PROJECT_NAME} PRIVATE CONTROLLERS_EXPORTS)
+if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "MSVC")
+  add_definitions(-D_CRT_SECURE_NO_WARNINGS)
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /wd4251 /wd4275")
+  target_compile_definitions(${PROJECT_NAME}
+    PRIVATE CONTROLLERS_EXPORTS
+    INTERFACE NOMINMAX # avoid Win macro definition of min/max, use std one
+    INTERFACE _SCL_SECURE_NO_WARNINGS) # disable security-paranoia warning
+else()
+  target_compile_definitions(${PROJECT_NAME} PRIVATE CONTROLLERS_EXPORTS)
+endif()
 set_target_properties(${PROJECT_NAME} PROPERTIES ENABLE_EXPORTS 1)
 target_link_libraries(${PROJECT_NAME} DataServices ${CONAN_LIBS})
 set_target_properties(

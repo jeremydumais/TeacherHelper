@@ -19,6 +19,7 @@ add_library(${PROJECT_NAME} SHARED src/city.cpp
                               
 if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "MSVC")
     add_definitions(-D_CRT_SECURE_NO_WARNINGS)
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /wd4251")
     target_compile_definitions(${PROJECT_NAME}
       PRIVATE MODELS_EXPORTS
       INTERFACE NOMINMAX # avoid Win macro definition of min/max, use std one

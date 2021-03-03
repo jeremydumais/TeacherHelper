@@ -30,10 +30,20 @@ add_library(${PROJECT_NAME} SHARED src/databaseConnection.cpp
                                    src/assessmentStorage.cpp
                                    src/databaseVersionStorage.cpp
                                    src/databaseManagementOperations.cpp)
-target_compile_definitions(${PROJECT_NAME} PRIVATE DATASERVICES_EXPORTS)
-if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU" OR "${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
-  target_compile_definitions(${PROJECT_NAME} PRIVATE SUPPORT_MAYBE_UNUSED)
+if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "MSVC")
+  add_definitions(-D_CRT_SECURE_NO_WARNINGS)
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /wd4251 /wd4275")
+  target_compile_definitions(${PROJECT_NAME}
+    PRIVATE DATASERVICES_EXPORTS
+    INTERFACE NOMINMAX # avoid Win macro definition of min/max, use std one
+    INTERFACE _SCL_SECURE_NO_WARNINGS) # disable security-paranoia warning
+else()
+  target_compile_definitions(${PROJECT_NAME} PRIVATE DATASERVICES_EXPORTS)
+  if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU" OR "${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
+    target_compile_definitions(${PROJECT_NAME} PRIVATE SUPPORT_MAYBE_UNUSED)
+  endif()
 endif()
+
 set_target_properties( PROPERTIES ENABLE_EXPORTS 1)
 
 target_link_libraries(${PROJECT_NAME} Models ${CONAN_LIBS})

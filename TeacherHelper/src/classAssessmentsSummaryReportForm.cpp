@@ -100,7 +100,7 @@ void ClassAssessmentsSummaryReportForm::refreshAssessmentTable(const Class &item
 	ui.tableWidgetAssessments->model()->removeRows(0, ui.tableWidgetAssessments->rowCount());
 	//Load the class assessments
 	assessmentController.loadAssessmentsByClass(itemClass.getId());
-	size_t row {0};
+	int row {0};
 	for(const auto &assessment : assessmentController.getAssessments()) {
 		ui.tableWidgetAssessments->insertRow(row);
 		ui.tableWidgetAssessments->setItem(row, 0, createNonEditableRow(to_string(assessment.getId())));
@@ -352,7 +352,7 @@ float ClassAssessmentsSummaryReportForm::getAssessmentWeighting(const QModelInde
 	try {
 		retVal = boost::lexical_cast<float>(weightingStr);
 	}
-	catch(boost::bad_lexical_cast &err) {
+	catch(boost::bad_lexical_cast &) {
 		retVal = -1.0f;
 	}
 	return retVal;

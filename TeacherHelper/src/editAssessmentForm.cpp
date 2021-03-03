@@ -321,7 +321,7 @@ void EditAssessmentForm::tableWidgetResults_keyPressEvent(int key, int row, int 
 void EditAssessmentForm::refreshStudentList(const Class &aClass) 
 {
 	ui.tableWidgetResults->model()->removeRows(0, ui.tableWidgetResults->rowCount());
-	size_t row {0};
+	int row {0};
 	for(const auto &student : aClass.getMembers()) {
 		ui.tableWidgetResults->insertRow(row);
 		ui.tableWidgetResults->setItem(row, 1, new QTableWidgetItem(to_string(student.getId()).c_str()));

@@ -54,7 +54,7 @@ void ClassAssessmentsSummaryReportStudentPrecisionForm::showError(const string &
 void ClassAssessmentsSummaryReportStudentPrecisionForm::refreshAssessmentTable() 
 {
 	ui.tableWidgetAssessments->model()->removeRows(0, ui.tableWidgetAssessments->rowCount());
-	size_t row {0};
+	int row {0};
 	for(const auto &assessment : assessments) {
 		ui.tableWidgetAssessments->insertRow(row);
 		ui.tableWidgetAssessments->setItem(row, 0, createNonEditableRow(to_string(assessment->getId())));
@@ -136,7 +136,7 @@ float ClassAssessmentsSummaryReportStudentPrecisionForm::getAssessmentWeighting(
 	try {
 		retVal = boost::lexical_cast<float>(weightingStr);
 	}
-	catch(boost::bad_lexical_cast &err) {
+	catch(boost::bad_lexical_cast &) {
 		retVal = -1.0f;
 	}
 	return retVal;

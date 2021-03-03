@@ -69,7 +69,7 @@ void ClassManagementForm::showEvent(QShowEvent *event)
 void ClassManagementForm::refreshItemsTable()
 {
 	ui.tableWidgetItems->model()->removeRows(0, ui.tableWidgetItems->rowCount());
-	size_t row {0};
+	int row {0};
     for (const auto &itemClass : controller.getClasses()) {
 		ui.tableWidgetItems->insertRow(row);
 		ui.tableWidgetItems->setItem(row, 0, new QTableWidgetItem(to_string(itemClass.getId()).c_str()));
@@ -169,7 +169,7 @@ void ClassManagementForm::pushButtonModify_Click()
 				return;
 			}
 			//Add all members
-			size_t row {0};
+			int row {0};
 			for(const auto &member : editedClass->getMembers()) {
 				string comments = boost::trim_copy(member.getComments());
 				if (!boost::empty(comments)) {
@@ -360,7 +360,7 @@ void ClassManagementForm::pushButtonAddMember_Click()
 		for(const auto &student : students) {
 			//Ensure that the student is not already in the list
 			if (ui.tableWidgetMembers->findItems(to_string(student->getId()).c_str(), Qt::MatchFlag::MatchExactly).size() == 0) {
-				size_t row = ui.tableWidgetMembers->rowCount();
+				int row = ui.tableWidgetMembers->rowCount();
 				ui.tableWidgetMembers->insertRow(row);
 				ui.tableWidgetMembers->setItem(row, 0, new QTableWidgetItem(to_string(student->getId()).c_str()));
 				string comment { student->getComments() };

@@ -102,7 +102,7 @@ Assessment AssessmentStorage::getItemFromRecord(const IStorageSelectOperation &r
                                    City(record.getIntValue(10),
                                         record.getStringValue(11)))),
                       record.getDateTime(12).getBoostPTime(),
-                      record.getDoubleValue(13));
+                      static_cast<float>(record.getDoubleValue(13)));
 }
 
 void AssessmentStorage::postGetStep(list<Assessment> &items) 

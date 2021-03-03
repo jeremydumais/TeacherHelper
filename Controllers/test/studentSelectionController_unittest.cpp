@@ -33,7 +33,8 @@ public:
 
 TEST(StudentSelectionController_Constructor, ValidArguments_ReturnSuccess)
 {
-	StudentSelectionController controller(FakeDatabaseController());
+	FakeDatabaseController dbController;
+	StudentSelectionController controller(dbController);
 }
 
 TEST(StudentSelectionController_isStudentInFilter, EmptyFilter_ReturnTrue)

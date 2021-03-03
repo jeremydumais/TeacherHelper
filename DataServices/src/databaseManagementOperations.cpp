@@ -48,7 +48,7 @@ bool DatabaseManagementOperations::create(const string &databaseName)
     try {
         connection->openForCreation();
     }
-    catch (runtime_error &err) {
+    catch (runtime_error &) {
         lastError = fmt::format("Cannot create database {0}. sqlite3_errmsg(db)", databaseName);
         return false;
     }
@@ -150,7 +150,7 @@ bool DatabaseManagementOperations::migrateToV1_1_0(IDatabaseConnection &connecti
             break;
         }
         else {
-            percentCompleted += (1.0f / static_cast<float>(tableMigrationInstructions.size())) * 80; 
+            percentCompleted += static_cast<int>((1.0f / static_cast<float>(tableMigrationInstructions.size())) * 80.0f); 
             onUpgradeProgress(percentCompleted, fmt::format("{0}%...", percentCompleted));
         }
     }

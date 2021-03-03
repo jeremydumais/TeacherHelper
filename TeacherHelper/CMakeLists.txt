@@ -90,8 +90,8 @@ elseif ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
     )
 elseif ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "MSVC")
     add_definitions(-D_CRT_SECURE_NO_WARNINGS)
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /wd4251 /wd4275")
     target_compile_definitions(${PROJECT_NAME}
-      PUBLIC /wdC4251
       INTERFACE NOMINMAX # avoid Win macro definition of min/max, use std one
       INTERFACE _SCL_SECURE_NO_WARNINGS) # disable security-paranoia warning
 endif()

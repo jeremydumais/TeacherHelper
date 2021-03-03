@@ -19,6 +19,7 @@ public:
     bool getBoolValue(int columnNumber) const override;
     SQLiteDateTime getDateTime(int columnNumber) const override;
     double getDoubleValue(int columnNumber) const override;
+    float getFloatValue(int columnNumber) const override;
 private:
     sqlite3_stmt *stmt;
 };

@@ -81,4 +81,7 @@ double SQLiteSelectOperation::getDoubleValue(int columnNumber) const
     return sqlite3_column_double(stmt, columnNumber);
 }
 
-
+float SQLiteSelectOperation::getFloatValue(int columnNumber) const
+{
+    return static_cast<float>(sqlite3_column_double(stmt, columnNumber));
+}
