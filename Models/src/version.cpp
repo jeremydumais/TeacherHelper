@@ -45,7 +45,7 @@ unsigned char Version::getVersionPartFromString(const string &part) const
     try {
         partConvertedToInt = stoi(part);
     }
-    catch(invalid_argument &err) {
+    catch(invalid_argument &) {
         throw invalid_argument(fmt::format("The part {0} cannot be converted to integer", part));
     }
     if (partConvertedToInt < 0) {

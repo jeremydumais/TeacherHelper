@@ -20,7 +20,7 @@ boost::optional<Version> DatabaseVersionStorage::getVersion()
     try {
         tableExist = isVersionTableExist();
     }
-    catch(runtime_error &err) {
+    catch(runtime_error &) {
         return {};
     }
     if (!tableExist) {

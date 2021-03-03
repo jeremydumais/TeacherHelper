@@ -48,7 +48,7 @@ void SubjectManagementForm::showEvent(QShowEvent *event)
 void SubjectManagementForm::refreshItemsTable()
 {
 	ui.tableWidgetItems->model()->removeRows(0, ui.tableWidgetItems->rowCount());
-	size_t row {0};
+	int row {0};
     for (const auto &subject : controller.getSubjects()) {
 		ui.tableWidgetItems->insertRow(row);
 		ui.tableWidgetItems->setItem(row, 0, new QTableWidgetItem(to_string(subject.getId()).c_str()));

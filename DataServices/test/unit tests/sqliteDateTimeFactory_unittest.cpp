@@ -26,7 +26,7 @@ TEST(SQLiteDateTimeFactory_NewDateTimeFromISOExtended, InvalidFormat_ThrowOutOfR
         auto actual = SQLiteDateTimeFactory::NewDateTimeFromISOExtended("2020-08-29 17:10:00");
         FAIL();
     }
-    catch(const std::out_of_range &e)
+    catch(const std::out_of_range &)
     {
     }
 }
@@ -38,7 +38,7 @@ TEST(SQLiteDateTimeFactory_NewDateTimeFromISOExtended, EmptyString_ThrowOutOfRan
         auto actual = SQLiteDateTimeFactory::NewDateTimeFromISOExtended("");
         FAIL();
     }
-    catch(const std::out_of_range &e)
+    catch(const std::out_of_range &)
     {
     }
 }
@@ -50,7 +50,7 @@ TEST(SQLiteDateTimeFactory_NewDateTimeFromISOExtended, InvalidDate_ThrowOutOfRan
         auto actual = SQLiteDateTimeFactory::NewDateTimeFromISOExtended("2020-02-30T17:10:00");
         FAIL();
     }
-    catch(const std::out_of_range &e)
+    catch(const std::out_of_range &)
     {
     }
 }

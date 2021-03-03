@@ -100,7 +100,7 @@ void ClassAssessmentsSummaryReportForm::refreshAssessmentTable(const Class &item
 	ui.tableWidgetAssessments->model()->removeRows(0, ui.tableWidgetAssessments->rowCount());
 	//Load the class assessments
 	assessmentController.loadAssessmentsByClass(itemClass.getId());
-	size_t row {0};
+	int row {0};
 	for(const auto &assessment : assessmentController.getAssessments()) {
 		ui.tableWidgetAssessments->insertRow(row);
 		ui.tableWidgetAssessments->setItem(row, 0, createNonEditableRow(to_string(assessment.getId())));
@@ -175,18 +175,21 @@ void ClassAssessmentsSummaryReportForm::pushButtonShowReport_Clicked()
 				showError(report.getLastError());
 				return;
 			}
+			ui.pushButtonShowReport->setEnabled(false);
 			//Wait until the page finish loading
 			while(reportLoadingState == ReportLoadingResult::NotStarted) {
 				QCoreApplication::processEvents();
 			}
 			if (reportLoadingState == ReportLoadingResult::Failed) {
 				showError("Unable to load the web report");
+				ui.pushButtonShowReport->setEnabled(true);
 				return;
 			}
 
 			PrintHandler handler;
     		handler.setPage(webView->page());
 			handler.printPreview();
+			ui.pushButtonShowReport->setEnabled(true);
 		}
 	}
 	else {
@@ -349,7 +352,7 @@ float ClassAssessmentsSummaryReportForm::getAssessmentWeighting(const QModelInde
 	try {
 		retVal = boost::lexical_cast<float>(weightingStr);
 	}
-	catch(boost::bad_lexical_cast &err) {
+	catch(boost::bad_lexical_cast &) {
 		retVal = -1.0f;
 	}
 	return retVal;

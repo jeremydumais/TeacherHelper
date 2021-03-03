@@ -102,7 +102,7 @@ Assessment AssessmentStorage::getItemFromRecord(const IStorageSelectOperation &r
                                    City(record.getIntValue(10),
                                         record.getStringValue(11)))),
                       record.getDateTime(12).getBoostPTime(),
-                      record.getDoubleValue(13));
+                      static_cast<float>(record.getDoubleValue(13)));
 }
 
 void AssessmentStorage::postGetStep(list<Assessment> &items) 
@@ -245,7 +245,7 @@ QueryResult AssessmentStorage::preDeleteStep(size_t id)
     return QueryResult::OK;
 }
 
-bool AssessmentStorage::isReferentialIntegrityConstraint(size_t id)
+bool AssessmentStorage::isReferentialIntegrityConstraint(size_t)
 {
     return false;
 }
@@ -255,7 +255,7 @@ std::string AssessmentStorage::getReferentialIntegrityConstraintsCommand() const
     return "";
 }
 
-std::vector<std::string> AssessmentStorage::getReferentialIntegrityConstraintsValues(size_t id) const
+std::vector<std::string> AssessmentStorage::getReferentialIntegrityConstraintsValues(size_t) const
 {
     return {};
 }

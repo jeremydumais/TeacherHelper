@@ -13,7 +13,7 @@ UpgradeProgressForm::UpgradeProgressForm(QWidget *parent)
 
 void UpgradeProgressForm::setProgress(size_t progress) 
 {
-	ui.progressBar->setValue(progress);
+	ui.progressBar->setValue(static_cast<int>(progress));
 }
 
 void UpgradeProgressForm::addMessage(const std::string &message) 

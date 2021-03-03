@@ -468,7 +468,7 @@ void MainForm::treeWidgetSchoolClassNav_currentItemChanged(QTreeWidgetItem *curr
 		size_t classId = current->data(1, 0).toUInt();
 		//Load the class assessments
 		assessmentController->loadAssessmentsByClass(classId);
-		size_t row {0};
+		int row {0};
 		for(const auto &assessment : assessmentController->getAssessments()) {
 			ui.tableWidgetAssessments->insertRow(row);
 			ui.tableWidgetAssessments->setItem(row, 0, new QTableWidgetItem(to_string(assessment.getId()).c_str()));

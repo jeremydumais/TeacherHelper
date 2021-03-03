@@ -52,7 +52,7 @@ void SchoolManagementForm::showEvent(QShowEvent *event)
 void SchoolManagementForm::refreshItemsTable()
 {
 	ui.tableWidgetItems->model()->removeRows(0, ui.tableWidgetItems->rowCount());
-	size_t row {0};
+	int row {0};
     for (const auto &school : controller.getSchools()) {
 		ui.tableWidgetItems->insertRow(row);
 		ui.tableWidgetItems->setItem(row, 0, new QTableWidgetItem(to_string(school.getId()).c_str()));

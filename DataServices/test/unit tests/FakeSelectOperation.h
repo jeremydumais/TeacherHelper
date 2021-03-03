@@ -62,6 +62,11 @@ public:
         return boost::any_cast<double>(returnedItems[currentItemIndex][columnNumber]);
     }
 
+    float getFloatValue(int columnNumber) const
+    {
+        return boost::any_cast<float>(returnedItems[currentItemIndex][columnNumber]);
+    }
+
     bool executeResult = true;
     int currentItemIndex = -1;
     std::vector<std::vector<boost::any>> returnedItems;

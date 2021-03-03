@@ -1,3 +1,5 @@
+#define BOOST_BIND_GLOBAL_PLACEHOLDERS
+
 #include "configurationManager.h"
 #include <boost/property_tree/json_parser.hpp>
 #include <boost/filesystem.hpp>

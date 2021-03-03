@@ -13,8 +13,8 @@ AssessmentResult::AssessmentResult(size_t id,
                      const float result, 
                      const std::string &comments)
     : id(id), 
-      student(student), 
       result(result), 
+      student(student), 
       comments(comments)
 {
     if (result < 0) {

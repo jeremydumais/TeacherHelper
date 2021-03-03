@@ -40,7 +40,7 @@ void StudentSelectionForm::showEvent(QShowEvent *event)
 void StudentSelectionForm::refreshItemsTable(const string &filter)
 {
 	ui.tableWidgetStudents->model()->removeRows(0, ui.tableWidgetStudents->rowCount());
-	size_t row {0};
+	int row {0};
     for (const auto &itemStudent : controller.getStudents()) {
 		if (controller.isStudentInFilter(filter, itemStudent)) {
 			string comments = boost::trim_copy(itemStudent.getComments());

@@ -62,7 +62,7 @@ public:
         return retVal;
     }
 
-    virtual void postGetStep(std::list<T> &items MAYBE_UNUSED) {
+    virtual void postGetStep(std::list<T> & MAYBE_UNUSED) {
     }
     
     virtual const std::string &getLastError() const {
@@ -88,8 +88,8 @@ public:
         return true;
     }
 
-    virtual bool preInsertStep(const T &item MAYBE_UNUSED) { return true; }
-    virtual bool postInsertStep(const T &item MAYBE_UNUSED) { return true; }
+    virtual bool preInsertStep(const T & MAYBE_UNUSED) { return true; }
+    virtual bool postInsertStep(const T & MAYBE_UNUSED) { return true; }
 
     virtual bool updateItem(const T &item) {
         //Optional pre-updateStep
@@ -110,8 +110,8 @@ public:
         return true;
     }
         
-    virtual bool preUpdateStep(const T &item MAYBE_UNUSED) { return true; }
-    virtual bool postUpdateStep(const T &item MAYBE_UNUSED) { return true; }
+    virtual bool preUpdateStep(const T & MAYBE_UNUSED) { return true; }
+    virtual bool postUpdateStep(const T & MAYBE_UNUSED) { return true; }
 
     virtual QueryResult deleteItem(size_t id) {
         //Ensure that the record is not used as a foreign key in another table
@@ -139,8 +139,8 @@ public:
         }
     }
 
-    virtual QueryResult preDeleteStep(size_t id MAYBE_UNUSED) { return QueryResult::OK; }
-    virtual QueryResult postDeleteStep(size_t id MAYBE_UNUSED) { return QueryResult::OK; }
+    virtual QueryResult preDeleteStep(size_t MAYBE_UNUSED) { return QueryResult::OK; }
+    virtual QueryResult postDeleteStep(size_t MAYBE_UNUSED) { return QueryResult::OK; }
 
     virtual bool isReferentialIntegrityConstraint(size_t id) {
         size_t nbOfConstraints {0};
