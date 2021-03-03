@@ -245,7 +245,7 @@ QueryResult AssessmentStorage::preDeleteStep(size_t id)
     return QueryResult::OK;
 }
 
-bool AssessmentStorage::isReferentialIntegrityConstraint(size_t id)
+bool AssessmentStorage::isReferentialIntegrityConstraint(size_t)
 {
     return false;
 }
@@ -255,7 +255,7 @@ std::string AssessmentStorage::getReferentialIntegrityConstraintsCommand() const
     return "";
 }
 
-std::vector<std::string> AssessmentStorage::getReferentialIntegrityConstraintsValues(size_t id) const
+std::vector<std::string> AssessmentStorage::getReferentialIntegrityConstraintsValues(size_t) const
 {
     return {};
 }

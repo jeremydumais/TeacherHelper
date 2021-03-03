@@ -33,8 +33,8 @@ bool SQLiteSelectOperation::execute()
         return false;
     }
 
-    for(int i=1; i<=args.size(); i++) {
-        result = sqlite3_bind_text(stmt, i, (args[i-1]).c_str(), -1, nullptr);
+    for(size_t i=1; i<=args.size(); i++) {
+        result = sqlite3_bind_text(stmt, static_cast<int>(i), (args[i-1]).c_str(), -1, nullptr);
         if(result != SQLITE_OK) {
             lastError = sqlite3_errmsg(static_cast<sqlite3*>(dbConnection->getConnectionPtr()));
             sqlite3_finalize(stmt);
