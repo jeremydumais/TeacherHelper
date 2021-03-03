@@ -9,6 +9,7 @@
 class IDatabaseController
 {
 public:
+    virtual ~IDatabaseController() {};
     boost::signals2::signal<void(size_t progress, const std::string &message)> onUpgradeProgress;
     virtual bool isDatabaseOpened() const = 0;
     virtual std::string getOpenedDatabaseName() const = 0;

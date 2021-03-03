@@ -62,7 +62,7 @@ public:
         return boost::any_cast<double>(returnedItems[currentItemIndex][columnNumber]);
     }
 
-    float getFloatValue(int columnNumber) const
+    float getFloatValue(int columnNumber) const override
     {
         return boost::any_cast<float>(returnedItems[currentItemIndex][columnNumber]);
     }
