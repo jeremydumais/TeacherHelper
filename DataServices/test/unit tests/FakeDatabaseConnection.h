@@ -7,7 +7,7 @@ class FakeDatabaseConnection : public IDatabaseConnection
 {
 public:
     const std::string &getDbName() const override { return dbname; };
-    void *getConnectionPtr() const { return nullptr; };
+    void *getConnectionPtr() const override { return nullptr; };
     void open() override {};
     void openForCreation() override { 
         if (isOpenForCreationThrowRuntimeError) {

@@ -20,7 +20,7 @@ public:
     int open(const std::string &fileName) override;
     int openForCreation(const std::string &fileName) override;
     int close() override;
-    void *getConnectionPtr() const;
+    void *getConnectionPtr() const override;
 private:
 	sqlite3 *db;
 };

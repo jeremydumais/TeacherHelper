@@ -16,7 +16,7 @@ public:
     const std::string &getLastError() const override { return lastError; };
     boost::optional<Version> getVersion() override { return Version(1, 0, 0); }
     bool isDatabaseUpgradeRequired() const override { return false; };
-    bool upgrade() { return false; }
+    bool upgrade() override { return false; }
     void openDatabase(const std::string &databaseName) override {}
     void closeDatabase() override {}
     bool createDatabase(const std::string &databaseName) override { return true; }
