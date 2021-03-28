@@ -1,5 +1,6 @@
 #include "mainForm.h"
 #include "aboutBoxForm.h"
+#include "databaseController.h"
 #include "configurationManager.h"
 #include "specialFolders.h"
 #include "editAssessmentForm.h"
@@ -9,6 +10,7 @@
 #include "studentManagementForm.h"
 #include "testTypeManagementForm.h"
 #include "subjectManagementForm.h"
+#include "classAssessmentsSummaryReportForm.h"
 #include <algorithm>
 #include <boost/filesystem.hpp>
 #include <boost/property_tree/ptree.hpp>
@@ -26,45 +28,15 @@ using namespace boost::property_tree;
 MainForm::MainForm(QWidget *parent)
 	: QMainWindow(parent),
 	  ui(Ui::MainForm()),
-	  dbConnection(nullptr),
-	  functionAfterShownCalled(false)
+	  databaseController(nullptr),
+	  functionAfterShownCalled(false),
+	  resourcesPath("")
 {
 	ui.setupUi(this);
+	fetchResourcesPath();
 	this->showMaximized();
-	connect(ui.action_Quit, &QAction::triggered, this, &MainForm::close);
-	connect(ui.action_AddAssessment, &QAction::triggered, this, &MainForm::action_AddAssessment_Click);
-	connect(ui.action_EditAssessment, &QAction::triggered, this, &MainForm::action_EditAssessment_Click);
-	connect(ui.action_RemoveAssessment, &QAction::triggered, this, &MainForm::action_RemoveAssessment_Click);
-	connect(ui.action_Students, &QAction::triggered, this, &MainForm::action_StudentsManagement_Click);
-	connect(ui.action_Schools, &QAction::triggered, this, &MainForm::action_SchoolsManagement_Click);
-	connect(ui.action_Classes, &QAction::triggered, this, &MainForm::action_ClassesManagement_Click);
-	connect(ui.action_Cities, &QAction::triggered, this, &MainForm::action_CitiesManagement_Click);
-	connect(ui.action_TestTypes, &QAction::triggered, this, &MainForm::action_TestTypesManagement_Click);
-	connect(ui.action_Subjects, &QAction::triggered, this, &MainForm::action_SubjectsManagement_Click);
-	connect(ui.action_About, &QAction::triggered, this, &MainForm::action_About_Click);
-	connect(ui.action_LightTheme, &QAction::triggered, this, &MainForm::action_LightTheme_Click);
-	connect(ui.action_DarkTheme, &QAction::triggered, this, &MainForm::action_DarkTheme_Click);
-	connect(ui.toolButtonExpandAll, &QToolButton::clicked, this, &MainForm::toolButtonExpandAll_Click);
-	connect(ui.toolButtonCollapseAll, &QToolButton::clicked, this, &MainForm::toolButtonCollapseAll_Click);
-	connect(ui.treeWidgetSchoolClassNav, &QTreeWidget::currentItemChanged, this, &MainForm::treeWidgetSchoolClassNav_currentItemChanged);
-	connect(ui.tableWidgetAssessments->selectionModel(), 
-		&QItemSelectionModel::selectionChanged, 
-		this,
-  		&MainForm::tableWidgetAssessments_selectionChanged);
-	connect(ui.tableWidgetAssessments, 
-		&QTableWidget::itemDoubleClicked,
-		this,
-		&MainForm::tableWidgetAssessments_itemDoubleClicked);
-	tableWidgetAssessmentsKeyWatcher.installOn(ui.tableWidgetAssessments);
-	connect(&tableWidgetAssessmentsKeyWatcher, &QTableWidgetKeyPressWatcher::keyPressed, this, &MainForm::tableWidgetAssessments_keyPressEvent);
-
-	ui.tableWidgetAssessments->setHorizontalHeaderItem(0, new QTableWidgetItem("Id"));
-	ui.tableWidgetAssessments->setHorizontalHeaderItem(1, new QTableWidgetItem("Date"));
-	ui.tableWidgetAssessments->setHorizontalHeaderItem(2, new QTableWidgetItem("Name"));
-	ui.tableWidgetAssessments->setHorizontalHeaderItem(3, new QTableWidgetItem("Test type"));
-	ui.tableWidgetAssessments->setHorizontalHeaderItem(4, new QTableWidgetItem("Subject"));
-	ui.tableWidgetAssessments->setHorizontalHeaderItem(5, new QTableWidgetItem("Nb of results"));
-	ui.tableWidgetAssessments->setColumnHidden(0, true);
+	connectUIActions();
+	prepareListsHeaders();
 
 	//Check if the user configuration folder exist
 	userConfigFolder = SpecialFolders::getUserConfigDirectory();
@@ -80,8 +52,9 @@ MainForm::MainForm(QWidget *parent)
 	setAppStylesheet(configManager.getStringValue(ConfigurationManager::THEME_PATH));
 
 	//Check if the database exist. If not, ask for creation.
-	dbConnection = new DatabaseConnection(userConfigFolder + "teacherdb");
-	if (!boost::filesystem::exists(userConfigFolder + "teacherdb")) {
+	databaseController = make_unique<DatabaseController>();
+	const string DATABASEFULLPATH { userConfigFolder + "teacherdb" };
+	if (!databaseController->isDatabaseExist(DATABASEFULLPATH)) {
 		QMessageBox msgBox;
 		msgBox.setText("The database doesn't seem to exist.");
 		msgBox.setInformativeText("Do you want to create it?");
@@ -90,12 +63,9 @@ MainForm::MainForm(QWidget *parent)
 		msgBox.setDefaultButton(QMessageBox::Cancel);
 
 		if (msgBox.exec() == QMessageBox::Yes) {
-			try {
-				dbConnection->create();
-			}
-			catch(runtime_error &err) {
+			if (!databaseController->createDatabase(DATABASEFULLPATH)) {
 				showErrorMessage("The database cannot be created.",
-								 err.what());
+								 databaseController->getLastError());
 				exit(2);
 			}
 		}
@@ -104,11 +74,49 @@ MainForm::MainForm(QWidget *parent)
 		}
 	}
   	try {
-		dbConnection->open();
+		databaseController->openDatabase(DATABASEFULLPATH);
 	}
 	catch(runtime_error &err) {
 	   showErrorMessage("Can't open database", err.what());
 	   exit(1);
+	}
+
+	//Get database version
+	auto currentDatabaseVersion = databaseController->getVersion();
+	if (!currentDatabaseVersion.has_value()) {
+		showErrorMessage("Can't get the database version", databaseController->getLastError());
+	   	exit(3);
+	}
+
+	//Check if a database migration is required
+	if (databaseController->isDatabaseUpgradeRequired()) {
+		QMessageBox msgBox;
+		msgBox.setText("The database needs to be upgraded. This step is required.\nDo you want to proceed now?");
+		msgBox.setWindowTitle("Confirmation");
+		msgBox.setStandardButtons(QMessageBox::Yes | QMessageBox::No | QMessageBox::Cancel);
+		msgBox.setDefaultButton(QMessageBox::Cancel);
+		if (msgBox.exec() == QMessageBox::Yes) {
+			//Display the upgrade windows
+			upgradeProgressForm = make_unique<UpgradeProgressForm>(this);
+			upgradeProgressForm->show();
+			//Do the upgrade
+			databaseController->onUpgradeProgress.connect([this](size_t progress, const string &message) {
+				this->upgradeProgressForm->setProgress(progress);
+				this->upgradeProgressForm->addMessage(message);
+				if (progress >= 100) {
+					this->upgradeProgressForm->enabledFinishButton();
+				}
+				QCoreApplication::processEvents();
+			});
+			
+			if (!databaseController->upgrade()) {
+				upgradeProgressForm->exec();
+				exit(5);
+			}
+		}
+		else {
+			exit(4);
+		}
 	}
 
 	loadControllers();
@@ -116,9 +124,70 @@ MainForm::MainForm(QWidget *parent)
 	toggleAssessmentActionsButtons(false);
 }
 
+void MainForm::fetchResourcesPath() 
+{
+	#ifdef _WIN32
+		char exePath[MAX_PATH]; 
+		// When NULL is passed to GetModuleHandle, the handle of the exe itself is returned
+		HMODULE hModule = GetModuleHandle(nullptr);
+		if (hModule != nullptr)
+		{
+			// Use GetModuleFileName() with module handle to get the path
+			GetModuleFileName(hModule, exePath, (sizeof(exePath))); 
+		}
+		boost::filesystem::path path(exePath);
+		resourcesPath = fmt::format("{0}\\", path.parent_path().string());
+	#else
+		resourcesPath = "/usr/local/share/TeacherHelperApp/";
+	#endif
+}
+
+void MainForm::connectUIActions() 
+{
+	connect(ui.action_Quit, &QAction::triggered, this, &MainForm::close);
+	connect(ui.action_AddAssessment, &QAction::triggered, this, &MainForm::action_AddAssessment_Click);
+	connect(ui.action_EditAssessment, &QAction::triggered, this, &MainForm::action_EditAssessment_Click);
+	connect(ui.action_RemoveAssessment, &QAction::triggered, this, &MainForm::action_RemoveAssessment_Click);
+	connect(ui.action_Students, &QAction::triggered, this, &MainForm::action_StudentsManagement_Click);
+	connect(ui.action_Schools, &QAction::triggered, this, &MainForm::action_SchoolsManagement_Click);
+	connect(ui.action_Classes, &QAction::triggered, this, &MainForm::action_ClassesManagement_Click);
+	connect(ui.action_Cities, &QAction::triggered, this, &MainForm::action_CitiesManagement_Click);
+	connect(ui.action_TestTypes, &QAction::triggered, this, &MainForm::action_TestTypesManagement_Click);
+	connect(ui.action_Subjects, &QAction::triggered, this, &MainForm::action_SubjectsManagement_Click);
+	connect(ui.action_About, &QAction::triggered, this, &MainForm::action_About_Click);
+	connect(ui.action_LightTheme, &QAction::triggered, this, &MainForm::action_LightTheme_Click);
+	connect(ui.action_DarkTheme, &QAction::triggered, this, &MainForm::action_DarkTheme_Click);
+	connect(ui.action_ClassAssessmentsSummaryReport, &QAction::triggered, this, &MainForm::action_ClassAssessmentsSummaryReport_Click);
+	connect(ui.toolButtonExpandAll, &QToolButton::clicked, this, &MainForm::toolButtonExpandAll_Click);
+	connect(ui.toolButtonCollapseAll, &QToolButton::clicked, this, &MainForm::toolButtonCollapseAll_Click);
+	connect(ui.treeWidgetSchoolClassNav, &QTreeWidget::currentItemChanged, this, &MainForm::treeWidgetSchoolClassNav_currentItemChanged);
+	connect(ui.tableWidgetAssessments->selectionModel(), 
+		&QItemSelectionModel::selectionChanged, 
+		this,
+  		&MainForm::tableWidgetAssessments_selectionChanged);
+	connect(ui.tableWidgetAssessments, 
+		&QTableWidget::itemDoubleClicked,
+		this,
+		&MainForm::tableWidgetAssessments_itemDoubleClicked);
+	tableWidgetAssessmentsKeyWatcher.installOn(ui.tableWidgetAssessments);
+	connect(&tableWidgetAssessmentsKeyWatcher, &QTableWidgetKeyPressWatcher::keyPressed, this, &MainForm::tableWidgetAssessments_keyPressEvent);
+
+}
+
+void MainForm::prepareListsHeaders() 
+{
+	ui.tableWidgetAssessments->setHorizontalHeaderItem(0, new QTableWidgetItem("Id"));
+	ui.tableWidgetAssessments->setHorizontalHeaderItem(1, new QTableWidgetItem("Date"));
+	ui.tableWidgetAssessments->setHorizontalHeaderItem(2, new QTableWidgetItem("Name"));
+	ui.tableWidgetAssessments->setHorizontalHeaderItem(3, new QTableWidgetItem("Test type"));
+	ui.tableWidgetAssessments->setHorizontalHeaderItem(4, new QTableWidgetItem("Subject"));
+	ui.tableWidgetAssessments->setHorizontalHeaderItem(5, new QTableWidgetItem("Nb of results"));
+	ui.tableWidgetAssessments->setColumnHidden(0, true);
+}
+
 MainForm::~MainForm()
 {
-	delete dbConnection;
+	databaseController->closeDatabase();
 }
 
 void MainForm::functionAfterShown()
@@ -141,7 +210,7 @@ bool MainForm::event(QEvent *event)
 
 void MainForm::action_AddAssessment_Click() 
 {
-	EditAssessmentForm formEditAssessment(this, *dbConnection, EditAssessmentActionMode::Add);
+	EditAssessmentForm formEditAssessment(this, *databaseController.get(), EditAssessmentActionMode::Add);
 	if (formEditAssessment.exec() == QDialog::DialogCode::Accepted) {
 		//Refresh the navigation and test list
 		refreshTreeViewTestNavigation();
@@ -156,7 +225,7 @@ void MainForm::action_EditAssessment_Click()
 		//Find selected assessment
 		auto assessmentPtr = assessmentController->findAssessment(selectedAssessmentRow[0].data().toUInt());
 		if (assessmentPtr != nullptr) {
-			EditAssessmentForm formEditAssessment(this, *dbConnection, 
+			EditAssessmentForm formEditAssessment(this, *databaseController.get(), 
 												EditAssessmentActionMode::Modify, 
 												assessmentPtr);
 			if (formEditAssessment.exec() == QDialog::DialogCode::Accepted) {
@@ -200,13 +269,13 @@ void MainForm::action_RemoveAssessment_Click()
 	
 void MainForm::action_StudentsManagement_Click()
 {
-	StudentManagementForm formStudentManagement(this, *dbConnection);
+	StudentManagementForm formStudentManagement(this, *databaseController.get());
 	formStudentManagement.exec();
 }
 
 void MainForm::action_SchoolsManagement_Click()
 {
-	SchoolManagementForm formSchoolManagement(this, *dbConnection);
+	SchoolManagementForm formSchoolManagement(this, *databaseController.get());
 	formSchoolManagement.exec();
 	if (formSchoolManagement.getDataHasChanged()) {
 		schoolController->loadSchools();
@@ -217,7 +286,7 @@ void MainForm::action_SchoolsManagement_Click()
 
 void MainForm::action_ClassesManagement_Click()
 {
-	ClassManagementForm formClassManagement(this, *dbConnection);
+	ClassManagementForm formClassManagement(this, *databaseController.get());
 	formClassManagement.exec();
 	if (formClassManagement.getDataHasChanged()) {
 		schoolController->loadSchools();
@@ -228,19 +297,19 @@ void MainForm::action_ClassesManagement_Click()
 
 void MainForm::action_CitiesManagement_Click()
 {
-	CityManagementForm formCityManagement(this, *dbConnection);
+	CityManagementForm formCityManagement(this, *databaseController.get());
 	formCityManagement.exec();
 }
 
 void MainForm::action_TestTypesManagement_Click() 
 {
-	TestTypeManagementForm formTestTypeManagement(this, *dbConnection);
+	TestTypeManagementForm formTestTypeManagement(this, *databaseController.get());
 	formTestTypeManagement.exec();
 }
 
 void MainForm::action_SubjectsManagement_Click() 
 {
-	SubjectManagementForm formSubjectManagement(this, *dbConnection);
+	SubjectManagementForm formSubjectManagement(this, *databaseController.get());
 	formSubjectManagement.exec();
 }
 
@@ -272,6 +341,14 @@ void MainForm::action_DarkTheme_Click()
 	}
 }
 
+void MainForm::action_ClassAssessmentsSummaryReport_Click() 
+{
+	ClassAssessmentsSummaryReportForm formClassAssessmentsSummaryReport(this, 
+																	*databaseController.get(), 
+																	resourcesPath);
+	formClassAssessmentsSummaryReport.exec();
+}
+
 void MainForm::showErrorMessage(const string &message,
 								const string &internalError) const
 {
@@ -296,21 +373,7 @@ void MainForm::setAppStylesheet(const std::string &style)
 	ui.action_LightTheme->setChecked(false);
 	ui.action_DarkTheme->setChecked(false);
 	if (style == "Dark") {
-		#ifdef _WIN32
-			char exePath[MAX_PATH]; 
-			// When NULL is passed to GetModuleHandle, the handle of the exe itself is returned
-			HMODULE hModule = GetModuleHandle(nullptr);
-			if (hModule != nullptr)
-			{
-				// Use GetModuleFileName() with module handle to get the path
-				GetModuleFileName(hModule, exePath, (sizeof(exePath))); 
-			}
-			boost::filesystem::path path(exePath);
-			string stylePath { fmt::format("{0}\\res\\", path.parent_path().string())};
-		#else
-			string stylePath = "/usr/local/share/TeacherHelperApp/res/";
-		#endif
-		QFile file(fmt::format("{0}darkstyle.qss", stylePath).c_str());
+		QFile file(fmt::format("{0}/resources/darkstyle.qss", resourcesPath).c_str());
 		file.open(QFile::ReadOnly);
 		const QString styleSheet = QLatin1String(file.readAll());
 		this->setStyleSheet(styleSheet);
@@ -324,13 +387,13 @@ void MainForm::setAppStylesheet(const std::string &style)
 
 void MainForm::loadControllers() 
 {
-	assessmentController = make_unique<AssessmentController>(*dbConnection);
+	assessmentController = make_unique<AssessmentController>(*databaseController.get());
 	if (!assessmentController) {
 		showErrorMessage("Can't create the assessment controller", "");
 	   	exit(1);
 	}
 
-	schoolController = make_unique<SchoolController>(*dbConnection);
+	schoolController = make_unique<SchoolController>(*databaseController.get());
 	if (schoolController) {
 		schoolController->loadSchools();
 	}
@@ -339,7 +402,7 @@ void MainForm::loadControllers()
 	   	exit(1);
 	}
 
-	classController = make_unique<ClassController>(*dbConnection);
+	classController = make_unique<ClassController>(*databaseController.get());
 	if (classController) {
 		classController->loadClasses();
 	}
@@ -405,7 +468,7 @@ void MainForm::treeWidgetSchoolClassNav_currentItemChanged(QTreeWidgetItem *curr
 		size_t classId = current->data(1, 0).toUInt();
 		//Load the class assessments
 		assessmentController->loadAssessmentsByClass(classId);
-		size_t row {0};
+		int row {0};
 		for(const auto &assessment : assessmentController->getAssessments()) {
 			ui.tableWidgetAssessments->insertRow(row);
 			ui.tableWidgetAssessments->setItem(row, 0, new QTableWidgetItem(to_string(assessment.getId()).c_str()));

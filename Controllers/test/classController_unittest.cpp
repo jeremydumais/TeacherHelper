@@ -1,22 +1,35 @@
 #include "classController.h"
+#include "fakeDatabaseController.h"
 #include <gtest/gtest.h>
 #include <memory>
 
 using namespace std;
 
-class FakeClassStorage : public IManagementItemStorage<Class>
+class FakeClassStorage : public ManagementItemStorageBase<Class>
 {
 public:
     FakeClassStorage()
 		: classes(std::list<Class> {
 			Class(1, "First Grade", School(1, "Thomas Jefferson High School", City("Alexandria"))),
 			Class(2, "Second Grade", School(2, "Carnegie Vanguard High School", City("Houston")))
-		}) {}
+		}),
+		ManagementItemStorageBase<Class>(FakeDatabaseController().getDatabaseConnection()) {}
     std::list<Class> getAllItems() override { return classes;	}
     const std::string &getLastError() const override { return lastError; }
     bool insertItem(const Class &p_class) override { return insertResult; }
     bool updateItem(const Class &p_class) override { return updateResult; }
     QueryResult deleteItem(size_t id) override { return deleteResult; }
+	bool isReferentialIntegrityConstraint(size_t id) override { return true; };
+	std::string getSelectCommand() const override { return ""; };
+    Class getItemFromRecord(const IStorageSelectOperation &record) const override { return { 1, "FakeClass", School(1, "FakeSchool", City(1, "FakeCity")) }; };
+    std::string getInsertCommand() const override { return ""; };
+    std::vector<std::string> getInsertValues(const Class &item) const override { return {"", ""}; };
+    std::string getUpdateCommand() const override {return ""; };
+    std::vector<std::string> getUpdateValues(const Class &item) const override { return {"", ""}; };
+    std::string getDeleteCommand() const override {return ""; };
+    std::vector<std::string> getDeleteValues(size_t id) const override { return {""}; };
+    std::string getReferentialIntegrityConstraintsCommand() const override { return ""; };
+    std::vector<std::string> getReferentialIntegrityConstraintsValues(size_t id) const override { return {""}; };
 	bool insertResult = true;
 	bool updateResult = true;
 	QueryResult deleteResult = QueryResult::OK;
@@ -34,17 +47,17 @@ public:
 
 	void prepareController()
 	{
-		controller = make_unique<ClassController>(DatabaseConnection("nulldb"), 
+		controller = make_unique<ClassController>(FakeDatabaseController(), 
 												 std::move(fakeStorage));
 	}
 
-	unique_ptr<IManagementItemStorage<Class>> fakeStorage;								 
+	unique_ptr<ManagementItemStorageBase<Class>> fakeStorage;								 
 	unique_ptr<ClassController> controller;
 };
 
 TEST(ClassController_Constructor, ValidArguments_ReturnSuccess)
 {
-	ClassController controller(DatabaseConnection("nulldb"), unique_ptr<IManagementItemStorage<Class>>(make_unique<FakeClassStorage>()));
+	ClassController controller(FakeDatabaseController(), make_unique<FakeClassStorage>());
 }
 
 TEST_F(ClassControllerTest, getClasses_Return2Classes)

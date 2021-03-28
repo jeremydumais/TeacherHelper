@@ -123,14 +123,14 @@
              <property name="columnCount">
               <number>6</number>
              </property>
+             <attribute name="horizontalHeaderMinimumSectionSize">
+              <number>150</number>
+             </attribute>
              <attribute name="horizontalHeaderDefaultSectionSize">
               <number>200</number>
              </attribute>
              <attribute name="horizontalHeaderHighlightSections">
               <bool>false</bool>
-             </attribute>
-             <attribute name="horizontalHeaderMinimumSectionSize">
-              <number>150</number>
              </attribute>
              <attribute name="horizontalHeaderStretchLastSection">
               <bool>true</bool>
@@ -206,6 +206,7 @@
      <string>&amp;Report</string>
     </property>
     <addaction name="actionList_of_cities"/>
+    <addaction name="action_ClassAssessmentsSummaryReport"/>
    </widget>
    <widget class="QMenu" name="menu_Test">
     <property name="title">
@@ -370,6 +371,11 @@
    </property>
    <property name="toolTip">
     <string>Edit the assessment</string>
+   </property>
+  </action>
+  <action name="action_ClassAssessmentsSummaryReport">
+   <property name="text">
+    <string>Class assessments &amp;summary report...</string>
    </property>
   </action>
  </widget>

@@ -10,7 +10,7 @@
 class FakeSelectOperation : public IStorageSelectOperation
 {
 public:
-    FakeSelectOperation(const DatabaseConnection &connection, 
+    FakeSelectOperation(const IDatabaseConnection &connection, 
                           const std::string &query,
                           const std::vector<std::string> &args,
                           bool executeResult,
@@ -52,14 +52,19 @@ public:
         return boost::any_cast<bool>(returnedItems[currentItemIndex][columnNumber]);
     }
 
-    SQLiteDateTime getDateTime(int columnNumber) const 
+    SQLiteDateTime getDateTime(int columnNumber) const override
     {
         return SQLiteDateTimeFactory::NewDateTimeFromISOExtended(boost::any_cast<std::string>(returnedItems[currentItemIndex][columnNumber]));
     }
 
-    double getDoubleValue(int columnNumber) const
+    double getDoubleValue(int columnNumber) const override
     {
         return boost::any_cast<double>(returnedItems[currentItemIndex][columnNumber]);
+    }
+
+    float getFloatValue(int columnNumber) const override
+    {
+        return boost::any_cast<float>(returnedItems[currentItemIndex][columnNumber]);
     }
 
     bool executeResult = true;

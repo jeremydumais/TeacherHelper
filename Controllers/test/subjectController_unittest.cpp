@@ -1,23 +1,36 @@
 #include "subjectController.h"
+#include "fakeDatabaseController.h"
 #include <gtest/gtest.h>
 #include <memory>
 
 using namespace std;
 
-class FakeSubjectStorage : public IManagementItemStorage<Subject>
+class FakeSubjectStorage : public ManagementItemStorageBase<Subject>
 {
 public:
     FakeSubjectStorage()
 		: subjects(std::list<Subject> {
 			Subject(1, "Math", true),
 			Subject(2, "English")
-		}) {}
+		}),
+		ManagementItemStorageBase<Subject>(FakeDatabaseController().getDatabaseConnection()) {}
     std::list<Subject> getAllItems() override { return subjects;	}
     const std::string &getLastError() const override { return lastError; }
     bool insertItem(const Subject &subject) override { return insertResult; }
     bool updateItem(const Subject &subject) override { return updateResult; }
     QueryResult deleteItem(size_t id) override { return deleteResult; }
-    bool insertResult = true;
+    bool isReferentialIntegrityConstraint(size_t id) override { return true; };
+	std::string getSelectCommand() const override { return ""; };
+    Subject getItemFromRecord(const IStorageSelectOperation &record) const override { return { 1, "FakeSubject" }; };
+    std::string getInsertCommand() const override { return ""; };
+    std::vector<std::string> getInsertValues(const Subject &item) const override { return {"", ""}; };
+    std::string getUpdateCommand() const override {return ""; };
+    std::vector<std::string> getUpdateValues(const Subject &item) const override { return {"", ""}; };
+    std::string getDeleteCommand() const override {return ""; };
+    std::vector<std::string> getDeleteValues(size_t id) const override { return {""}; };
+    std::string getReferentialIntegrityConstraintsCommand() const override { return ""; };
+    std::vector<std::string> getReferentialIntegrityConstraintsValues(size_t id) const override { return {""}; };
+	bool insertResult = true;
 	bool updateResult = true;
 	QueryResult deleteResult = QueryResult::OK;
 	std::string lastError;
@@ -34,16 +47,16 @@ public:
 
 	void prepareController()
 	{
-		controller = make_unique<SubjectController>(DatabaseConnection("nulldb"), 
+		controller = make_unique<SubjectController>(FakeDatabaseController(), 
 												 std::move(fakeStorage));
 	}
-	unique_ptr<IManagementItemStorage<Subject>> fakeStorage;								 
+	unique_ptr<ManagementItemStorageBase<Subject>> fakeStorage;								 
 	unique_ptr<SubjectController> controller;
 };
 
 TEST(SubjectController_Constructor, ValidArguments_ReturnSuccess)
 {
-	SubjectController controller(DatabaseConnection("nulldb"), unique_ptr<IManagementItemStorage<Subject>>(make_unique<FakeSubjectStorage>()));
+	SubjectController controller(FakeDatabaseController(), make_unique<FakeSubjectStorage>());
 }
 
 TEST_F(SubjectControllerTest, getSubjects_Return2Subjects)

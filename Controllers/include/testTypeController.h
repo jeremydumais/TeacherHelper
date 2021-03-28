@@ -1,8 +1,8 @@
 #pragma once
 
 #include "testType.h"
-#include "IManagementItemStorage.h"
-#include "databaseConnection.h"
+#include "ManagementItemStorageBase.h"
+#include "IDatabaseController.h"
 #include <list>
 #include <memory>
 
@@ -19,8 +19,8 @@
 class TESTTYPECONTROLLER_API TestTypeController
 {
 public:
-    explicit TestTypeController(const DatabaseConnection &dbConnection,
-                            std::unique_ptr<IManagementItemStorage<TestType>> managementItemStorage = nullptr);
+    explicit TestTypeController(const IDatabaseController &databaseController,
+                            std::unique_ptr<ManagementItemStorageBase<TestType>> managementItemStorage = nullptr);
     const std::list<TestType> &getTestTypes() const;
     const TestType* findTestType(size_t id) const;
     bool isNewNameAvailableForAdd(const std::string &name) const;
@@ -33,6 +33,6 @@ public:
     bool deleteTestType(size_t id);
 private:
 	std::list<TestType> testTypes;
-    std::unique_ptr<IManagementItemStorage<TestType>> storage;
+    std::unique_ptr<ManagementItemStorageBase<TestType>> storage;
     std::string lastError;
 };

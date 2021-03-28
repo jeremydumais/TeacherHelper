@@ -6,11 +6,11 @@
 
 using namespace std;
 
-SubjectManagementForm::SubjectManagementForm(QWidget *parent, const DatabaseConnection &connection)
+SubjectManagementForm::SubjectManagementForm(QWidget *parent, const IDatabaseController &databaseController)
 	: QDialog(parent),
-	  ManagementFormBase(connection),
+	  ManagementFormBase(databaseController.getDatabaseConnection()),
 	  ui(Ui::subjectManagementFormClass()),
-	  controller(connection)
+	  controller(databaseController)
 {
 	ui.setupUi(this);
 	ui.frameDetails->setEnabled(false);
@@ -48,7 +48,7 @@ void SubjectManagementForm::showEvent(QShowEvent *event)
 void SubjectManagementForm::refreshItemsTable()
 {
 	ui.tableWidgetItems->model()->removeRows(0, ui.tableWidgetItems->rowCount());
-	size_t row {0};
+	int row {0};
     for (const auto &subject : controller.getSubjects()) {
 		ui.tableWidgetItems->insertRow(row);
 		ui.tableWidgetItems->setItem(row, 0, new QTableWidgetItem(to_string(subject.getId()).c_str()));

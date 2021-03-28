@@ -5,11 +5,11 @@
 
 using namespace std;
 
-StudentManagementForm::StudentManagementForm(QWidget *parent, const DatabaseConnection &connection)
+StudentManagementForm::StudentManagementForm(QWidget *parent, const IDatabaseController &databaseController)
 	: QDialog(parent),
-	  ManagementFormBase(connection),
+	  ManagementFormBase(databaseController.getDatabaseConnection()),
 	  ui(Ui::studentManagementFormClass()),
-	  controller(connection)
+	  controller(databaseController)
 {
 	ui.setupUi(this);
 	ui.frameDetails->setEnabled(false);
@@ -51,7 +51,7 @@ void StudentManagementForm::showEvent(QShowEvent *event)
 void StudentManagementForm::refreshItemsTable()
 {
 	ui.tableWidgetItems->model()->removeRows(0, ui.tableWidgetItems->rowCount());
-	size_t row {0};
+	int row {0};
     for (const auto &student : controller.getStudents()) {
 		ui.tableWidgetItems->insertRow(row);
 		ui.tableWidgetItems->setItem(row, 0, new QTableWidgetItem(to_string(student.getId()).c_str()));

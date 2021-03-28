@@ -10,17 +10,17 @@ using namespace boost::posix_time;
 using namespace boost::gregorian;
 
 EditAssessmentForm::EditAssessmentForm(QWidget *parent, 
-						   const DatabaseConnection &connection,
+						   const IDatabaseController &databaseController,
 						   const EditAssessmentActionMode editMode,
 						   const Assessment * const  assessmentToEdit)
 	: QDialog(parent),
 	  ui(Ui::editAssessmentFormClass()),
 	  editMode(editMode),
-	  controller(connection),
-	  testTypeController(connection),
-	  subjectController(connection),
-	  schoolController(connection),
-	  classController(connection),
+	  controller(databaseController),
+	  testTypeController(databaseController),
+	  subjectController(databaseController),
+	  schoolController(databaseController),
+	  classController(databaseController),
 	  assessmentToEdit(assessmentToEdit)
 {
 	this->setResult(QDialog::DialogCode::Rejected);
@@ -85,6 +85,7 @@ void EditAssessmentForm::prepareFormWithEditingValues()
 	}
 	ui.dateEditAssessmentDate->setDate(QDateConverter::PTimeToQDate(assessmentToEdit->getDateTime()));
 	ui.timeEditAssessmentTime->setTime(QDateConverter::PTimeToQTime(assessmentToEdit->getDateTime()));
+	ui.spinBoxMaxScore->setValue(assessmentToEdit->getMaxScore());
 	//Load all students results
 	const auto resultModel = ui.tableWidgetResults->model();
 	for(const auto assessmentResult : assessmentToEdit->getResults()) {
@@ -192,9 +193,10 @@ bool EditAssessmentForm::validateEntry() const
 					getStudentNameFromTableLine(resultModel, i)));
 				return false;
 			}
-			if (result < 0 || result > 100.0f) {
-				showError(fmt::format("The result of {0} must be between 0 and 100.", 
-					getStudentNameFromTableLine(resultModel, i)));
+			if (result < 0 || result > ui.spinBoxMaxScore->value()) {
+				showError(fmt::format("The result of {0} must be between 0 and {1}.", 
+					getStudentNameFromTableLine(resultModel, i),
+					ui.spinBoxMaxScore->value()));
 				return false;
 			}
 		}
@@ -216,7 +218,8 @@ Assessment EditAssessmentForm::getAssessmentFromFields() const
 							*subjectController.findSubject(ui.comboBoxSubject->currentData().toInt()),
 							*classController.findClass(ui.comboBoxClass->currentData().toInt()),
 							QDateConverter::QDateAndQTimeToPTime(ui.dateEditAssessmentDate->date(),
-																 ui.timeEditAssessmentTime->time()));
+																 ui.timeEditAssessmentTime->time()),
+							ui.spinBoxMaxScore->value());
 	const auto resultModel = ui.tableWidgetResults->model();
 	for(int i=0; i<resultModel->rowCount() ;i++) {
 		string result = boost::trim_copy(resultModel->index(i, 4).data().toString().toStdString());
@@ -235,8 +238,8 @@ Assessment EditAssessmentForm::getAssessmentFromFields() const
 std::string EditAssessmentForm::getStudentNameFromTableLine(QAbstractItemModel * const model, int rowIndex) const
 {
 	return fmt::format("{0} {1}", 
-		model->index(rowIndex, 1).data().toString().toStdString(),
-		model->index(rowIndex, 2).data().toString().toStdString());
+		model->index(rowIndex, 2).data().toString().toStdString(),
+		model->index(rowIndex, 3).data().toString().toStdString());
 }
 
 void EditAssessmentForm::pushButtonCancel_Click()
@@ -318,7 +321,7 @@ void EditAssessmentForm::tableWidgetResults_keyPressEvent(int key, int row, int 
 void EditAssessmentForm::refreshStudentList(const Class &aClass) 
 {
 	ui.tableWidgetResults->model()->removeRows(0, ui.tableWidgetResults->rowCount());
-	size_t row {0};
+	int row {0};
 	for(const auto &student : aClass.getMembers()) {
 		ui.tableWidgetResults->insertRow(row);
 		ui.tableWidgetResults->setItem(row, 1, new QTableWidgetItem(to_string(student.getId()).c_str()));

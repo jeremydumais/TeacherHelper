@@ -1,13 +1,14 @@
 #pragma once
 
 #include "IStorageSelectOperation.h"
+#include <sqlite3.h>
 #include <string>
 #include <vector>
 
 class SQLiteSelectOperation : public IStorageSelectOperation
 {
 public:
-    SQLiteSelectOperation(const DatabaseConnection &connection, 
+    SQLiteSelectOperation(const IDatabaseConnection &connection, 
                           const std::string &query,
                           const std::vector<std::string> &args = std::vector<std::string>());
     bool execute() override;
@@ -18,6 +19,7 @@ public:
     bool getBoolValue(int columnNumber) const override;
     SQLiteDateTime getDateTime(int columnNumber) const override;
     double getDoubleValue(int columnNumber) const override;
+    float getFloatValue(int columnNumber) const override;
 private:
     sqlite3_stmt *stmt;
 };

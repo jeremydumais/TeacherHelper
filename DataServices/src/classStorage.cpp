@@ -5,138 +5,135 @@
 #include "sqliteDeleteOperation.h"
 #include "sqliteOperationFactory.h"
 #include <algorithm>
+#include <boost/algorithm/string.hpp>
 #include <iostream>
 #include <sqlite3.h>
 #include <string>
 
 using namespace std;
 
-ClassStorage::ClassStorage(const DatabaseConnection &connection, 
+ClassStorage::ClassStorage(const IDatabaseConnection &connection, 
                            unique_ptr<IStorageOperationFactory> operationFactory)
-    : connection(&connection),
-      lastError(""),
-      operationFactory { operationFactory ? 
-                         move(operationFactory) : 
-                         make_unique<SQLiteOperationFactory>()}
+    : ManagementItemStorageBase<Class>(connection, move(operationFactory)),
+      oldMembers(list<Student>())
 {
 }
 
-list<Class> ClassStorage::getAllItems()
+std::string ClassStorage::getSelectCommand() const
 {
-    int i =1;
-    list<Class> retVal;
-    auto operation = operationFactory->createSelectOperation(*connection, 
-        "SELECT class.id, class.name, school.id, school.name, city.id, city.name " 
-        "FROM class "
-        "INNER JOIN school ON school.id = class.school_id " 
-        "INNER JOIN city ON city.id = school.city_id " 
-        "ORDER BY class.name, school.name");
-    if (operation->execute()) {
-        while (operation->getRow()) {
-            Class tempClass(operation->getIntValue(0),
-                                operation->getStringValue(1),
-                                School(
-                                  operation->getIntValue(2),
-                                  operation->getStringValue(3),
-                                  City(
-                                    operation->getIntValue(4),
-                                    operation->getStringValue(5))));
-            retVal.push_back(tempClass);
-        }
-        operation->close();
-    }
-    else {
-        lastError = operation->getLastError();
-        return list<Class>();
-    }
-    //Load all members
-    multimap<size_t, Student> classStudents;
-    try {
-        classStudents = loadAllMembers();
-    }
-    catch(runtime_error &err) {
-        lastError = err.what();
-        return list<Class>();
-    }
+    return "SELECT class.id, class.name, school.id, school.name, city.id, city.name " 
+           "FROM class "
+           "INNER JOIN school ON school.id = class.school_id " 
+           "INNER JOIN city ON city.id = school.city_id " 
+           "ORDER BY class.name, school.name";
+}
+
+Class ClassStorage::getItemFromRecord(const IStorageSelectOperation &record) const
+{
+    return Class(record.getIntValue(0),
+                 record.getStringValue(1),
+                 School(record.getIntValue(2),
+                        record.getStringValue(3),
+                        City(record.getIntValue(4),
+                             record.getStringValue(5))));
+}
+
+void ClassStorage::postGetStep(std::list<Class> &items) 
+{
+    auto classStudents = loadAllMembers();
     //Associate all members to classes
-    for(auto &aClass : retVal) {
+    for(auto &aClass : items) {
         auto it = classStudents.find(aClass.getId());
         while(it != classStudents.end() && it->first == aClass.getId()) {
             aClass.addMember(it->second);
             it++;
         }
     }
-    return retVal;
 }
 
-const std::string &ClassStorage::getLastError() const
+std::string ClassStorage::getInsertCommand() const
 {
-    return lastError;
+    return "INSERT INTO class (name, school_id) VALUES(?, ?)";
 }
 
-bool ClassStorage::insertItem(const Class &p_class)
+std::vector<std::string> ClassStorage::getInsertValues(const Class &item) const
 {
-    auto operation = operationFactory->createInsertOperation(*connection, 
-        "INSERT INTO class (name, school_id) VALUES(?, ?)",
-        vector<string> { p_class.getName(), to_string(p_class.getSchool().getId()) });
-    if (!operation->execute()) {
-        lastError = operation->getLastError();
-        return false;
-    }
+    return { item.getName(), to_string(item.getSchool().getId()) };
+}
+
+bool ClassStorage::postInsertStep(const Class &item) 
+{
     //Retreive the assigned primary key (id)
-    size_t classId = retreiveAssignedClassId();
+    size_t classId = retreiveAssignedRecordId();
     if (classId == 0) {
         return false;
     }
-
+    //Add all students to the class members
     vector<size_t> memberIdsToAdd;
-    transform(p_class.getMembers().begin(), p_class.getMembers().end(), std::back_inserter(memberIdsToAdd),
+    transform(item.getMembers().begin(), item.getMembers().end(), std::back_inserter(memberIdsToAdd),
                [](Student const& x) { return x.getId(); });
     return insertMembers(classId, memberIdsToAdd);
 }
 
-bool ClassStorage::updateItem(const Class &p_class)
+std::string ClassStorage::getUpdateCommand() const
 {
+    return "UPDATE class SET name = ?, school_id = ? WHERE id = ?";
+}
+
+std::vector<std::string> ClassStorage::getUpdateValues(const Class &item) const
+{
+    return { item.getName(),
+             to_string(item.getSchool().getId()),
+             to_string(item.getId()) };
+}
+
+bool ClassStorage::preUpdateStep(const Class &item) 
+{ 
     //Load old members
-    list<Student> oldMembers;
+    oldMembers = list<Student>();
     try {
-        oldMembers = loadClassMembers(p_class.getId());
+        oldMembers = loadClassMembers(item.getId());
     }
     catch(runtime_error &err) {
         lastError = err.what();
         return false;
     }
-    //Update current class
-    auto operation = operationFactory->createUpdateOperation(*connection, 
-        "UPDATE class SET name = ?, school_id = ? WHERE id = ?",
-        vector<string> { p_class.getName(),
-            to_string(p_class.getSchool().getId()),
-            to_string(p_class.getId()) });
-    if (!operation->execute()) {
-        lastError = operation->getLastError();
-        return false;
-    }
+    return true;
+}
+
+bool ClassStorage::postUpdateStep(const Class &item) 
+{
     //Remove old members
     vector<size_t> studentIdsToRemove;
     for(const auto &oldMember : oldMembers) {
-        if (find(p_class.getMembers().begin(), p_class.getMembers().end(), oldMember) == p_class.getMembers().end()) {
+        if (find(item.getMembers().begin(), item.getMembers().end(), oldMember) == item.getMembers().end()) {
             studentIdsToRemove.emplace_back(oldMember.getId());
         }
     }
-    if (studentIdsToRemove.size() > 0 && !removeMembers(p_class.getId(), studentIdsToRemove)) {
+    if (studentIdsToRemove.size() > 0 && !removeMembers(item.getId(), studentIdsToRemove)) {
         return false;
     }
     //Add new members
     vector<size_t> studentIdsToAdd;
-    for(const auto &member : p_class.getMembers()) {
+    for(const auto &member : item.getMembers()) {
         if (find(oldMembers.begin(), oldMembers.end(), member) == oldMembers.end()) {
             studentIdsToAdd.emplace_back(member.getId());
         }
     }
-    return insertMembers(p_class.getId(), studentIdsToAdd);
+    return insertMembers(item.getId(), studentIdsToAdd);
 }
 
-QueryResult ClassStorage::deleteItem(size_t id)
+std::string ClassStorage::getDeleteCommand() const
+{
+    return "DELETE FROM class WHERE id = ?";
+}
+
+std::vector<std::string> ClassStorage::getDeleteValues(size_t id) const
+{   
+    return { to_string(id) };
+}
+
+QueryResult ClassStorage::preDeleteStep(size_t id) 
 {
     //Load old members
     list<Student> oldMembers;
@@ -154,34 +151,17 @@ QueryResult ClassStorage::deleteItem(size_t id)
     if (memberIdsToRemove.size() > 0 && !removeMembers(id, memberIdsToRemove)) {
         return QueryResult::ERROR;
     }
-    //Delete the class
-    auto operation = operationFactory->createDeleteOperation(*connection, 
-        "DELETE FROM class WHERE id = ?", 
-        vector<string> { to_string(id) });
-    if (!operation->execute()) {
-        lastError = operation->getLastError();
-    }
-    return operation->getExtendedResultInfo();
+    return QueryResult::OK;
 }
 
-size_t ClassStorage::retreiveAssignedClassId()
+std::string ClassStorage::getReferentialIntegrityConstraintsCommand() const
 {
-    size_t classId {0};
-    auto operationSelectAssignedId = operationFactory->createSelectOperation(*connection, 
-     "SELECT last_insert_rowid()");
-    if (operationSelectAssignedId->execute()) {
-        if (operationSelectAssignedId->getRow()) {
-            classId = operationSelectAssignedId->getIntValue(0);
-        }
-        else {
-            lastError = "Unable to retreive the assigned id for the new class record.";
-        }
-        operationSelectAssignedId->close();
-    }
-    else {
-        lastError = operationSelectAssignedId->getLastError();
-    }
-    return classId;
+    return "SELECT COUNT(id) FROM assessment WHERE class_id = ?";
+}
+
+std::vector<std::string> ClassStorage::getReferentialIntegrityConstraintsValues(size_t id) const
+{
+    return { to_string(id) };
 }
 
 bool ClassStorage::insertMembers(size_t classId, const std::vector<size_t> &studentIdToAdd)
@@ -237,7 +217,8 @@ multimap<size_t, Student> ClassStorage::loadAllMembers()
     auto operationLoadMembers = operationFactory->createSelectOperation(*connection, 
         "SELECT class_id, student_id, student.firstname, student.lastname, student.comments "
         "FROM class_student "
-        "INNER JOIN Student ON class_student.student_id = student.id");
+        "INNER JOIN Student ON class_student.student_id = student.id "
+        "ORDER BY student.lastname, student.firstname");
     if (operationLoadMembers->execute()) {
         while (operationLoadMembers->getRow()) {
             classStudents.insert(make_pair(operationLoadMembers->getIntValue(0), 
@@ -261,7 +242,8 @@ std::list<Student> ClassStorage::loadClassMembers(size_t classId)
         "SELECT student.id, student.firstname, student.lastname, student.comments "
         "FROM class_student "
         "INNER JOIN Student ON class_student.student_id = student.id "
-        "WHERE class_student.class_id = ?", vector<string> { to_string(classId) });
+        "WHERE class_student.class_id = ? "
+        "ORDER BY student.lastname, student.firstname", vector<string> { to_string(classId) });
     if (operationLoadMembers->execute()) {
         while (operationLoadMembers->getRow()) {
             retVal.emplace_back(operationLoadMembers->getIntValue(0),

@@ -12,91 +12,88 @@
 
 using namespace std;
 
-SubjectStorage::SubjectStorage(const DatabaseConnection &connection, 
+SubjectStorage::SubjectStorage(const IDatabaseConnection &connection, 
                                unique_ptr<IStorageOperationFactory> operationFactory)
-    : connection(&connection),
-      lastError(""),
-      operationFactory { operationFactory ? 
-                         move(operationFactory) : 
-                         make_unique<SQLiteOperationFactory>()}
+    : ManagementItemStorageBase<Subject>(connection, move(operationFactory))
 {
 }
 
-list<Subject> SubjectStorage::getAllItems()
+std::string SubjectStorage::getSelectCommand() const
 {
-    int i =1;
-    list<Subject> retVal;
-    auto operation = operationFactory->createSelectOperation(*connection, 
-        "SELECT id, name, isdefault FROM subject ORDER BY name;");
-    if (operation->execute()) {
-        while (operation->getRow()) {
-            Subject tempSubject(operation->getIntValue(0),
-                                operation->getStringValue(1),
-                                operation->getBoolValue(2));
-            retVal.push_back(tempSubject);
-        }
-        operation->close();
-    }
-    else {
-        lastError = operation->getLastError();
-    }
-    return retVal;
+    return "SELECT id, name, isdefault FROM subject ORDER BY name;";
 }
 
-const std::string &SubjectStorage::getLastError() const
+Subject SubjectStorage::getItemFromRecord(const IStorageSelectOperation &record) const
 {
-    return lastError;
+    return Subject(record.getIntValue(0),
+                   record.getStringValue(1),
+                   record.getBoolValue(2));
 }
 
-bool SubjectStorage::insertItem(const Subject &subject)
+std::string SubjectStorage::getInsertCommand() const
+{
+    return "INSERT INTO subject (name, isdefault) VALUES(?, ?)";
+}
+
+std::vector<std::string> SubjectStorage::getInsertValues(const Subject &item) const
+{
+    return { boost::trim_copy(item.getName()), item.getIsDefault() ? "1" : "0" };
+}
+
+bool SubjectStorage::preInsertStep(const Subject &item)
 {
     //If isDefault is true and that there's already a default subject in the database, 
     //then put the old one to false and then proceed with the new one.
-    if(subject.getIsDefault()) {
-        if (!updateAllRowsToRemoveDefault(subject.getId())) {
+    if(item.getIsDefault()) {
+        if (!updateAllRowsToRemoveDefault(item.getId())) {
             return false;
         }
-    }
-    auto operation = operationFactory->createInsertOperation(*connection, 
-        "INSERT INTO subject (name, isdefault) VALUES(?, ?)",
-        vector<string> { boost::trim_copy(subject.getName()), subject.getIsDefault() ? "1" : "0" });
-    if (!operation->execute()) {
-        lastError = operation->getLastError();
-        return false;
     }
     return true;
 }
 
-bool SubjectStorage::updateItem(const Subject &subject)
+std::string SubjectStorage::getUpdateCommand() const
+{
+    return "UPDATE subject SET name = ?, isdefault = ? WHERE id = ?";
+}
+
+std::vector<std::string> SubjectStorage::getUpdateValues(const Subject &item) const
+{
+    return { boost::trim_copy(item.getName()),
+             item.getIsDefault() ? "1" : "0",
+             to_string(item.getId()) };
+}
+
+bool SubjectStorage::preUpdateStep(const Subject &item)
 {
     //If isDefault is true and that there's already a default subject in the database, 
     //then put the old one to false and then proceed with the new one.
-    if(subject.getIsDefault()) {
-        if (!updateAllRowsToRemoveDefault(subject.getId())) {
+    if(item.getIsDefault()) {
+        if (!updateAllRowsToRemoveDefault(item.getId())) {
             return false;
         }
-    }
-    auto operation = operationFactory->createUpdateOperation(*connection, 
-        "UPDATE subject SET name = ?, isdefault = ? WHERE id = ?",
-        vector<string> { boost::trim_copy(subject.getName()),
-                         subject.getIsDefault() ? "1" : "0",
-                         to_string(subject.getId()) });
-    if (!operation->execute()) {
-        lastError = operation->getLastError();
-        return false;
     }
     return true;
 }
 
-QueryResult SubjectStorage::deleteItem(size_t id)
+std::string SubjectStorage::getDeleteCommand() const
 {
-    auto operation = operationFactory->createDeleteOperation(*connection, 
-        "DELETE FROM subject WHERE id = ?", 
-        vector<string> { to_string(id) });
-    if (!operation->execute()) {
-        lastError = operation->getLastError();
-    }
-    return operation->getExtendedResultInfo();
+    return "DELETE FROM subject WHERE id = ?";
+}
+
+std::vector<std::string> SubjectStorage::getDeleteValues(size_t id) const
+{   
+    return { to_string(id) };
+}
+
+std::string SubjectStorage::getReferentialIntegrityConstraintsCommand() const
+{
+    return "SELECT COUNT(id) FROM assessment WHERE subject_id = ?";
+}
+
+std::vector<std::string> SubjectStorage::getReferentialIntegrityConstraintsValues(size_t id) const
+{
+    return { to_string(id) };
 }
 
 bool SubjectStorage::updateAllRowsToRemoveDefault(size_t currentSubjectId)

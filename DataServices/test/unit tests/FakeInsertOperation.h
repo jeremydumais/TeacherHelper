@@ -5,7 +5,7 @@
 class FakeInsertOperation : public IStorageInsertOperation
 {
 public:
-    FakeInsertOperation(const DatabaseConnection &connection, 
+    FakeInsertOperation(const IDatabaseConnection &connection, 
                           const std::string &query,
                           const std::vector<std::string> &args,
                           bool executeResult,

@@ -4,7 +4,7 @@
 
 #ifdef _WIN32
     #ifdef MODELS_EXPORTS  
-        #define CITY_API __declspec(dllexport)   
+        #define CITY_API __declspec(dllexport) 
     #else  
         #define CITY_API __declspec(dllimport)   
     #endif

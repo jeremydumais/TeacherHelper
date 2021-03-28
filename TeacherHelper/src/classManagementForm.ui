@@ -157,18 +157,44 @@
            <enum>QFrame::Raised</enum>
           </property>
           <layout class="QGridLayout" name="gridLayout_2">
-           <item row="4" column="0">
-            <spacer name="verticalSpacer">
-             <property name="orientation">
-              <enum>Qt::Vertical</enum>
-             </property>
-             <property name="sizeHint" stdset="0">
-              <size>
-               <width>20</width>
-               <height>40</height>
-              </size>
-             </property>
-            </spacer>
+           <item row="6" column="0">
+            <layout class="QHBoxLayout" name="horizontalLayout_2">
+             <item>
+              <spacer name="horizontalSpacer">
+               <property name="orientation">
+                <enum>Qt::Horizontal</enum>
+               </property>
+               <property name="sizeHint" stdset="0">
+                <size>
+                 <width>40</width>
+                 <height>20</height>
+                </size>
+               </property>
+              </spacer>
+             </item>
+             <item>
+              <widget class="QPushButton" name="pushButtonCancel">
+               <property name="text">
+                <string>&amp;Cancel</string>
+               </property>
+               <property name="icon">
+                <iconset resource="../res/global.qrc">
+                 <normaloff>:/global/cancel22.png</normaloff>:/global/cancel22.png</iconset>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QPushButton" name="pushButtonOK">
+               <property name="text">
+                <string>&amp;OK</string>
+               </property>
+               <property name="icon">
+                <iconset resource="../res/global.qrc">
+                 <normaloff>:/global/ok22.png</normaloff>:/global/ok22.png</iconset>
+               </property>
+              </widget>
+             </item>
+            </layout>
            </item>
            <item row="2" column="0">
             <widget class="QTableWidget" name="tableWidgetMembers">
@@ -212,45 +238,6 @@
              <column/>
             </widget>
            </item>
-           <item row="6" column="0">
-            <layout class="QHBoxLayout" name="horizontalLayout_2">
-             <item>
-              <spacer name="horizontalSpacer">
-               <property name="orientation">
-                <enum>Qt::Horizontal</enum>
-               </property>
-               <property name="sizeHint" stdset="0">
-                <size>
-                 <width>40</width>
-                 <height>20</height>
-                </size>
-               </property>
-              </spacer>
-             </item>
-             <item>
-              <widget class="QPushButton" name="pushButtonCancel">
-               <property name="text">
-                <string>&amp;Cancel</string>
-               </property>
-               <property name="icon">
-                <iconset resource="../res/global.qrc">
-                 <normaloff>:/global/cancel22.png</normaloff>:/global/cancel22.png</iconset>
-               </property>
-              </widget>
-             </item>
-             <item>
-              <widget class="QPushButton" name="pushButtonOK">
-               <property name="text">
-                <string>&amp;OK</string>
-               </property>
-               <property name="icon">
-                <iconset resource="../res/global.qrc">
-                 <normaloff>:/global/ok22.png</normaloff>:/global/ok22.png</iconset>
-               </property>
-              </widget>
-             </item>
-            </layout>
-           </item>
            <item row="0" column="0">
             <widget class="QFrame" name="frame">
              <property name="frameShape">
@@ -283,7 +270,14 @@
              </layout>
             </widget>
            </item>
-           <item row="3" column="0">
+           <item row="4" column="0">
+            <widget class="Line" name="line">
+             <property name="orientation">
+              <enum>Qt::Horizontal</enum>
+             </property>
+            </widget>
+           </item>
+           <item row="1" column="0">
             <widget class="QFrame" name="frame_2">
              <property name="frameShape">
               <enum>QFrame::StyledPanel</enum>
@@ -293,22 +287,15 @@
              </property>
              <layout class="QHBoxLayout" name="horizontalLayout_6">
               <item>
-               <spacer name="horizontalSpacer_4">
-                <property name="orientation">
-                 <enum>Qt::Horizontal</enum>
-                </property>
-                <property name="sizeHint" stdset="0">
+               <widget class="QPushButton" name="pushButtonAddMember">
+                <property name="minimumSize">
                  <size>
-                  <width>202</width>
-                  <height>20</height>
+                  <width>127</width>
+                  <height>0</height>
                  </size>
                 </property>
-               </spacer>
-              </item>
-              <item>
-               <widget class="QPushButton" name="pushButtonAddMember">
                 <property name="text">
-                 <string>&amp;Add</string>
+                 <string>&amp;Add member...</string>
                 </property>
                 <property name="icon">
                  <iconset resource="../res/global.qrc">
@@ -318,8 +305,14 @@
               </item>
               <item>
                <widget class="QPushButton" name="pushButtonRemoveMember">
+                <property name="minimumSize">
+                 <size>
+                  <width>144</width>
+                  <height>0</height>
+                 </size>
+                </property>
                 <property name="text">
-                 <string>&amp;Remove</string>
+                 <string>&amp;Remove member</string>
                 </property>
                 <property name="icon">
                  <iconset resource="../res/global.qrc">
@@ -369,11 +362,16 @@
   </layout>
  </widget>
  <tabstops>
+  <tabstop>tableWidgetItems</tabstop>
   <tabstop>pushButtonAdd</tabstop>
+  <tabstop>pushButtonDuplicate</tabstop>
   <tabstop>pushButtonModify</tabstop>
   <tabstop>pushButtonDelete</tabstop>
   <tabstop>lineEditName</tabstop>
   <tabstop>comboBoxSchool</tabstop>
+  <tabstop>pushButtonAddMember</tabstop>
+  <tabstop>pushButtonRemoveMember</tabstop>
+  <tabstop>tableWidgetMembers</tabstop>
   <tabstop>pushButtonOK</tabstop>
   <tabstop>pushButtonCancel</tabstop>
   <tabstop>pushButtonClose</tabstop>

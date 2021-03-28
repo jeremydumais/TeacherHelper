@@ -3,7 +3,7 @@
 
 using namespace std;
 
-ManagementFormBase::ManagementFormBase(const DatabaseConnection &connection)
+ManagementFormBase::ManagementFormBase(const IDatabaseConnection &connection)
     : mode(ActionMode::None),
       dbConnection(&connection),
 	  dataHasChanged(false)
@@ -14,7 +14,7 @@ ManagementFormBase::~ManagementFormBase()
 {
 }
 
-void ManagementFormBase::setDatabaseConnection(const DatabaseConnection &connection)
+void ManagementFormBase::setDatabaseConnection(const IDatabaseConnection &connection)
 {
 	this->dbConnection = &connection;
 }

@@ -32,4 +32,10 @@ public:
     {
         return FakeOperationResult(executeResult, extendedError, lastError);
     }
+
+    static FakeOperationResult createNewDDLResult(bool executeResult,
+                                                     const std::string &lastError = "")
+    {
+        return FakeOperationResult(executeResult, QueryResult::OK, lastError);
+    }
 };

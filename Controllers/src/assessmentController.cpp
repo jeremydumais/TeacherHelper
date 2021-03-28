@@ -4,12 +4,12 @@
 
 using namespace std;
 
-AssessmentController::AssessmentController(const DatabaseConnection &dbConnection,
-                               unique_ptr<IManagementItemStorage<Assessment>> managementItemStorage)
+AssessmentController::AssessmentController(const IDatabaseController &databaseController,
+                               unique_ptr<ManagementItemStorageBase<Assessment>> managementItemStorage)
     : assessments(list<Assessment>()),
       storage { managementItemStorage ? 
                 move(managementItemStorage) : 
-                unique_ptr<IManagementItemStorage<Assessment>>(make_unique<AssessmentStorage>(dbConnection))},
+                unique_ptr<ManagementItemStorageBase<Assessment>>(make_unique<AssessmentStorage>(databaseController.getDatabaseConnection()))},
       lastError("")
 {
 }
@@ -87,4 +87,18 @@ bool AssessmentController::deleteAssessment(size_t id)
         lastError = storage->getLastError();
     }
     return retVal == QueryResult::OK;
+}
+
+vector<AssessmentResult> AssessmentController::getStudentAllAssessmentResults(const Student &student) const
+{
+    vector<AssessmentResult> retVal;
+    for(const auto &assessment : assessments) {
+        copy_if(assessment.getResults().begin(), 
+                assessment.getResults().end(), 
+                back_inserter(retVal), 
+                [&student] (const AssessmentResult &itemResult) { 
+                    return itemResult.getStudent() == student;
+                });
+    }
+    return retVal;
 }

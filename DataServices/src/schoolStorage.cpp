@@ -11,79 +11,64 @@
 
 using namespace std;
 
-SchoolStorage::SchoolStorage(const DatabaseConnection &connection, 
+SchoolStorage::SchoolStorage(const IDatabaseConnection &connection, 
                              unique_ptr<IStorageOperationFactory> operationFactory)
-    : connection(&connection),
-      lastError(""),
-      operationFactory { operationFactory ? 
-                         move(operationFactory) : 
-                         make_unique<SQLiteOperationFactory>()}
+    : ManagementItemStorageBase<School>(connection, move(operationFactory))
 {
 }
 
-list<School> SchoolStorage::getAllItems()
+std::string SchoolStorage::getSelectCommand() const
 {
-    int i =1;
-    list<School> retVal;
-    auto operation = operationFactory->createSelectOperation(*connection, 
-        "SELECT school.id, school.name, city.id, city.name FROM school "
-        "INNER JOIN city ON city.id = school.city_id "
-        "ORDER BY school.name, city.name");
-    if (operation->execute()) {
-        while (operation->getRow()) {
-            School tempSchool(operation->getIntValue(0),
-                              operation->getStringValue(1),
-                              City(
-                                operation->getIntValue(2),
-                                operation->getStringValue(3)));
-            retVal.push_back(tempSchool);
-        }
-        operation->close();
-    }
-    else {
-        lastError = operation->getLastError();
-    }
-    return retVal;
+    return "SELECT school.id, school.name, city.id, city.name FROM school "
+           "INNER JOIN city ON city.id = school.city_id "
+           "ORDER BY school.name, city.name";
 }
 
-const std::string &SchoolStorage::getLastError() const
+School SchoolStorage::getItemFromRecord(const IStorageSelectOperation &record) const
 {
-    return lastError;
+    return School (record.getIntValue(0),
+                   record.getStringValue(1),
+                   City(record.getIntValue(2),
+                        record.getStringValue(3)));
 }
 
-bool SchoolStorage::insertItem(const School &school)
+std::string SchoolStorage::getInsertCommand() const
 {
-    auto operation = operationFactory->createInsertOperation(*connection,
-        "INSERT INTO school (name, city_id) VALUES(?, ?)",
-        vector<string> { school.getName(), to_string(school.getCity().getId()) });
-    if (!operation->execute()) {
-        lastError = operation->getLastError();
-        return false;
-    }
-    return true;
+    return "INSERT INTO school (name, city_id) VALUES(?, ?)";
 }
 
-bool SchoolStorage::updateItem(const School &school)
+std::vector<std::string> SchoolStorage::getInsertValues(const School &item) const
 {
-    auto operation = operationFactory->createUpdateOperation(*connection, 
-        "UPDATE school SET name = ?, city_id = ? WHERE id = ?",
-        vector<string> { school.getName(),
-            to_string(school.getCity().getId()),
-            to_string(school.getId()) });
-    if (!operation->execute()) {
-        lastError = operation->getLastError();
-        return false;
-    }
-    return true;
+    return { item.getName(), to_string(item.getCity().getId()) };
 }
 
-QueryResult SchoolStorage::deleteItem(size_t id)
+std::string SchoolStorage::getUpdateCommand() const
 {
-    auto operation = operationFactory->createDeleteOperation(*connection,
-        "DELETE FROM school WHERE id = ?", 
-        vector<string> { to_string(id) });
-    if (!operation->execute()) {
-        lastError = operation->getLastError();
-    }
-    return operation->getExtendedResultInfo();
+    return "UPDATE school SET name = ?, city_id = ? WHERE id = ?";
+}
+
+std::vector<std::string> SchoolStorage::getUpdateValues(const School &item) const
+{
+    return { item.getName(),
+             to_string(item.getCity().getId()),
+             to_string(item.getId()) };
+}
+std::string SchoolStorage::getDeleteCommand() const
+{
+    return "DELETE FROM school WHERE id = ?";
+}
+
+std::vector<std::string> SchoolStorage::getDeleteValues(size_t id) const
+{   
+    return { to_string(id) };
+}
+
+std::string SchoolStorage::getReferentialIntegrityConstraintsCommand() const
+{
+    return "SELECT COUNT(id) FROM class WHERE school_id = ?";
+}
+
+std::vector<std::string> SchoolStorage::getReferentialIntegrityConstraintsValues(size_t id) const
+{
+    return { to_string(id) };
 }

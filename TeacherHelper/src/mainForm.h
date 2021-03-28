@@ -3,10 +3,11 @@
 
 #include "assessmentController.h"
 #include "classController.h"
-#include "databaseConnection.h"
+#include "IDatabaseController.h"
 #include "qTableWidgetKeyPressWatcher.h"
 #include "schoolController.h"
 #include "ui_mainForm.h"
+#include "upgradeProgressForm.h"
 #include <memory>
 
 class MainForm : public QMainWindow
@@ -20,20 +21,25 @@ public:
     void functionAfterShown();
 private:
 	Ui::MainForm ui;
-	DatabaseConnection *dbConnection;
+	std::unique_ptr<IDatabaseController> databaseController;
 	std::unique_ptr<AssessmentController> assessmentController;
 	std::unique_ptr<SchoolController> schoolController;
 	std::unique_ptr<ClassController> classController;
 	std::string userConfigFolder;
 	bool functionAfterShownCalled;
+	std::string resourcesPath;
 	QTableWidgetKeyPressWatcher tableWidgetAssessmentsKeyWatcher;
+	std::unique_ptr<UpgradeProgressForm> upgradeProgressForm;
+	void fetchResourcesPath();
 	void showErrorMessage(const std::string &message,
-						  const std::string &internalError) const;
+						  const std::string &internalError = "") const;
 	void setAppStylesheet(const std::string &style);
 	void loadControllers();
 	void refreshTreeViewTestNavigation();
 	void reselectTreeViewTestNavigationItem(size_t classId);
 	void toggleAssessmentActionsButtons(bool isAssessmentSelected);
+	void connectUIActions();
+	void prepareListsHeaders();
 private slots:
 	void action_AddAssessment_Click();
 	void action_EditAssessment_Click();
@@ -47,6 +53,7 @@ private slots:
 	void action_About_Click();
 	void action_LightTheme_Click();
 	void action_DarkTheme_Click();
+	void action_ClassAssessmentsSummaryReport_Click();
 	void toolButtonExpandAll_Click();
 	void toolButtonCollapseAll_Click();
 	void treeWidgetSchoolClassNav_currentItemChanged(QTreeWidgetItem *current);

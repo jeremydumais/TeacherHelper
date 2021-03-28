@@ -2,6 +2,7 @@
 #define SCHOOLMANAGEMENTNFORM_H
 
 #include "cityController.h"
+#include "IDatabaseController.h"
 #include "schoolController.h"
 #include "managementFormBase.h"
 #include "qTableWidgetKeyPressWatcher.h"
@@ -12,7 +13,7 @@ class SchoolManagementForm : public QDialog, public ManagementFormBase
 Q_OBJECT
 
 public:
-	SchoolManagementForm(QWidget *parent, const DatabaseConnection &connection);
+	SchoolManagementForm(QWidget *parent, const IDatabaseController &databaseController);
 	~SchoolManagementForm() = default;
 	void showEvent(QShowEvent *event) override;
 private:

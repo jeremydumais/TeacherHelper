@@ -12,7 +12,7 @@ class TestTypeManagementForm : public QDialog, public ManagementFormBase
 Q_OBJECT
 
 public:
-	TestTypeManagementForm(QWidget *parent, const DatabaseConnection &connection);
+	TestTypeManagementForm(QWidget *parent, const IDatabaseController &databaseController);
 	~TestTypeManagementForm() = default;
 	void showEvent(QShowEvent *event) override;
 private:

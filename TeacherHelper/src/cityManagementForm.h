@@ -12,7 +12,7 @@ class CityManagementForm : public QDialog, public ManagementFormBase
 Q_OBJECT
 
 public:
-	CityManagementForm(QWidget *parent, const DatabaseConnection &connection);
+	CityManagementForm(QWidget *parent, const IDatabaseController &databaseController);
 	~CityManagementForm() = default;
 	void showEvent(QShowEvent *event) override;
 private:

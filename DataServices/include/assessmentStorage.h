@@ -2,8 +2,8 @@
 
 #include "assessment.h"
 #include "databaseConnection.h"
-#include "IManagementItemStorage.h"
 #include "IStorageOperationFactory.h"
+#include "ManagementItemStorageBase.h"
 #include <list>
 #include <map>
 #include <vector>
@@ -19,28 +19,41 @@
     #define ASSESSMENTSTORAGE_API
 #endif
 
-class ASSESSMENTSTORAGE_API AssessmentStorage : public IManagementItemStorage<Assessment>
+class ASSESSMENTSTORAGE_API AssessmentStorage : public ManagementItemStorageBase<Assessment>
 {
 public:
-    explicit AssessmentStorage(const DatabaseConnection &connection, 
+    explicit AssessmentStorage(const IDatabaseConnection &connection, 
                                const std::unique_ptr<IStorageOperationFactory> operationFactory = nullptr);
+
+    std::string getSelectCommand() const override;
+    Assessment getItemFromRecord(const IStorageSelectOperation &record) const override;
+    void postGetStep(std::list<Assessment> &items) override;
+    std::string getInsertCommand() const override;
+    std::vector<std::string> getInsertValues(const Assessment &item) const override;
+    bool postInsertStep(const Assessment &item) override;
+    std::string getUpdateCommand() const override;
+    std::vector<std::string> getUpdateValues(const Assessment &item) const override;
+    bool preUpdateStep(const Assessment &item) override;
+    bool postUpdateStep(const Assessment &item) override;
+    std::string getDeleteCommand() const override;
+    std::vector<std::string> getDeleteValues(size_t id) const override;
+    QueryResult preDeleteStep(size_t id) override;
+    bool isReferentialIntegrityConstraint(size_t id) override;
+    std::string getReferentialIntegrityConstraintsCommand() const override;
+    std::vector<std::string> getReferentialIntegrityConstraintsValues(size_t id) const override;
+    
     std::list<Assessment> getAllItems() override;
     std::list<Assessment> getItemsByClassId(const size_t classId);
     boost::optional<Assessment> getItemById(const size_t id);
     std::list<Assessment> loadItemsFromDB(const std::string &whereClause = "");
-    const std::string &getLastError() const override;
-    bool insertItem(const Assessment &assessment) override;
-    size_t retreiveAssignedAssessmentId();
+
+
+
     bool insertResults(size_t assessmentId, const std::vector<AssessmentResult> &resultsToAdd);
-    bool updateItem(const Assessment &assessment) override;
     bool updateResult(const AssessmentResult &resultToUpdate);
     bool removeResults(const std::vector<size_t> &assessmentResultIdsToRemove);
-    QueryResult deleteItem(size_t id) override;
     std::map<size_t, std::vector<AssessmentResult>> loadAllResults(const std::string &whereClause = "");
-
 private:
-    const DatabaseConnection * const connection;
-    std::string lastError;
-    std::unique_ptr<IStorageOperationFactory> operationFactory;
+    std::map<size_t, std::vector<AssessmentResult>> oldResults;
 };
 

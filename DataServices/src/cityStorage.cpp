@@ -12,75 +12,60 @@
 
 using namespace std;
 
-CityStorage::CityStorage(const DatabaseConnection &connection, 
+CityStorage::CityStorage(const IDatabaseConnection &connection, 
                          unique_ptr<IStorageOperationFactory> operationFactory)
-    : connection(&connection),
-      lastError(""),
-      operationFactory { operationFactory ? 
-                         move(operationFactory) : 
-                         make_unique<SQLiteOperationFactory>()}
+    : ManagementItemStorageBase<City>(connection, move(operationFactory))
 {
 }
 
-list<City> CityStorage::getAllItems()
+std::string CityStorage::getSelectCommand() const
 {
-    int i =1;
-    list<City> retVal;
-    auto operation = operationFactory->createSelectOperation(*connection, 
-        "SELECT id, name FROM city ORDER BY name;");
-    if (operation->execute()) {
-        while (operation->getRow()) {
-            City tempCity(operation->getIntValue(0),
-                          operation->getStringValue(1));
-            retVal.push_back(tempCity);
-        }
-        operation->close();
-    }
-    else {
-        lastError = operation->getLastError();
-    }
-    return retVal;
+    return "SELECT id, name FROM city ORDER BY name;";
 }
 
-const std::string &CityStorage::getLastError() const
+City CityStorage::getItemFromRecord(const IStorageSelectOperation &record) const
 {
-    return lastError;
+    return City(record.getIntValue(0),
+                record.getStringValue(1));
 }
 
-bool CityStorage::insertItem(const City &city)
+std::string CityStorage::getInsertCommand() const
 {
-    auto operation = operationFactory->createInsertOperation(*connection, 
-        "INSERT INTO city (name) VALUES(?)",
-        vector<string> { boost::trim_copy(city.getName()) });
-    if (!operation->execute()) {
-        lastError = operation->getLastError();
-        return false;
-    }
-    return true;
+    return "INSERT INTO city (name) VALUES(?)";
 }
 
-bool CityStorage::updateItem(const City &city)
+std::vector<std::string> CityStorage::getInsertValues(const City &item) const
 {
-    auto operation = operationFactory->createUpdateOperation(*connection, 
-        "UPDATE city SET name = ? WHERE id = ?",
-        vector<string> { boost::trim_copy(city.getName()),
-            to_string(city.getId()) });
-    if (!operation->execute()) {
-        lastError = operation->getLastError();
-        return false;
-    }
-    return true;
+    return { boost::trim_copy(item.getName()) };
 }
 
-QueryResult CityStorage::deleteItem(size_t id)
+std::string CityStorage::getUpdateCommand() const
 {
-    //Ensure that the record is not user as a foreign key in another table
-    
-    auto operation = operationFactory->createDeleteOperation(*connection, 
-        "DELETE FROM city WHERE id = ?", 
-        vector<string> { to_string(id) });
-    if (!operation->execute()) {
-        lastError = operation->getLastError();
-    }
-    return operation->getExtendedResultInfo();
+    return "UPDATE city SET name = ? WHERE id = ?";
+}
+
+std::vector<std::string> CityStorage::getUpdateValues(const City &item) const
+{
+    return { boost::trim_copy(item.getName()),
+             to_string(item.getId()) 
+           };
+}
+std::string CityStorage::getDeleteCommand() const
+{
+    return "DELETE FROM city WHERE id = ?";
+}
+
+std::vector<std::string> CityStorage::getDeleteValues(size_t id) const
+{   
+    return { to_string(id) };
+}
+
+std::string CityStorage::getReferentialIntegrityConstraintsCommand() const
+{
+    return "SELECT COUNT(id) FROM school WHERE city_id = ?";
+}
+
+std::vector<std::string> CityStorage::getReferentialIntegrityConstraintsValues(size_t id) const
+{
+    return { to_string(id) };
 }

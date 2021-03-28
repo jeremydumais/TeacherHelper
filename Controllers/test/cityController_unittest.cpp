@@ -1,22 +1,35 @@
 #include "cityController.h"
+#include "fakeDatabaseController.h"
 #include <gtest/gtest.h>
 #include <memory>
 
 using namespace std;
 
-class FakeCityStorage : public IManagementItemStorage<City>
+class FakeCityStorage : public ManagementItemStorageBase<City>
 {
 public:
     FakeCityStorage()
 		: cities(std::list<City> {
 			City(1, "New York"),
 			City(2, "Los Angeles")
-		}) {}
+		}),
+		ManagementItemStorageBase<City>(FakeDatabaseController().getDatabaseConnection()) {}
     std::list<City> getAllItems() override { return cities;	}
     const std::string &getLastError() const override { return lastError; }
     bool insertItem(const City &city) override { return insertResult; }
     bool updateItem(const City &city) override { return updateResult; }
     QueryResult deleteItem(size_t id) override { return deleteResult; }
+	bool isReferentialIntegrityConstraint(size_t id) override { return true; };
+	std::string getSelectCommand() const override { return ""; };
+    City getItemFromRecord(const IStorageSelectOperation &record) const override { return { 1, "FakeCity" }; };
+    std::string getInsertCommand() const override { return ""; };
+    std::vector<std::string> getInsertValues(const City &item) const override { return {"", ""}; };
+    std::string getUpdateCommand() const override {return ""; };
+    std::vector<std::string> getUpdateValues(const City &item) const override { return {"", ""}; };
+    std::string getDeleteCommand() const override {return ""; };
+    std::vector<std::string> getDeleteValues(size_t id) const override { return {""}; };
+    std::string getReferentialIntegrityConstraintsCommand() const override { return ""; };
+    std::vector<std::string> getReferentialIntegrityConstraintsValues(size_t id) const override { return {""}; };
 	bool insertResult = true;
 	bool updateResult = true;
 	QueryResult deleteResult = QueryResult::OK;
@@ -34,17 +47,17 @@ public:
 
 	void prepareController()
 	{
-		controller = make_unique<CityController>(DatabaseConnection("nulldb"), 
+		controller = make_unique<CityController>(FakeDatabaseController(), 
 												 std::move(fakeStorage));
 	}
 
-	unique_ptr<IManagementItemStorage<City>> fakeStorage;								 
+	unique_ptr<ManagementItemStorageBase<City>> fakeStorage;								 
 	unique_ptr<CityController> controller;
 };
 
 TEST(CityController_Constructor, ValidArguments_ReturnSuccess)
 {
-	CityController controller(DatabaseConnection("nulldb"), unique_ptr<IManagementItemStorage<City>>(make_unique<FakeCityStorage>()));
+	CityController controller(FakeDatabaseController(), make_unique<FakeCityStorage>());
 }
 
 TEST_F(CityControllerTest, getCities_Return2Cities)

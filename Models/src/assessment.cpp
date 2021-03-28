@@ -10,8 +10,9 @@ Assessment::Assessment(const string &name,
            const TestType &testType,
            const Subject &subject,
            const Class &itemClass,
-           const boost::posix_time::ptime &itemDate)
-    : Assessment(0, name, testType, subject, itemClass, itemDate)
+           const boost::posix_time::ptime &itemDate,
+           float maxScore)
+    : Assessment(0, name, testType, subject, itemClass, itemDate, maxScore)
 {  
 }
 
@@ -20,13 +21,15 @@ Assessment::Assessment(size_t id,
            const TestType &testType,
            const Subject &subject,
            const Class &itemClass,
-           const boost::posix_time::ptime &itemDate)
+           const boost::posix_time::ptime &itemDate,
+           float maxScore)
     : id(id), 
       name(name),
       testType(testType),
       subject(subject),
       itemClass(itemClass),
       itemDate(itemDate),
+      maxScore(maxScore),
       results(vector<AssessmentResult>())
 {    
     if (trim_copy(name).empty()) {
@@ -67,11 +70,25 @@ const boost::posix_time::ptime& Assessment::getDateTime() const
     return itemDate;
 }
 
+float Assessment::getMaxScore() const
+{
+    return maxScore;
+}
+
 const std::vector<AssessmentResult>& Assessment::getResults() const
 {
     return results;
 }
 
+boost::optional<const AssessmentResult &> Assessment::getStudentResult(const Student &student) const
+{
+    for(const auto &result : results) {
+        if (result.getStudent() == student) {
+            return result;
+        }
+    }
+    return boost::none;
+}
 
 void Assessment::setName(const std::string &name) 
 {
@@ -102,6 +119,17 @@ void Assessment::setClass(const Class &itemClass)
 void Assessment::setDate(const ptime &itemDate) 
 {
     this->itemDate = itemDate;
+}
+
+void Assessment::setMaxScore(float maxScore) 
+{
+    if (maxScore < 1) {
+        throw invalid_argument("The max score cannot be less than 1.");
+    }
+    if (maxScore > 32768) {
+        throw invalid_argument("The max score cannot be higher than max (32768).");
+    }
+    this->maxScore = maxScore;
 }
 
 void Assessment::addResult(const AssessmentResult &assessmentResult) 

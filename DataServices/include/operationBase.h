@@ -1,12 +1,12 @@
 #pragma once
 
-#include "databaseConnection.h"
+#include "IDatabaseConnection.h"
 #include <vector>
 
 class OperationBase
 {
 public: 
-    OperationBase(const DatabaseConnection &connection, 
+    OperationBase(const IDatabaseConnection &connection, 
                           const std::string &query,
                           const std::vector<std::string> &args = std::vector<std::string>())
         : dbConnection(&connection),
@@ -22,7 +22,7 @@ public:
         return lastError;
     }
 protected:
-    const DatabaseConnection *dbConnection;
+    const IDatabaseConnection *dbConnection;
     std::string query;
     std::vector<std::string> args;
     std::string lastError;

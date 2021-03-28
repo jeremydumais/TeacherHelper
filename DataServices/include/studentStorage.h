@@ -1,8 +1,8 @@
 #pragma once
 
 #include "databaseConnection.h"
-#include "IManagementItemStorage.h"
 #include "IStorageOperationFactory.h"
+#include "ManagementItemStorageBase.h"
 #include "student.h"
 #include <list>
 #include <memory>
@@ -17,18 +17,19 @@
     #define STUDENTSTORAGE_API
 #endif
 
-class STUDENTSTORAGE_API StudentStorage : public IManagementItemStorage<Student>
+class STUDENTSTORAGE_API StudentStorage : public ManagementItemStorageBase<Student>
 {
 public:
-    explicit StudentStorage(const DatabaseConnection &connection, 
+    explicit StudentStorage(const IDatabaseConnection &connection, 
                             const std::unique_ptr<IStorageOperationFactory> operationFactory = nullptr);
-    std::list<Student> getAllItems() override;
-    const std::string &getLastError() const override;
-    bool insertItem(const Student &student) override;
-    bool updateItem(const Student &student) override;
-    QueryResult deleteItem(size_t id) override;
-private:
-    const DatabaseConnection * const connection;
-    std::string lastError;
-    std::unique_ptr<IStorageOperationFactory> operationFactory;
+    std::string getSelectCommand() const override;
+    Student getItemFromRecord(const IStorageSelectOperation &record) const override;
+    std::string getInsertCommand() const override;
+    std::vector<std::string> getInsertValues(const Student &item) const override;
+    std::string getUpdateCommand() const override;
+    std::vector<std::string> getUpdateValues(const Student &item) const override;
+    std::string getDeleteCommand() const override;
+    std::vector<std::string> getDeleteValues(size_t id) const override;
+    std::string getReferentialIntegrityConstraintsCommand() const override;
+    std::vector<std::string> getReferentialIntegrityConstraintsValues(size_t id) const override;
 };

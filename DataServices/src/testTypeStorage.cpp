@@ -12,73 +12,59 @@
 
 using namespace std;
 
-TestTypeStorage::TestTypeStorage(const DatabaseConnection &connection, 
+TestTypeStorage::TestTypeStorage(const IDatabaseConnection &connection, 
                          unique_ptr<IStorageOperationFactory> operationFactory)
-    : connection(&connection),
-      lastError(""),
-      operationFactory { operationFactory ? 
-                         move(operationFactory) : 
-                         make_unique<SQLiteOperationFactory>()}
+    : ManagementItemStorageBase<TestType>(connection, move(operationFactory))
 {
 }
 
-list<TestType> TestTypeStorage::getAllItems()
+std::string TestTypeStorage::getSelectCommand() const
 {
-    int i =1;
-    list<TestType> retVal;
-    auto operation = operationFactory->createSelectOperation(*connection, 
-        "SELECT id, name FROM testType ORDER BY name;");
-    if (operation->execute()) {
-        while (operation->getRow()) {
-            TestType tempTestType(operation->getIntValue(0),
-                                operation->getStringValue(1));
-            retVal.push_back(tempTestType);
-        }
-        operation->close();
-    }
-    else {
-        lastError = operation->getLastError();
-    }
-    return retVal;
+    return "SELECT id, name FROM testType ORDER BY name;";
 }
 
-const std::string &TestTypeStorage::getLastError() const
+TestType TestTypeStorage::getItemFromRecord(const IStorageSelectOperation &record) const
 {
-    return lastError;
+    return TestType(record.getIntValue(0),
+                    record.getStringValue(1));
 }
 
-bool TestTypeStorage::insertItem(const TestType &testType)
+std::string TestTypeStorage::getInsertCommand() const
 {
-    auto operation = operationFactory->createInsertOperation(*connection, 
-        "INSERT INTO testType (name) VALUES(?)",
-        vector<string> { boost::trim_copy(testType.getName()) });
-    if (!operation->execute()) {
-        lastError = operation->getLastError();
-        return false;
-    }
-    return true;
+    return "INSERT INTO testType (name) VALUES(?)";
 }
 
-bool TestTypeStorage::updateItem(const TestType &testType)
+std::vector<std::string> TestTypeStorage::getInsertValues(const TestType &item) const
 {
-    auto operation = operationFactory->createUpdateOperation(*connection, 
-        "UPDATE testType SET name = ? WHERE id = ?",
-        vector<string> { boost::trim_copy(testType.getName()),
-            to_string(testType.getId()) });
-    if (!operation->execute()) {
-        lastError = operation->getLastError();
-        return false;
-    }
-    return true;
+    return { boost::trim_copy(item.getName()) };
 }
 
-QueryResult TestTypeStorage::deleteItem(size_t id)
+std::string TestTypeStorage::getUpdateCommand() const
 {
-    auto operation = operationFactory->createDeleteOperation(*connection, 
-        "DELETE FROM testType WHERE id = ?", 
-        vector<string> { to_string(id) });
-    if (!operation->execute()) {
-        lastError = operation->getLastError();
-    }
-    return operation->getExtendedResultInfo();
+    return "UPDATE testType SET name = ? WHERE id = ?";
+}
+
+std::vector<std::string> TestTypeStorage::getUpdateValues(const TestType &item) const
+{
+    return { boost::trim_copy(item.getName()),
+             to_string(item.getId()) };
+}
+std::string TestTypeStorage::getDeleteCommand() const
+{
+    return "DELETE FROM testType WHERE id = ?";
+}
+
+std::vector<std::string> TestTypeStorage::getDeleteValues(size_t id) const
+{   
+    return { to_string(id) };
+}
+
+std::string TestTypeStorage::getReferentialIntegrityConstraintsCommand() const
+{
+    return "SELECT COUNT(id) FROM assessment WHERE testType_id = ?";
+}
+
+std::vector<std::string> TestTypeStorage::getReferentialIntegrityConstraintsValues(size_t id) const
+{
+    return { to_string(id) };
 }

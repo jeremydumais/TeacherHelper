@@ -1,8 +1,8 @@
 #pragma once
 
 #include "class.h"
-#include "IManagementItemStorage.h"
-#include "databaseConnection.h"
+#include "IDatabaseController.h"
+#include "ManagementItemStorageBase.h"
 #include <list>
 #include <memory>
 
@@ -19,8 +19,8 @@
 class CLASSCONTROLLER_API ClassController
 {
 public:
-    explicit ClassController(const DatabaseConnection &dbConnection,
-                            std::unique_ptr<IManagementItemStorage<Class>> managementItemStorage = nullptr);
+    explicit ClassController(const IDatabaseController &databaseController,
+                            std::unique_ptr<ManagementItemStorageBase<Class>> managementItemStorage = nullptr);
     const std::list<Class> &getClasses() const;
     const std::list<Class> getClassesBySchool(const School &school) const;
     const Class* findClass(size_t id) const;
@@ -35,6 +35,6 @@ public:
     bool deleteClass(size_t id);
 private:
 	std::list<Class> classes;
-    std::unique_ptr<IManagementItemStorage<Class>> storage;
+    std::unique_ptr<ManagementItemStorageBase<Class>> storage;
     std::string lastError;
 };

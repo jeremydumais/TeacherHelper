@@ -6,11 +6,11 @@
 
 using namespace std;
 
-TestTypeManagementForm::TestTypeManagementForm(QWidget *parent, const DatabaseConnection &connection)
+TestTypeManagementForm::TestTypeManagementForm(QWidget *parent, const IDatabaseController &databaseController)
 	: QDialog(parent),
-	  ManagementFormBase(connection),
+	  ManagementFormBase(databaseController.getDatabaseConnection()),
 	  ui(Ui::testTypeManagementFormClass()),
-	  controller(connection)
+	  controller(databaseController)
 {
 	ui.setupUi(this);
 	ui.frameDetails->setEnabled(false);
@@ -47,7 +47,7 @@ void TestTypeManagementForm::showEvent(QShowEvent *event)
 void TestTypeManagementForm::refreshItemsTable()
 {
 	ui.tableWidgetItems->model()->removeRows(0, ui.tableWidgetItems->rowCount());
-	size_t row {0};
+	int row {0};
     for (const auto &testType : controller.getTestTypes()) {
 		ui.tableWidgetItems->insertRow(row);
 		ui.tableWidgetItems->setItem(row, 0, new QTableWidgetItem(to_string(testType.getId()).c_str()));

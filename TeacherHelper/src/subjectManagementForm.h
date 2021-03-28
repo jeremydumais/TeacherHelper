@@ -12,7 +12,7 @@ class SubjectManagementForm : public QDialog, public ManagementFormBase
 Q_OBJECT
 
 public:
-	SubjectManagementForm(QWidget *parent, const DatabaseConnection &connection);
+	SubjectManagementForm(QWidget *parent, const IDatabaseController &databaseController);
 	~SubjectManagementForm() = default;
 	void showEvent(QShowEvent *event) override;
 private:
