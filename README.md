@@ -3,7 +3,7 @@
 # TeacherHelper
 ## A software that help teachers to manage their student's grades.
 
-Current version: 1.0.0
+Current version: 1.1.0
 
 **Still in development...**
 
@@ -25,7 +25,7 @@ _The development of reports are coming..._
 
 ### Download latest binaries
 
-[Teacher Helper v1.0.0 for Windows](https://github.com/jeremydumais/TeacherHelper/releases/download/v1.0.0/TeacherHelper.Setup.1.0.0.exe)
+[Teacher Helper v1.1.0 for Windows](https://github.com/jeremydumais/TeacherHelper/releases/download/v1.1.0/TeacherHelper.Setup.1.1.0.exe)
 
 ### How to build source
 
