@@ -21,7 +21,10 @@ You can also choose between two color themes :
 * Light
 * Dark
 
-_The development of reports are coming..._
+Report(s) : 
+* Class assessments summary report
+
+_The development of the other reports are coming..._
 
 ### Download latest binaries
 
